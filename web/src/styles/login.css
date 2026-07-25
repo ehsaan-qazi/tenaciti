@@ -300,8 +300,7 @@
       font-weight: 500;
     }
 
-    /* Register extras */
-    #register-form { display: none; }
+    /* Register extras — form visibility handled by React activeTab state */
 
     /* Floating orbs animation */
     .orb {

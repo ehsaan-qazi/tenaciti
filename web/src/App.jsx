@@ -8,11 +8,15 @@ import NotesPage from './pages/NotesPage'
 import GoalsPage from './pages/GoalsPage'
 import GPAPage from './pages/GPAPage'
 import ProfilePage from './pages/ProfilePage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
+import VerifyEmailConfirmPage from './pages/VerifyEmailConfirmPage'
 import Layout from './components/Layout'
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }) {
-  const { session, loading } = useAuth()
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
@@ -23,15 +27,19 @@ function ProtectedRoute({ children }) {
     )
   }
 
-  if (!session) {
+  if (!user) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!user.is_email_verified) {
+    return <Navigate to="/verify-email" replace />
   }
 
   return children
 }
 
 function AppRoutes() {
-  const { session, loading } = useAuth()
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
@@ -46,8 +54,20 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/login"
-        element={session ? <Navigate to="/" replace /> : <LoginPage />}
+        element={
+          user ? (
+            user.is_email_verified ? <Navigate to="/" replace /> : <Navigate to="/verify-email" replace />
+          ) : (
+            <LoginPage />
+          )
+        }
       />
+
+      {/* Public auth routes (no auth required) */}
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/verify-email/confirm" element={<VerifyEmailConfirmPage />} />
 
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />

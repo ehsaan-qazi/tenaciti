@@ -5,7 +5,7 @@ Requires authentication (any authenticated user can view; you could restrict to 
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_verified_user
 from app.models.user import User
 from app.services.groq_router import get_router, GROQ_MODEL_PRIORITY, COOLDOWN_SECONDS, FAILURE_THRESHOLD
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/llm/status")
-async def get_llm_status(current_user: User = Depends(get_current_user)) -> dict:
+async def get_llm_status(current_user: User = Depends(get_verified_user)) -> dict:
     """
     Return the current circuit-breaker state for each Groq model.
 

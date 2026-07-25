@@ -4,7 +4,7 @@ from sqlalchemy import select
 from typing import List
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_verified_user
 from app.models.user import User
 from app.models.course import Course
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/courses", tags=["Courses"])
 
 @router.get("", response_model=List[CourseResponse])
 async def list_courses(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
@@ -24,7 +24,7 @@ async def list_courses(
 @router.post("", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
 async def create_course(
     course_in: CourseCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db)
 ):
     course = Course(**course_in.model_dump(), user_id=current_user.id)
@@ -36,7 +36,7 @@ async def create_course(
 @router.get("/{course_id}", response_model=CourseResponse)
 async def get_course(
     course_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
@@ -51,7 +51,7 @@ async def get_course(
 async def update_course(
     course_id: int,
     course_in: CourseUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
@@ -72,7 +72,7 @@ async def update_course(
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_course(
     course_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(

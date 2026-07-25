@@ -26,9 +26,9 @@ from app.services.groq_router import get_router
 logger = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# System prompt
+# System prompts
 # ──────────────────────────────────────────────────────────────────────────────
-EXTRACTION_SYSTEM_PROMPT = """You are an academic syllabus parser. Your job is to extract the list of course topics/modules from a syllabus PDF.
+EXTRACTION_SYSTEM_PROMPT_SYLLABUS = """You are an academic syllabus parser. Your job is to extract the list of course topics/modules from a syllabus PDF.
 
 Rules:
 1. Extract each distinct topic, module, chapter, or unit mentioned in the syllabus.
@@ -39,6 +39,20 @@ Rules:
 
 Respond ONLY with a JSON array of topic strings. Example:
 ["Introduction to Algorithms", "Sorting and Searching", "Graph Theory", "Dynamic Programming"]
+
+If you cannot extract any topics, respond with an empty array: []"""
+
+EXTRACTION_SYSTEM_PROMPT_SLIDES = """You are an academic lecture content parser. Your job is to extract the list of topics/concepts covered in lecture slides or instructor notes.
+
+Rules:
+1. Extract each distinct topic, concept, or learning objective from the slides/notes.
+2. Maintain the order they appear (slide order for slides, document order for notes).
+3. Be concise — use the title as written. Don't add commentary.
+4. Ignore administrative slides (title slide, agenda, summary, references, office hours) — focus on content topics only.
+5. If slides have clear section headers, use those as topics.
+
+Respond ONLY with a JSON array of topic strings. Example:
+["Introduction to Machine Learning", "Linear Regression", "Gradient Descent", "Overfitting and Regularization"]
 
 If you cannot extract any topics, respond with an empty array: []"""
 
@@ -58,6 +72,28 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
         text = page.extract_text()
         if text:
             parts.append(text)
+    return "\n\n".join(parts)
+
+
+def extract_text_from_pptx(pptx_bytes: bytes) -> str:
+    """Extract all text content from a PPTX file (lecture slides)."""
+    from pptx import Presentation
+    import io as _io
+    prs = Presentation(_io.BytesIO(pptx_bytes))
+    parts = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    text = para.text.strip()
+                    if text:
+                        parts.append(text)
+            if shape.has_table:
+                for row in shape.table.rows:
+                    for cell in row.cells:
+                        text = cell.text.strip()
+                        if text:
+                            parts.append(text)
     return "\n\n".join(parts)
 
 
@@ -90,9 +126,13 @@ def _parse_topics_from_response(response_text: str) -> list[str]:
 # Public API
 # ──────────────────────────────────────────────────────────────────────────────
 
-def call_groq_for_topics(syllabus_text: str) -> tuple[list[str], str]:
+def call_groq_for_topics(text: str, system_prompt: str) -> tuple[list[str], str]:
     """
-    Send syllabus text to Groq via the circuit-breaker router.
+    Send text to Groq via the circuit-breaker router.
+
+    Args:
+        text: The text to extract topics from
+        system_prompt: The system prompt to use (syllabus vs slides)
 
     Returns:
         (topics, model_used) — list of topic title strings and the model name.
@@ -100,12 +140,12 @@ def call_groq_for_topics(syllabus_text: str) -> tuple[list[str], str]:
     Raises:
         RuntimeError if all models are exhausted.
     """
-    if len(syllabus_text) > MAX_SYLLABUS_CHARS:
-        syllabus_text = syllabus_text[:MAX_SYLLABUS_CHARS] + "\n\n[... truncated for length]"
+    if len(text) > MAX_SYLLABUS_CHARS:
+        text = text[:MAX_SYLLABUS_CHARS] + "\n\n[... truncated for length]"
 
     messages = [
-        {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
-        {"role": "user", "content": f"Extract the topics from this syllabus:\n\n{syllabus_text}"},
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Extract the topics from this content:\n\n{text}"},
     ]
 
     router = get_router()
@@ -121,8 +161,8 @@ async def extract_topics_for_document(
 ) -> list[Topic]:
     """
     Full extraction pipeline for a single document:
-      1. Download PDF from R2
-      2. Extract text via pypdf
+      1. Download file from R2
+      2. Extract text via pypdf (PDF) or python-pptx (PPTX)
       3. Call Groq (with circuit-breaker fallback) for topics
       4. Insert Topic rows into the DB, linked to this document
 
@@ -132,19 +172,32 @@ async def extract_topics_for_document(
     await db.flush()
 
     try:
-        # Step 1: Download PDF from R2
-        pdf_bytes = await run_in_threadpool(storage_service.download_file, document.r2_key)
+        # Step 1: Download file from R2
+        file_bytes = await run_in_threadpool(storage_service.download_file, document.r2_key)
 
-        # Step 2: Extract text
-        syllabus_text = await run_in_threadpool(extract_text_from_pdf, pdf_bytes)
-        if not syllabus_text.strip():
+        # Step 2: Extract text based on MIME type
+        mime_type = (document.mime_type or "").lower()
+        if mime_type == "application/pdf":
+            text = await run_in_threadpool(extract_text_from_pdf, file_bytes)
+            system_prompt = EXTRACTION_SYSTEM_PROMPT_SYLLABUS
+        elif mime_type in ("application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                           "application/vnd.ms-powerpoint"):
+            text = await run_in_threadpool(extract_text_from_pptx, file_bytes)
+            system_prompt = EXTRACTION_SYSTEM_PROMPT_SLIDES
+        else:
             document.processing_status = "failed"
-            document.error_message = "Could not extract any text from the PDF"
+            document.error_message = f"Unsupported file type for topic extraction: {mime_type}"
+            await db.flush()
+            return []
+
+        if not text.strip():
+            document.processing_status = "failed"
+            document.error_message = "Could not extract any text from the document"
             await db.flush()
             return []
 
         # Step 3: Call Groq with fallback
-        topic_titles, model_used = await run_in_threadpool(call_groq_for_topics, syllabus_text)
+        topic_titles, model_used = await run_in_threadpool(call_groq_for_topics, text, system_prompt)
         logger.info(
             "Extracted %d topics from document %d using model %s",
             len(topic_titles), document.id, model_used,

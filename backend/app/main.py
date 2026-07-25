@@ -2,12 +2,15 @@ import sys
 import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from app.config import settings
 import app.models  # Register all ORM models
+from app.middleware.rate_limit import limiter
 
 from app.routes.auth import router as auth_router
 from app.routes.courses import router as courses_router
@@ -22,6 +25,10 @@ app = FastAPI(
     description="Backend API for the Koala learning app",
     version="1.0.0",
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Set up CORS
 app.add_middleware(

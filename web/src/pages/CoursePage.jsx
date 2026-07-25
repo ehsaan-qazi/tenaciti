@@ -1,7 +1,21 @@
-import { useState, useEffect, useRef } from 'react'
+/**
+ * CoursePage — Individual course view with tabs:
+ *   Overview | Documents | Roadmap | Topics
+ *
+ * Phase 3 features:
+ * - Upload accepts PDF + PPTX
+ * - Topic extraction (Pro) with polling banner
+ * - Topics tab: drag-drop, inline edit, confirm, merge modal, link-node panel
+ * - Confidence rating modal on topic completion
+ * - Progress bars for both roadmap and topics in Overview
+ */
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch, supabase } from '../api/client'
+import TopicList from '../components/Topics/TopicList'
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatBytes(bytes) {
   if (!bytes) return '—'
@@ -12,85 +26,212 @@ function formatBytes(bytes) {
 
 function toDateInputValue(iso) {
   if (!iso) return ''
-  // Expect ISO datetime/date; return YYYY-MM-DD for <input type="date">
   return String(iso).slice(0, 10)
 }
 
 const NODE_TYPES = ['Assignment', 'Quiz', 'Exam', 'Project', 'Lab', 'Other']
+
+const ALLOWED_UPLOAD_TYPES = {
+  'application/pdf': true,
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': true,
+  'application/vnd.ms-powerpoint': true,
+}
+const ALLOWED_UPLOAD_EXT = '.pdf,.pptx,.ppt'
+
+// ── Confidence Rating Modal ───────────────────────────────────────────────────
+
+function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
+  const [rating, setRating] = useState(0)
+  const [hovered, setHovered] = useState(0)
+
+  const display = hovered || rating
+
+  return (
+    <div className="confidence-modal-overlay" onClick={onSkip}>
+      <div className="confidence-modal" onClick={(e) => e.stopPropagation()}>
+        <h3>✅ Topic Completed!</h3>
+        <p>How confident do you feel about <strong>&ldquo;{topicTitle}&rdquo;</strong>? (optional)</p>
+        <div className="confidence-stars">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              className={`confidence-star ${display >= star ? 'active' : ''}`}
+              onMouseEnter={() => setHovered(star)}
+              onMouseLeave={() => setHovered(0)}
+              onClick={() => setRating(rating === star ? 0 : star)}
+            >
+              ⭐
+            </span>
+          ))}
+        </div>
+        <div className="confidence-modal-actions">
+          <button className="secondary-btn" style={{ width: 'auto' }} onClick={onSkip}>
+            Skip
+          </button>
+          <button
+            className="primary-btn"
+            style={{ width: 'auto' }}
+            onClick={() => onConfirm(rating || null)}
+          >
+            {rating ? `Save (${rating}★)` : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Add Topic Modal ───────────────────────────────────────────────────────────
+
+function AddTopicModal({ courseId, onAdded, onClose }) {
+  const [title, setTitle] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!title.trim()) return
+    setLoading(true)
+    setError('')
+    try {
+      await apiFetch(`/topics/courses/${courseId}`, {
+        method: 'POST',
+        body: JSON.stringify({ title: title.trim(), order_index: 0 }),
+      })
+      onAdded()
+      onClose()
+    } catch (err) {
+      setError(err.message || 'Failed to create topic')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay open" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">＋ Add Topic</h2>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group" style={{ marginBottom: '1rem' }}>
+            <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
+              Topic title
+            </label>
+            <input
+              autoFocus
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Introduction to Machine Learning"
+              style={{ width: '100%', padding: '0.5rem 0.75rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif' }}
+            />
+          </div>
+          {error && <div className="error-message" style={{ marginBottom: '0.75rem' }}>{error}</div>}
+          <div className="modal-actions">
+            <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>Cancel</button>
+            <button type="submit" className="primary-btn" disabled={loading || !title.trim()} style={{ width: 'auto' }}>
+              {loading ? 'Adding…' : 'Add Topic'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export default function CoursePage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
 
+  // ── Data state ──
   const [course, setCourse] = useState(null)
   const [documents, setDocuments] = useState([])
   const [topics, setTopics] = useState([])
   const [roadmap, setRoadmap] = useState([])
-  const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
-
-  // Limits state
   const [limits, setLimits] = useState(null)
 
-  // Upload state
+  // ── Tab state ──
+  const [activeTab, setActiveTab] = useState('overview')
+
+  // ── Upload state ──
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Extraction + roadmap state
-  const [extracting, setExtracting] = useState(null) // document ID being extracted
+  // ── Roadmap extraction state ──
+  const [extracting, setExtracting] = useState(null) // document ID
   const [polling, setPolling] = useState(false)
+
+  // ── Roadmap edit state ──
   const [editingId, setEditingId] = useState(null)
   const [draft, setDraft] = useState({ title: '', node_type: 'Other', deadline: '', weight_percent: '' })
 
-  const fetchCourse = async () => {
+  // ── Topic extraction state ──
+  const [topicExtracting, setTopicExtracting] = useState(null) // document ID
+  const [topicPolling, setTopicPolling] = useState(false)
+
+  // ── Topic UI state ──
+  const [mergeMode, setMergeMode] = useState(false)
+  const [selectedForMerge, setSelectedForMerge] = useState([])
+  const [addTopicOpen, setAddTopicOpen] = useState(false)
+
+  // ── Confidence modal state ──
+  const [confidencePending, setConfidencePending] = useState(null) // { topicId, isCompleted }
+
+  // ── Data fetchers ──────────────────────────────────────────────────────────
+
+  const fetchCourse = useCallback(async () => {
     try {
       const data = await apiFetch(`/courses/${id}`)
       setCourse(data)
-    } catch (err) {
-      console.error('Failed to fetch course:', err)
+    } catch {
       navigate('/')
     }
-  }
+  }, [id, navigate])
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     try {
       const data = await apiFetch(`/documents/courses/${id}`)
       setDocuments(data)
     } catch (err) {
       console.error('Failed to fetch documents:', err)
     }
-  }
+  }, [id])
 
-  const fetchTopics = async () => {
+  const fetchTopics = useCallback(async () => {
     try {
       const data = await apiFetch(`/topics/courses/${id}`)
       setTopics(data)
     } catch (err) {
       console.error('Failed to fetch topics:', err)
     }
-  }
+  }, [id])
 
-  const fetchRoadmap = async () => {
+  const fetchRoadmap = useCallback(async () => {
     try {
       const data = await apiFetch(`/roadmap-nodes/courses/${id}`)
       setRoadmap(data)
     } catch (err) {
       console.error('Failed to fetch roadmap:', err)
     }
-  }
+  }, [id])
 
-  const fetchLimits = async () => {
+  const fetchLimits = useCallback(async () => {
     try {
       const data = await apiFetch('/billing/limits')
       setLimits(data)
     } catch (err) {
       console.error('Failed to fetch limits:', err)
     }
-  }
+  }, [])
 
   useEffect(() => {
     const loadAll = async () => {
@@ -99,14 +240,15 @@ export default function CoursePage() {
       setLoading(false)
     }
     loadAll()
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // File upload handler
+  // ── Upload ────────────────────────────────────────────────────────────────
+
   const handleFileUpload = async (file) => {
     if (!file) return
 
-    if (file.type !== 'application/pdf') {
-      setUploadError('Only PDF files are supported')
+    if (!ALLOWED_UPLOAD_TYPES[file.type]) {
+      setUploadError('Only PDF and PPTX files are supported')
       return
     }
 
@@ -115,18 +257,21 @@ export default function CoursePage() {
     setUploadSuccess('')
 
     try {
+      // Pick doc_type based on MIME
+      const isSlides =
+        file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        file.type === 'application/vnd.ms-powerpoint'
+      const docType = isSlides ? 'slides' : 'syllabus'
+
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('doc_type', 'syllabus')
+      formData.append('doc_type', docType)
 
       const { data: { session } } = await supabase.auth.getSession()
-
       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
       const response = await fetch(`${API_BASE}/documents/courses/${id}/upload`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
         body: formData,
       })
 
@@ -137,7 +282,7 @@ export default function CoursePage() {
 
       setUploadSuccess(`"${file.name}" uploaded successfully!`)
       await fetchDocuments()
-      await fetchCourse() // refresh doc count
+      await fetchCourse()
     } catch (err) {
       setUploadError(err.message || 'Upload failed')
     } finally {
@@ -148,16 +293,31 @@ export default function CoursePage() {
   const handleFileDrop = (e) => {
     e.preventDefault()
     setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    handleFileUpload(file)
+    handleFileUpload(e.dataTransfer.files[0])
   }
 
   const handleFileSelect = (e) => {
-    const file = e.target.files[0]
-    handleFileUpload(file)
+    handleFileUpload(e.target.files[0])
   }
 
-  // Roadmap extraction (Phase 2 core) — 202 + poll status
+  // ── Roadmap extraction ────────────────────────────────────────────────────
+
+  const pollExtraction = async (documentId) => {
+    setPolling(true)
+    try {
+      for (let i = 0; i < 40; i++) {
+        const st = await apiFetch(`/documents/${documentId}/extraction-status`)
+        if (st.status === 'processed' || st.status === 'failed') {
+          if (st.status === 'failed') setUploadError(st.error_message || 'Extraction failed')
+          return st
+        }
+        await new Promise((r) => setTimeout(r, 1500))
+      }
+    } finally {
+      setPolling(false)
+    }
+  }
+
   const handleExtractRoadmap = async (documentId) => {
     setExtracting(documentId)
     setUploadError('')
@@ -174,40 +334,201 @@ export default function CoursePage() {
     }
   }
 
-  const pollExtraction = async (documentId) => {
-    setPolling(true)
+  // ── Topic extraction ──────────────────────────────────────────────────────
+
+  const pollTopicExtraction = async (documentId) => {
+    setTopicPolling(true)
     try {
       for (let i = 0; i < 40; i++) {
-        const status = await apiFetch(`/documents/${documentId}/extraction-status`)
-        if (status.status === 'processed' || status.status === 'failed') {
-          if (status.status === 'failed') {
-            setUploadError(status.error_message || 'Extraction failed')
-          }
-          return status
+        const st = await apiFetch(`/documents/${documentId}/topic-extraction-status`)
+        if (st.status === 'processed' || st.status === 'failed') {
+          if (st.status === 'failed') setUploadError(st.error_message || 'Topic extraction failed')
+          return st
         }
         await new Promise((r) => setTimeout(r, 1500))
       }
+    } catch (err) {
+      console.error('Topic polling error:', err)
     } finally {
-      setPolling(false)
+      setTopicPolling(false)
     }
   }
 
-  // Topic extraction (Phase 3 — Pro)
   const handleExtractTopics = async (documentId) => {
-    setExtracting(documentId)
+    setTopicExtracting(documentId)
+    setUploadError('')
     try {
-      const result = await apiFetch(`/documents/${documentId}/extract`, { method: 'POST' })
+      await apiFetch(`/documents/${documentId}/extract`, { method: 'POST' })
+      await pollTopicExtraction(documentId)
       await fetchTopics()
       await fetchDocuments()
-      if (result.topics_extracted > 0) setActiveTab('topics')
+      setActiveTab('topics')
     } catch (err) {
-      setUploadError(err.message || 'Extraction failed')
+      setUploadError(err.message || 'Topic extraction failed')
     } finally {
-      setExtracting(null)
+      setTopicExtracting(null)
     }
   }
 
-  // Roadmap node actions
+  // ── Topic management ──────────────────────────────────────────────────────
+
+  const handleReorder = async (topicIds) => {
+    try {
+      await apiFetch('/topics/bulk-reorder', {
+        method: 'POST',
+        body: JSON.stringify({ topic_ids: topicIds }),
+      })
+      await fetchTopics()
+    } catch (err) {
+      setUploadError(err.message || 'Reorder failed')
+    }
+  }
+
+  const handleConfirmTopic = async (topicId, isConfirmed) => {
+    try {
+      await apiFetch(`/topics/${topicId}/confirm`, {
+        method: 'POST',
+        body: JSON.stringify({ is_confirmed: isConfirmed }),
+      })
+      await fetchTopics()
+    } catch (err) {
+      setUploadError(err.message || 'Confirm failed')
+    }
+  }
+
+  const handleConfirmAllTopics = async () => {
+    const unconfirmed = topics.filter((t) => !t.is_confirmed)
+    if (!unconfirmed.length) return
+    try {
+      await Promise.all(
+        unconfirmed.map((t) =>
+          apiFetch(`/topics/${t.id}/confirm`, {
+            method: 'POST',
+            body: JSON.stringify({ is_confirmed: true }),
+          })
+        )
+      )
+      await fetchTopics()
+    } catch (err) {
+      setUploadError(err.message || 'Confirm all failed')
+    }
+  }
+
+  const handleDeleteTopic = async (topicId) => {
+    if (!confirm('Delete this topic?')) return
+    try {
+      await apiFetch(`/topics/${topicId}`, { method: 'DELETE' })
+      await fetchTopics()
+    } catch (err) {
+      setUploadError(err.message || 'Delete failed')
+    }
+  }
+
+  /**
+   * Unified edit handler called by TopicItem.
+   * - If newTitle is provided → update title
+   * - If linkedNodeId is provided (or null) → update link
+   */
+  const handleEditTopic = async (topicId, newTitle, linkedNodeId) => {
+    try {
+      if (newTitle !== null && newTitle !== undefined) {
+        // Title edit
+        await apiFetch(`/topics/${topicId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ title: newTitle }),
+        })
+      } else if (linkedNodeId !== undefined) {
+        // Link-node edit
+        await apiFetch(`/topics/${topicId}/link-node`, {
+          method: 'PATCH',
+          body: JSON.stringify({ linked_node_id: linkedNodeId }),
+        })
+      }
+      await fetchTopics()
+    } catch (err) {
+      setUploadError(err.message || 'Update failed')
+    }
+  }
+
+  // ── Toggle completion with confidence modal ───────────────────────────────
+
+  const handleToggleComplete = async (topicId, isCompleted) => {
+    if (isCompleted) {
+      // Show confidence modal before saving
+      setConfidencePending({ topicId, isCompleted })
+    } else {
+      // Uncomplete immediately, no modal
+      try {
+        await apiFetch(`/topics/${topicId}/toggle`, {
+          method: 'PATCH',
+          body: JSON.stringify({ is_completed: false }),
+        })
+        await fetchTopics()
+      } catch (err) {
+        console.error('Toggle failed:', err)
+      }
+    }
+  }
+
+  const handleConfidenceConfirm = async (confidenceRating) => {
+    if (!confidencePending) return
+    const { topicId, isCompleted } = confidencePending
+    setConfidencePending(null)
+    try {
+      await apiFetch(`/topics/${topicId}/toggle`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_completed: isCompleted, confidence_rating: confidenceRating }),
+      })
+      await fetchTopics()
+    } catch (err) {
+      console.error('Toggle with confidence failed:', err)
+    }
+  }
+
+  const handleConfidenceSkip = async () => {
+    if (!confidencePending) return
+    const { topicId, isCompleted } = confidencePending
+    setConfidencePending(null)
+    try {
+      await apiFetch(`/topics/${topicId}/toggle`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_completed: isCompleted }),
+      })
+      await fetchTopics()
+    } catch (err) {
+      console.error('Toggle failed:', err)
+    }
+  }
+
+  // ── Merge ─────────────────────────────────────────────────────────────────
+
+  const toggleMergeSelection = (topicId) => {
+    setSelectedForMerge((prev) =>
+      prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
+    )
+  }
+
+  const handleConfirmMerge = async (targetId, newTitle) => {
+    await apiFetch('/topics/merge', {
+      method: 'POST',
+      body: JSON.stringify({
+        source_ids: selectedForMerge,
+        target_id: targetId,
+        new_title: newTitle || undefined,
+      }),
+    })
+    setMergeMode(false)
+    setSelectedForMerge([])
+    await fetchTopics()
+  }
+
+  const handleCancelMerge = () => {
+    setMergeMode(false)
+    setSelectedForMerge([])
+  }
+
+  // ── Roadmap node actions ───────────────────────────────────────────────────
+
   const handleConfirmNode = async (nodeId) => {
     try {
       await apiFetch(`/roadmap-nodes/${nodeId}/confirm`, { method: 'POST' })
@@ -249,10 +570,7 @@ export default function CoursePage() {
         deadline: draft.deadline || null,
         weight_percent: draft.weight_percent === '' ? null : parseFloat(draft.weight_percent),
       }
-      await apiFetch(`/roadmap-nodes/${nodeId}`, {
-        method: 'PUT',
-        body: JSON.stringify(patch),
-      })
+      await apiFetch(`/roadmap-nodes/${nodeId}`, { method: 'PUT', body: JSON.stringify(patch) })
       setEditingId(null)
       await fetchRoadmap()
     } catch (err) {
@@ -260,20 +578,8 @@ export default function CoursePage() {
     }
   }
 
-  // Topic toggle handler
-  const handleToggleTopic = async (topicId, currentCompleted) => {
-    try {
-      await apiFetch(`/topics/${topicId}/toggle`, {
-        method: 'PATCH',
-        body: JSON.stringify({ is_completed: !currentCompleted }),
-      })
-      await fetchTopics()
-    } catch (err) {
-      console.error('Toggle failed:', err)
-    }
-  }
+  // ── Document delete ───────────────────────────────────────────────────────
 
-  // Delete document
   const handleDeleteDocument = async (docId) => {
     try {
       await apiFetch(`/documents/${docId}`, { method: 'DELETE' })
@@ -284,22 +590,41 @@ export default function CoursePage() {
     }
   }
 
-  if (loading) {
-    return <div className="loading-screen">Loading course...</div>
-  }
+  // ── Render ────────────────────────────────────────────────────────────────
 
-  if (!course) {
-    return <div className="loading-screen">Course not found</div>
-  }
+  if (loading) return <div className="loading-screen">Loading course…</div>
+  if (!course) return <div className="loading-screen">Course not found</div>
 
   const confirmedCount = roadmap.filter((n) => n.is_confirmed).length
   const roadmapProgress = roadmap.length > 0 ? Math.round((confirmedCount / roadmap.length) * 100) : 0
   const completedTopics = topics.filter((t) => t.is_completed).length
   const topicProgress = topics.length > 0 ? Math.round((completedTopics / topics.length) * 100) : 0
 
+  const pendingTopic = confidencePending
+    ? topics.find((t) => t.id === confidencePending.topicId)
+    : null
+
   return (
     <div className="page-container">
-      {/* Course Header */}
+      {/* ── Confidence Rating Modal ── */}
+      {confidencePending && pendingTopic && (
+        <ConfidenceModal
+          topicTitle={pendingTopic.title}
+          onConfirm={handleConfidenceConfirm}
+          onSkip={handleConfidenceSkip}
+        />
+      )}
+
+      {/* ── Add Topic Modal ── */}
+      {addTopicOpen && (
+        <AddTopicModal
+          courseId={id}
+          onAdded={fetchTopics}
+          onClose={() => setAddTopicOpen(false)}
+        />
+      )}
+
+      {/* ── Course Header ── */}
       <div className="course-header">
         <div className="course-header-top">
           <button className="back-btn" onClick={() => navigate('/')}>←</button>
@@ -313,30 +638,32 @@ export default function CoursePage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="tabs">
-        <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-          Overview
-        </button>
-        <button className={`tab-btn ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => setActiveTab('documents')}>
-          Documents ({documents.length})
-        </button>
-        <button className={`tab-btn ${activeTab === 'roadmap' ? 'active' : ''}`} onClick={() => setActiveTab('roadmap')}>
-          Roadmap ({roadmap.length})
-        </button>
-        <button className={`tab-btn ${activeTab === 'topics' ? 'active' : ''}`} onClick={() => setActiveTab('topics')}>
-          Topics ({topics.length})
-        </button>
+        {['overview', 'documents', 'roadmap', 'topics'].map((tab) => (
+          <button
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === 'overview' && 'Overview'}
+            {tab === 'documents' && `Documents (${documents.length})`}
+            {tab === 'roadmap' && `Roadmap (${roadmap.length})`}
+            {tab === 'topics' && `Topics (${topics.length})`}
+          </button>
+        ))}
       </div>
 
       {uploadError && <div className="error-message" style={{ marginTop: '1rem' }}>{uploadError}</div>}
       {uploadSuccess && <div className="success-message" style={{ marginTop: '1rem' }}>✅ {uploadSuccess}</div>}
 
-      {/* ───────── Overview ───────── */}
+      {/* ═══════════════ OVERVIEW ═══════════════ */}
       {activeTab === 'overview' && (
         <div>
           <div className="settings-card">
             <h3>Progress</h3>
+
+            {/* Roadmap progress */}
             <div className="quota-bar-container">
               <div className="quota-header">
                 <span>Roadmap Confirmation</span>
@@ -346,7 +673,21 @@ export default function CoursePage() {
                 <div className="quota-fill" style={{ width: `${roadmapProgress}%` }} />
               </div>
               {roadmap.length === 0 && (
-                <p className="quota-hint">Upload a syllabus and extract your roadmap to start tracking assessments.</p>
+                <p className="quota-hint">Upload a syllabus and extract your roadmap to track assessments.</p>
+              )}
+            </div>
+
+            {/* Topic progress */}
+            <div className="quota-bar-container" style={{ marginTop: '1rem' }}>
+              <div className="quota-header">
+                <span>Topic Completion</span>
+                <span>{completedTopics}/{topics.length} ({topicProgress}%)</span>
+              </div>
+              <div className="quota-bar">
+                <div className="quota-fill" style={{ width: `${topicProgress}%`, background: 'linear-gradient(90deg, var(--purple), var(--green))' }} />
+              </div>
+              {topics.length === 0 && (
+                <p className="quota-hint">Upload slides and extract topics to track your study progress. (Pro)</p>
               )}
             </div>
           </div>
@@ -355,11 +696,16 @@ export default function CoursePage() {
             <h3>Quick Actions</h3>
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <button className="primary-btn" style={{ width: 'auto' }} onClick={() => setActiveTab('documents')}>
-                📤 Upload Syllabus
+                📤 Upload Document
               </button>
               {roadmap.length > 0 && (
                 <button className="secondary-btn" onClick={() => setActiveTab('roadmap')}>
                   🗺️ View Roadmap
+                </button>
+              )}
+              {topics.length > 0 && (
+                <button className="secondary-btn" onClick={() => setActiveTab('topics')}>
+                  📋 Study Topics
                 </button>
               )}
             </div>
@@ -367,7 +713,7 @@ export default function CoursePage() {
         </div>
       )}
 
-      {/* ───────── Documents ───────── */}
+      {/* ═══════════════ DOCUMENTS ═══════════════ */}
       {activeTab === 'documents' && (
         <div>
           <div
@@ -377,20 +723,27 @@ export default function CoursePage() {
             onDrop={handleFileDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileSelect} />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ALLOWED_UPLOAD_EXT}
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
             {uploading ? (
               <div>
                 <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '3px', marginBottom: '0.75rem' }} />
-                <div className="upload-zone-text">Uploading...</div>
+                <div className="upload-zone-text">Uploading…</div>
               </div>
             ) : (
               <>
                 <div className="upload-zone-icon">📁</div>
                 <div className="upload-zone-text">
-                  Drag & drop your syllabus PDF here, or click to browse
+                  Drag &amp; drop your syllabus PDF or lecture PPTX here, or click to browse
                 </div>
                 <div className="upload-zone-hint">
-                  PDF files only • Max {limits?.max_file_size_mb || (user?.plan === 'pro' ? 25 : 10)} MB
+                  PDF or PPTX • Max {limits?.max_file_size_mb || (user?.plan === 'pro' ? 25 : 10)} MB
+                  {user?.plan !== 'pro' && ' • PPTX requires Pro'}
                 </div>
               </>
             )}
@@ -403,7 +756,9 @@ export default function CoursePage() {
                 {documents.map((doc) => (
                   <div key={doc.id} className="document-item">
                     <div className="document-info">
-                      <span className="document-icon">📄</span>
+                      <span className="document-icon">
+                        {doc.mime_type?.includes('presentation') || doc.mime_type?.includes('powerpoint') ? '📊' : '📄'}
+                      </span>
                       <div className="document-details">
                         <div className="document-name">{doc.original_filename}</div>
                         <div className="document-meta">{formatBytes(doc.size_bytes)} • {doc.doc_type}</div>
@@ -416,17 +771,21 @@ export default function CoursePage() {
                           <button
                             className="extract-btn"
                             onClick={() => handleExtractRoadmap(doc.id)}
-                            disabled={extracting === doc.id || polling}
+                            disabled={extracting === doc.id || polling || topicPolling}
                           >
-                            {extracting === doc.id || polling ? <><span className="spinner" /> Extracting…</> : <>🗺️ Extract Roadmap</>}
+                            {extracting === doc.id || polling
+                              ? <><span className="spinner" /> Extracting…</>
+                              : <>🗺️ Extract Roadmap</>}
                           </button>
                           {user?.plan === 'pro' && (
                             <button
                               className="extract-btn secondary"
                               onClick={() => handleExtractTopics(doc.id)}
-                              disabled={extracting === doc.id || polling}
+                              disabled={topicExtracting === doc.id || topicPolling || polling}
                             >
-                              📋 Topics
+                              {topicExtracting === doc.id
+                                ? <><span className="spinner" /> Extracting…</>
+                                : <>📋 Extract Topics</>}
                             </button>
                           )}
                         </>
@@ -441,7 +800,7 @@ export default function CoursePage() {
         </div>
       )}
 
-      {/* ───────── Roadmap (Confirm-before-lock) ───────── */}
+      {/* ═══════════════ ROADMAP ═══════════════ */}
       {activeTab === 'roadmap' && (
         <div>
           {roadmap.length === 0 ? (
@@ -485,16 +844,9 @@ export default function CoursePage() {
                           <select value={draft.node_type} onChange={(e) => setDraft({ ...draft, node_type: e.target.value })}>
                             {NODE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
+                          <input type="date" value={draft.deadline} onChange={(e) => setDraft({ ...draft, deadline: e.target.value })} />
                           <input
-                            type="date"
-                            value={draft.deadline}
-                            onChange={(e) => setDraft({ ...draft, deadline: e.target.value })}
-                          />
-                          <input
-                            type="number"
-                            step="0.5"
-                            min="0"
-                            placeholder="Weight %"
+                            type="number" step="0.5" min="0" placeholder="Weight %"
                             value={draft.weight_percent}
                             onChange={(e) => setDraft({ ...draft, weight_percent: e.target.value })}
                           />
@@ -538,49 +890,26 @@ export default function CoursePage() {
         </div>
       )}
 
-      {/* ───────── Topics ───────── */}
+      {/* ═══════════════ TOPICS ═══════════════ */}
       {activeTab === 'topics' && (
-        <div>
-          {topics.length === 0 ? (
-            <div className="empty-state">
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-              <p>No topics yet. Upload slides and extract topics to get started! (Pro)</p>
-              <button className="primary-btn" style={{ width: 'auto' }} onClick={() => setActiveTab('documents')}>
-                📤 Upload Document
-              </button>
-            </div>
-          ) : (
-            <>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div className="quota-bar-container">
-                  <div className="quota-header">
-                    <span>Completion Progress</span>
-                    <span>{completedTopics}/{topics.length} topics ({topicProgress}%)</span>
-                  </div>
-                  <div className="quota-bar">
-                    <div className="quota-fill" style={{ width: `${topicProgress}%` }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="topic-list">
-                {topics.map((topic, idx) => (
-                  <div
-                    key={topic.id}
-                    className={`topic-item ${topic.is_completed ? 'completed' : ''}`}
-                    onClick={() => handleToggleTopic(topic.id, topic.is_completed)}
-                  >
-                    <span className="topic-index">{idx + 1}.</span>
-                    <div className="topic-checkbox">
-                      <span className="topic-checkbox-mark">✓</span>
-                    </div>
-                    <span className="topic-title">{topic.title}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+        <TopicList
+          topics={topics}
+          roadmapNodes={roadmap}
+          isExtracting={topicPolling}
+          onReorder={handleReorder}
+          onConfirm={handleConfirmTopic}
+          onEdit={handleEditTopic}
+          onDelete={handleDeleteTopic}
+          onToggleComplete={handleToggleComplete}
+          onAddTopic={() => setAddTopicOpen(true)}
+          onConfirmAll={handleConfirmAllTopics}
+          mergeMode={mergeMode}
+          setMergeMode={setMergeMode}
+          selectedForMerge={selectedForMerge}
+          toggleMergeSelection={toggleMergeSelection}
+          confirmMerge={handleConfirmMerge}
+          cancelMerge={handleCancelMerge}
+        />
       )}
     </div>
   )

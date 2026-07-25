@@ -1,5 +1,5 @@
 """
-Auth middleware — validates Supabase JWT and resolves to our app User.
+Auth middleware — validates JWT (local or Supabase) and resolves to our app User.
 """
 
 from fastapi import Depends, HTTPException, status
@@ -14,7 +14,11 @@ from app.database import get_db
 from app.models.user import User
 
 # Supabase uses HS256 JWTs signed with the JWT secret
-ALGORITHM = "HS256"
+SUPABASE_ALGORITHM = "HS256"
+
+# Local JWT settings
+LOCAL_JWT_ALGORITHM = "HS256"
+LOCAL_JWT_SECRET = settings.app_secret_key
 
 # FastAPI security scheme — extracts Bearer token from Authorization header
 security = HTTPBearer()
@@ -25,29 +29,66 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     """
-    Dependency that:
-    1. Decodes the Supabase JWT from the Authorization header
-    2. Extracts the Supabase user ID (sub claim)
-    3. Looks up or creates the user in our database
-    4. Returns the User ORM object
-
-    If JWT_SECRET is not set, falls back to calling Supabase's /auth/v1/user
-    endpoint to verify the token (slower but works without the secret).
+    Dependency that implements hybrid authentication:
+    1. First tries to decode as a LOCAL JWT (email/password users)
+       - Validates token signature using LOCAL_JWT_SECRET
+       - Verifies token_version matches database (allows revocation)
+    2. If that fails, tries to decode as a SUPABASE JWT (Google OAuth users)
+       - Validates using Supabase JWT secret
+       - Falls back to Supabase API verification if no secret
+    3. Returns the User ORM object
     """
     token = credentials.credentials
 
+    # ─── STRATEGY 1: Local JWT (email/password users) ───
+    try:
+        local_payload = jwt.decode(
+            token,
+            LOCAL_JWT_SECRET,
+            algorithms=[LOCAL_JWT_ALGORITHM],
+        )
+        # Verify this is a local token (type claim)
+        if local_payload.get("type") == "local":
+            user_id = local_payload.get("sub")
+            token_version = local_payload.get("token_version")
+            email = local_payload.get("email")
+
+            if user_id and token_version is not None and email:
+                # Look up user by ID (local users don't have supabase_uid)
+                result = await db.execute(
+                    select(User).where(User.id == int(user_id))
+                )
+                user = result.scalar_one_or_none()
+
+                if user and user.token_version == token_version:
+                    # Valid local token with matching version
+                    return user
+                elif user:
+                    # Token version mismatch - token was revoked
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token has been revoked",
+                    )
+    except JWTError:
+        # Not a valid local token, fall through to Supabase verification
+        pass
+    except ValueError:
+        # Invalid user_id format
+        pass
+
+    # ─── STRATEGY 2: Supabase JWT (Google OAuth users) ───
     supabase_uid: str | None = None
     email: str | None = None
     full_name: str | None = None
     avatar_url: str | None = None
 
-    # Strategy 1: Local JWT verification (fast, preferred)
+    # Strategy 2a: Local Supabase JWT verification (fast, preferred)
     if settings.supabase_jwt_secret:
         try:
             payload = jwt.decode(
                 token,
                 settings.supabase_jwt_secret,
-                algorithms=[ALGORITHM],
+                algorithms=[SUPABASE_ALGORITHM],
                 audience="authenticated",
             )
             supabase_uid = payload.get("sub")
@@ -57,13 +98,13 @@ async def get_current_user(
             full_name = user_metadata.get("full_name") or user_metadata.get("name")
             avatar_url = user_metadata.get("avatar_url") or user_metadata.get("picture")
         except JWTError as e:
-            print(f"JWT Verification Failed: {e}")
+            print(f"Supabase JWT Verification Failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",
             )
     else:
-        # Strategy 2: Verify via Supabase API (slower fallback)
+        # Strategy 2b: Verify via Supabase API (slower fallback)
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"{settings.supabase_url}/auth/v1/user",
@@ -90,7 +131,7 @@ async def get_current_user(
             detail="Could not identify user from token",
         )
 
-    # Look up user in our database
+    # Look up user in our database by Supabase UID
     result = await db.execute(
         select(User).where(User.supabase_uid == supabase_uid)
     )
@@ -104,9 +145,12 @@ async def get_current_user(
             full_name=full_name,
             avatar_url=avatar_url,
             plan="free",
+            # Google OAuth users have their email verified by Supabase
+            is_email_verified=True,
         )
         db.add(user)
         await db.flush()  # get the ID assigned
+        await db.refresh(user)
 
     # Update profile fields if they changed (e.g., user updated Google profile)
     else:
@@ -120,7 +164,29 @@ async def get_current_user(
         if email and user.email != email:
             user.email = email
             changed = True
+        # Ensure existing Google users are marked verified
+        if not user.is_email_verified:
+            user.is_email_verified = True
+            changed = True
         if changed:
             await db.flush()
+            await db.refresh(user)
 
     return user
+
+
+async def get_verified_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Extends get_current_user by additionally requiring the user's email
+    to be verified. This is the enforced backend security gate — the
+    frontend check is only UX. Even if a user manipulates localStorage
+    or React state, their API calls will be rejected here with 403.
+    """
+    if not current_user.is_email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email address not verified. Please check your inbox.",
+        )
+    return current_user

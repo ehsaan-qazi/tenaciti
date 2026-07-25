@@ -6,7 +6,7 @@ from sqlalchemy import select
 from typing import List
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_verified_user
 from app.models.user import User
 from app.models.course import Course
 from app.models.roadmap_node import RoadmapNode
@@ -37,7 +37,7 @@ def _recompute_placeholder(node: RoadmapNode) -> None:
 @router.get("/courses/{course_id}", response_model=List[RoadmapNodeResponse])
 async def list_course_roadmap_nodes(
     course_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List all roadmap nodes for a course (newest first)."""
@@ -59,7 +59,7 @@ async def list_course_roadmap_nodes(
 async def create_roadmap_node(
     course_id: int,
     node_in: RoadmapNodeCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Manually create a roadmap node (auto-confirmed)."""
@@ -91,7 +91,7 @@ async def create_roadmap_node(
 @router.get("/{node_id}", response_model=RoadmapNodeResponse)
 async def get_roadmap_node(
     node_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
@@ -107,7 +107,7 @@ async def get_roadmap_node(
 async def update_roadmap_node(
     node_id: int,
     node_in: RoadmapNodeUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
@@ -133,7 +133,7 @@ async def update_roadmap_node(
 @router.post("/{node_id}/confirm", response_model=RoadmapNodeResponse)
 async def confirm_roadmap_node(
     node_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Mark a roadmap node as confirmed by the student."""
@@ -154,7 +154,7 @@ async def confirm_roadmap_node(
 @router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_roadmap_node(
     node_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(

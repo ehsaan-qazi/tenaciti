@@ -1639,4 +1639,378 @@
     .extract-btn.secondary { background: var(--bg-surface); border-color: var(--border-light); color: var(--text-secondary); }
     .extract-btn.secondary:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); box-shadow: none; }
 
-    .status-badge.node-type { background: rgba(124,106,247,0.12); color: var(--purple-light); }
+    .status-badge.node-type { background: rgba(124,106,247,0.12); color: var(--purple-light); }
+
+    /* ═══════════════ TOPICS (Phase 3) ═══════════════ */
+
+    /* ── Topic List Container ── */
+    .topic-list { display: flex; flex-direction: column; gap: 0; }
+
+    /* ── Topic List Toolbar ── */
+    .topic-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .topic-toolbar-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .topic-toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+    .topic-toolbar-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+    /* ── Extraction Status Banner ── */
+    .topic-extraction-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, rgba(124,106,247,0.08), rgba(96,165,250,0.08));
+      border: 1px solid rgba(124,106,247,0.25);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      color: var(--purple-light);
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { border-color: rgba(124,106,247,0.25); }
+      50% { border-color: rgba(124,106,247,0.5); }
+    }
+    .topic-extraction-banner .spinner { border-top-color: var(--purple-light); }
+
+    /* ── Topic Progress Bar ── */
+    .topic-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .topic-progress-bar {
+      height: 4px;
+      background: var(--bg-hover);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .topic-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--green));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Merge Mode Banner ── */
+    .merge-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, rgba(251,191,36,0.06), rgba(248,113,113,0.06));
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      color: var(--amber);
+    }
+    .merge-banner-label { display: flex; align-items: center; gap: 0.5rem; }
+    .merge-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px; height: 20px;
+      background: var(--amber);
+      color: #000;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .merge-actions { display: flex; gap: 0.5rem; }
+
+    /* ── Link Node Panel ── */
+    .link-node-banner {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, rgba(96,165,250,0.06), rgba(124,106,247,0.06));
+      border: 1px solid rgba(96,165,250,0.3);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+    }
+    .link-node-banner strong { color: var(--blue); }
+    .link-node-select {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.4rem 0.6rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 12px;
+      outline: none;
+    }
+    .link-node-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-dim); }
+
+    /* ── Individual Topic Item ── */
+    .topic-item {
+      display: grid;
+      grid-template-columns: 28px 36px 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 0.75rem 0.7rem 0.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.4rem;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      cursor: default;
+      position: relative;
+    }
+    .topic-item:hover { border-color: var(--border-light); background: var(--bg-hover); }
+    .topic-item.completed { border-color: rgba(52,211,153,0.25); }
+    .topic-item.completed .topic-title-text { text-decoration: line-through; color: var(--text-muted); }
+    .topic-item.confirmed { border-left: 3px solid var(--green); }
+    .topic-item.selected-for-merge {
+      border-color: rgba(251,191,36,0.5);
+      background: rgba(251,191,36,0.04);
+      box-shadow: 0 0 0 2px rgba(251,191,36,0.15);
+    }
+    .topic-item.dragging {
+      opacity: 0.5;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+
+    /* ── Drag Handle ── */
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 15px;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+      letter-spacing: -2px;
+    }
+    .drag-handle:hover { color: var(--text-secondary); background: var(--bg-hover); }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* ── Topic Checkbox ── */
+    .topic-check-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .topic-check-visual {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border-light);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 12px;
+      color: transparent;
+    }
+    .topic-item:hover .topic-check-visual { border-color: var(--purple); }
+    .topic-check-visual.checked {
+      background: var(--green);
+      border-color: var(--green);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* ── Topic Content ── */
+    .topic-content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .topic-content-main {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .topic-index { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+    .topic-title-text {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.15s;
+    }
+    .topic-badges { display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; }
+    .badge-confirmed { background: var(--green-dim); color: var(--green); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .badge-linked { background: var(--blue-dim); color: var(--blue); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .badge-confidence { background: rgba(251,191,36,0.12); color: var(--amber); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .topic-meta-row { display: flex; gap: 0.5rem; align-items: center; font-size: 11px; color: var(--text-muted); }
+
+    /* ── Inline Edit Input ── */
+    .topic-inline-edit {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .topic-inline-input {
+      flex: 1;
+      padding: 0.3rem 0.5rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--purple);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      box-shadow: 0 0 0 3px var(--purple-dim);
+      min-width: 0;
+    }
+    .topic-inline-save, .topic-inline-cancel {
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .topic-inline-save { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+    .topic-inline-save:hover { background: var(--green); color: #000; }
+    .topic-inline-cancel { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+    .topic-inline-cancel:hover { background: var(--red); color: #fff; }
+
+    /* ── Topic Actions ── */
+    .topic-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+    .topic-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .topic-action-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .topic-action-btn.confirm-btn:hover { color: var(--green); background: var(--green-dim); }
+    .topic-action-btn.link-btn:hover { color: var(--blue); background: var(--blue-dim); }
+    .topic-action-btn.merge-btn:hover { color: var(--amber); background: var(--amber-dim); }
+    .topic-action-btn.danger:hover { color: var(--red); background: var(--red-dim); }
+
+    /* ── Merge Checkbox (select mode) ── */
+    .topic-merge-check {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .topic-merge-check-visual {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border-light);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 11px;
+      color: transparent;
+    }
+    .topic-merge-check-visual.selected {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* ── Empty State ── */
+    .topic-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      text-align: center;
+      gap: 1rem;
+    }
+    .topic-empty-icon { font-size: 3rem; }
+    .topic-empty-text { color: var(--text-secondary); font-size: 14px; max-width: 320px; line-height: 1.5; }
+
+    /* ── Confidence Rating Modal ── */
+    .confidence-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+    .confidence-modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      width: 320px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .confidence-modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 0.5rem; }
+    .confidence-modal p { font-size: 12px; color: var(--text-secondary); margin-bottom: 1rem; }
+    .confidence-stars {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+    .confidence-star {
+      font-size: 2rem;
+      cursor: pointer;
+      transition: transform 0.1s, filter 0.1s;
+      filter: grayscale(1) opacity(0.4);
+    }
+    .confidence-star.active { filter: none; transform: scale(1.15); }
+    .confidence-star:hover { transform: scale(1.2); filter: none; }
+    .confidence-modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    /* ═══════════════ TOPIC ITEM (merge select state) ═══════════════ */
+    .topic-item.merge-selectable { cursor: pointer; }
+    .topic-item.merge-selectable:hover { border-color: rgba(251,191,36,0.4); }
+

@@ -77,3 +77,5 @@ docker-compose.override.yml
 .agents/
 audit.md
 implementation_plan.md
+upgrade_user.py
+backend/upgrade_user.py

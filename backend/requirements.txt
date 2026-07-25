@@ -19,6 +19,10 @@ greenlet==3.2.3
 # ========================
 python-jose[cryptography]==3.4.0
 httpx==0.28.1
+argon2-cffi==23.1.0
+slowapi==0.1.9
+resend==2.10.0
+pyjwt==2.8.0
 
 # ========================
 # Billing (LemonSqueezy webhook verification)
@@ -35,6 +39,7 @@ boto3==1.38.34
 # ========================
 groq==0.25.0
 pypdf>=4.0.0
+python-pptx>=1.0.2
 
 # ========================
 # Utilities
@@ -47,4 +52,5 @@ python-multipart==0.0.20
 # ========================
 pytest==8.4.1
 pytest-asyncio==1.0.0
+aiosqlite==0.20.0
 ruff==0.11.12

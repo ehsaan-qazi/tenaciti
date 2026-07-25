@@ -1,4 +1,4 @@
-from app.models.user import User
+from app.models.user import User, PasswordResetToken, EmailVerificationToken
 from app.models.course import Course
 from app.models.document import Document
 from app.models.goal import Goal
@@ -16,6 +16,8 @@ from app.models.topic_completion import TopicCompletion
 
 __all__ = [
     "User",
+    "PasswordResetToken",
+    "EmailVerificationToken",
     "Course",
     "Document",
     "Goal",

@@ -46,12 +46,16 @@ class Settings(BaseSettings):
     # ── CORS ─────────────────────────────────────────────────
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
+    # ── Email (Resend) ─────────────────────────────────────────
+    resend_api_key: str = ""
+    mail_from: str = "onboarding@resend.dev"  # Replace with verified domain in production
+
     @field_validator(
         "supabase_url", "supabase_anon_key", "supabase_service_role_key", "supabase_jwt_secret",
         "app_secret_key", "lemonsqueezy_api_key", "lemonsqueezy_webhook_secret",
         "lemonsqueezy_store_id", "lemonsqueezy_variant_id",
         "r2_account_id", "r2_access_key_id", "r2_secret_access_key", "r2_bucket_name",
-        "llm_api_key",
+        "llm_api_key", "resend_api_key",
         mode="after",
     )
     @classmethod

@@ -23,6 +23,28 @@ class TopicToggle(BaseModel):
     confidence_rating: Optional[int] = None  # 1-5
 
 
+class TopicConfirm(BaseModel):
+    """Confirm/unconfirm a topic."""
+    is_confirmed: bool
+
+
+class TopicBulkReorder(BaseModel):
+    """Bulk reorder topics by providing ordered list of topic IDs."""
+    topic_ids: list[int]
+
+
+class TopicMerge(BaseModel):
+    """Merge multiple topics into one."""
+    source_ids: list[int]  # Topics to merge (will be deleted)
+    target_id: int         # Topic to merge into (kept)
+    new_title: Optional[str] = None  # Optional new title for merged topic
+
+
+class TopicLinkNode(BaseModel):
+    """Link or unlink a topic to a roadmap node."""
+    linked_node_id: Optional[int] = None
+
+
 class TopicResponse(BaseModel):
     """Full topic returned to client."""
     id: int
@@ -43,3 +65,11 @@ class TopicWithCompletion(TopicResponse):
     """Topic with current user's completion state."""
     is_completed: bool = False
     confidence_rating: Optional[int] = None
+
+
+class TopicCompletionStats(BaseModel):
+    """Aggregated topic completion stats for a course."""
+    total: int
+    completed: int
+    confirmed: int
+    progress_pct: int

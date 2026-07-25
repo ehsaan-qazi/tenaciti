@@ -8,7 +8,7 @@ from sqlalchemy import select, func
 from typing import List
 
 from app.database import get_db, async_session
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_verified_user
 from app.middleware.tier_gate import require_pro, check_upload_limit, get_file_size_limit_bytes
 from app.models.user import User
 from app.models.course import Course
@@ -35,7 +35,7 @@ async def upload_document(
     course_id: int,
     file: UploadFile = File(...),
     doc_type: str = Form(default="syllabus"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Upload a document to a course. Stores in Cloudflare R2 with full metadata."""
@@ -129,7 +129,7 @@ async def upload_document(
 @router.get("/courses/{course_id}", response_model=List[DocumentListItem])
 async def list_course_documents(
     course_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List all documents for a course."""
@@ -151,7 +151,7 @@ async def list_course_documents(
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     document_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a document from R2 and the database."""
@@ -177,13 +177,18 @@ async def delete_document(
     await db.delete(document)
 
 
-@router.post("/{document_id}/extract", response_model=dict)
+@router.post("/{document_id}/extract", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
 async def trigger_extraction(
     document_id: int,
-    current_user: User = Depends(get_current_user),
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Trigger AI extraction of topics from a document. Requires Pro plan."""
+    """Trigger AI extraction of topics from a document. Requires Pro plan.
+
+    This is the Phase 3 core feature. Extraction runs in the background;
+    poll GET /documents/{id}/topic-extraction-status for progress.
+    """
     require_pro(current_user)
 
     result = await db.execute(
@@ -196,17 +201,20 @@ async def trigger_extraction(
     if document.processing_status == "processed":
         raise HTTPException(status_code=400, detail="Document has already been processed")
 
-    topics = await extract_topics_for_document(document, db)
+    document.processing_status = "processing"
+    await db.flush()
+
+    background_tasks.add_task(_run_topic_extraction, document.id, current_user.id)
 
     return {
-        "status": document.processing_status,
-        "topics_extracted": len(topics),
-        "topics": [t.title for t in topics],
+        "status": "processing",
+        "document_id": document.id,
+        "message": "Topic extraction started",
     }
 
 
-async def _run_roadmap_extraction(document_id: int, user_id: int) -> None:
-    """Background task: run roadmap extraction with its own DB session."""
+async def _run_topic_extraction(document_id: int, user_id: int) -> None:
+    """Background task: run topic extraction with its own DB session."""
     async with async_session() as db:
         try:
             result = await db.execute(
@@ -215,18 +223,50 @@ async def _run_roadmap_extraction(document_id: int, user_id: int) -> None:
             document = result.scalar_one_or_none()
             if not document:
                 return
-            await extract_roadmap_for_document(document, db)
+            await extract_topics_for_document(document, db)
             await db.commit()
         except Exception:
             await db.rollback()
-            logger.exception("Background roadmap extraction failed for document %d", document_id)
+            logger.exception("Background topic extraction failed for document %d", document_id)
+
+
+@router.get("/{document_id}/topic-extraction-status", response_model=dict)
+async def topic_extraction_status(
+    document_id: int,
+    current_user: User = Depends(get_verified_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Poll the topic extraction status of a document (processing | processed | failed)."""
+    result = await db.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
+    )
+    document = result.scalar_one_or_none()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    from sqlalchemy import func
+    from app.models.topic import Topic
+
+    count_result = await db.execute(
+        select(func.count(Topic.id)).where(
+            Topic.source_document_id == document_id,
+            Topic.user_id == current_user.id,
+        )
+    )
+    topic_count = count_result.scalar() or 0
+
+    return {
+        "status": document.processing_status,
+        "error_message": document.error_message,
+        "topics_extracted": topic_count,
+    }
 
 
 @router.post("/{document_id}/extract-roadmap", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
 async def trigger_roadmap_extraction(
     document_id: int,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Trigger AI extraction of the assessment roadmap from a syllabus.
@@ -260,7 +300,7 @@ async def trigger_roadmap_extraction(
 @router.get("/{document_id}/extraction-status", response_model=dict)
 async def extraction_status(
     document_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Poll the extraction status of a document (processing | processed | failed)."""

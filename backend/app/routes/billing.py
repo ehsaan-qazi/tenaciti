@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.subscription import Subscription
 from app.middleware.tier_gate import get_file_size_limit_bytes
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_verified_user
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
@@ -114,7 +114,7 @@ async def lemonsqueezy_webhook(request: Request, db: AsyncSession = Depends(get_
     return {"status": "ignored", "reason": "Unhandled event type"}
 
 @router.get("/checkout-url")
-async def get_checkout_url(current_user: User = Depends(get_current_user)):
+async def get_checkout_url(current_user: User = Depends(get_verified_user)):
     """
     Returns the LemonSqueezy checkout URL for the Pro plan.
     In a real app, you'd use the LemonSqueezy API to generate a checkout session
@@ -129,7 +129,7 @@ async def get_checkout_url(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/limits")
-async def get_tier_limits(current_user: User = Depends(get_current_user)):
+async def get_tier_limits(current_user: User = Depends(get_verified_user)):
     """
     Returns the current user's tier limits for file uploads and document counts.
     """

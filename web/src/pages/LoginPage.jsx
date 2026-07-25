@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/login.css';
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState('login');
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
 
@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const { loginWithEmail, registerWithEmail } = useAuth();
 
   const handleEmailLogin = async () => {
     try {
@@ -43,50 +42,50 @@ export default function LoginPage() {
   return (
     <div className="login-page-wrapper" style={{ display: 'flex', minHeight: '100vh', width: '100%', alignItems: 'stretch' }}>
       <div className="left-panel">
-<div className="orb orb-1"></div>
-<div className="orb orb-2"></div>
-<div className="brand">
-<div className="brand-icon">📚</div>
-<span className="brand-name">Koala</span>
-</div>
-<div className="hero-content">
-<div className="hero-tag">✨ v2.0 — AI-Assisted</div>
-<h1 className="hero-title">Your semester,<br/><span>fully mapped.</span></h1>
-<p className="hero-desc">Upload your syllabus. AI builds your roadmap. Track every topic, note, and deadline — all in one living picture of how you actually learn.</p>
-<div className="feature-list">
-<div className="feature-item">
-<div className="icon">🤖</div>
-<span>AI extracts roadmaps from your syllabus — deadlines, weights, topics</span>
-</div>
-<div className="feature-item">
-<div className="icon">🗺️</div>
-<span>Obsidian-style notes linked to every roadmap node and topic</span>
-</div>
-<div className="feature-item">
-<div className="icon">📊</div>
-<span>Profile insights: confidence trends, planning accuracy, procrastination fingerprint</span>
-</div>
-<div className="feature-item">
-<div className="icon">🔥</div>
-<span>Streak system tied to real academic progress, not arbitrary taps</span>
-</div>
-</div>
-<div className="stats-ticker">
-<div className="stat-item">
-<div className="stat-value">8 phases</div>
-<div className="stat-label">Feature-complete roadmap</div>
-</div>
-<div className="stat-item">
-<div className="stat-value">$0</div>
-<div className="stat-label">Cost to launch</div>
-</div>
-<div className="stat-item">
-<div className="stat-value">100%</div>
-<div className="stat-label">Student-owned data</div>
-</div>
-</div>
-</div>
-</div>
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="brand">
+          <div className="brand-icon">📚</div>
+          <span className="brand-name">Koala</span>
+        </div>
+        <div className="hero-content">
+          <div className="hero-tag">✨ v2.0 — AI-Assisted</div>
+          <h1 className="hero-title">Your semester,<br/><span>fully mapped.</span></h1>
+          <p className="hero-desc">Upload your syllabus. AI builds your roadmap. Track every topic, note, and deadline — all in one living picture of how you actually learn.</p>
+          <div className="feature-list">
+            <div className="feature-item">
+              <div className="icon">🤖</div>
+              <span>AI extracts roadmaps from your syllabus — deadlines, weights, topics</span>
+            </div>
+            <div className="feature-item">
+              <div className="icon">🗺️</div>
+              <span>Obsidian-style notes linked to every roadmap node and topic</span>
+            </div>
+            <div className="feature-item">
+              <div className="icon">📊</div>
+              <span>Profile insights: confidence trends, planning accuracy, procrastination fingerprint</span>
+            </div>
+            <div className="feature-item">
+              <div className="icon">🔥</div>
+              <span>Streak system tied to real academic progress, not arbitrary taps</span>
+            </div>
+          </div>
+          <div className="stats-ticker">
+            <div className="stat-item">
+              <div className="stat-value">8 phases</div>
+              <div className="stat-label">Feature-complete roadmap</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-value">$0</div>
+              <div className="stat-label">Cost to launch</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-value">100%</div>
+              <div className="stat-label">Student-owned data</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="right-panel">
         <div className="auth-header">
           <h2>{activeTab === 'login' ? 'Welcome back 👋' : 'Create your account'}</h2>
@@ -94,13 +93,13 @@ export default function LoginPage() {
         </div>
 
         <div className="auth-toggle">
-          <button 
-            className={activeTab === 'login' ? 'active' : ''} 
+          <button
+            className={activeTab === 'login' ? 'active' : ''}
             onClick={() => setActiveTab('login')}>
             Sign In
           </button>
-          <button 
-            className={activeTab === 'register' ? 'active' : ''} 
+          <button
+            className={activeTab === 'register' ? 'active' : ''}
             onClick={() => setActiveTab('register')}>
             Create Account
           </button>
@@ -127,7 +126,7 @@ export default function LoginPage() {
             </div>
             <button className="submit-btn" onClick={handleEmailLogin}>Sign In →</button>
             <div className="auth-footer">
-              <a href="#">Forgot your password?</a>
+              <Link to="/forgot-password">Forgot your password?</Link>
             </div>
           </div>
         ) : (
