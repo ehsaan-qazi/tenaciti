@@ -2,8 +2,6 @@
 
 import pytest
 from datetime import datetime, timezone, timedelta
-import hashlib
-import secrets
 
 
 class TestAuthService:
@@ -42,7 +40,7 @@ class TestAuthService:
 
     def test_validate_password_valid(self):
         """Test password validation with valid passwords."""
-        from app.services.auth_service import validate_password, PasswordPolicyError
+        from app.services.auth_service import validate_password
 
         # Valid passwords
         valid_passwords = [
@@ -94,7 +92,7 @@ class TestAuthService:
 
     def test_lock_account(self):
         """Test account lockout after max attempts."""
-        from app.services.auth_service import lock_account, MAX_FAILED_LOGIN_ATTEMPTS
+        from app.services.auth_service import lock_account
 
         # Below threshold
         count, locked = lock_account(0)

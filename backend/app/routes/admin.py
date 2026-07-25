@@ -5,7 +5,7 @@ Requires authentication (any authenticated user can view; you could restrict to 
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.middleware.auth import get_current_user, get_verified_user
+from app.middleware.auth import get_verified_user
 from app.models.user import User
 from app.services.groq_router import get_router, GROQ_MODEL_PRIORITY, COOLDOWN_SECONDS, FAILURE_THRESHOLD
 

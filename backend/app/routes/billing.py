@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.subscription import Subscription
 from app.middleware.tier_gate import get_file_size_limit_bytes
-from app.middleware.auth import get_current_user, get_verified_user
+from app.middleware.auth import get_verified_user
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 

@@ -37,7 +37,6 @@ from app.services import (
     PasswordPolicyError,
     LOCKOUT_DURATION_MINUTES,
     needs_rehash,
-    VERIFICATION_TOKEN_EXPIRE_HOURS,
 )
 from app.config import settings
 from app.middleware.rate_limit import limiter

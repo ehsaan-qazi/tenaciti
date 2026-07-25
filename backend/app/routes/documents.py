@@ -8,7 +8,7 @@ from sqlalchemy import select, func
 from typing import List
 
 from app.database import get_db, async_session
-from app.middleware.auth import get_current_user, get_verified_user
+from app.middleware.auth import get_verified_user
 from app.middleware.tier_gate import require_pro, check_upload_limit, get_file_size_limit_bytes
 from app.models.user import User
 from app.models.course import Course
@@ -295,6 +295,23 @@ async def trigger_roadmap_extraction(
         "document_id": document.id,
         "message": "Roadmap extraction started",
     }
+
+
+async def _run_roadmap_extraction(document_id: int, user_id: int) -> None:
+    """Background task: run roadmap extraction with its own DB session."""
+    async with async_session() as db:
+        try:
+            result = await db.execute(
+                select(Document).where(Document.id == document_id, Document.user_id == user_id)
+            )
+            document = result.scalar_one_or_none()
+            if not document:
+                return
+            await extract_roadmap_for_document(document, db)
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            logger.exception("Background roadmap extraction failed for document %d", document_id)
 
 
 @router.get("/{document_id}/extraction-status", response_model=dict)

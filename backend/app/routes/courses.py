@@ -4,7 +4,7 @@ from sqlalchemy import select
 from typing import List
 
 from app.database import get_db
-from app.middleware.auth import get_current_user, get_verified_user
+from app.middleware.auth import get_verified_user
 from app.models.user import User
 from app.models.course import Course
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse
