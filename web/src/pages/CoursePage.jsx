@@ -159,6 +159,10 @@ export default function CoursePage() {
   // ── Tab state ──
   const [activeTab, setActiveTab] = useState('overview')
 
+  // ── Notes state ──
+  const [notes, setNotes] = useState([])
+  const [notesLoading, setNotesLoading] = useState(false)
+
   // ── Upload state ──
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -233,10 +237,22 @@ export default function CoursePage() {
     }
   }, [])
 
+  const fetchNotes = useCallback(async () => {
+    setNotesLoading(true)
+    try {
+      const data = await apiFetch(`/notes/courses/${id}`)
+      setNotes(data)
+    } catch (err) {
+      console.error('Failed to fetch notes:', err)
+    } finally {
+      setNotesLoading(false)
+    }
+  }, [id])
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true)
-      await Promise.all([fetchCourse(), fetchDocuments(), fetchTopics(), fetchRoadmap(), fetchLimits()])
+      await Promise.all([fetchCourse(), fetchDocuments(), fetchTopics(), fetchRoadmap(), fetchLimits(), fetchNotes()])
       setLoading(false)
     }
     loadAll()
@@ -640,7 +656,7 @@ export default function CoursePage() {
 
       {/* ── Tabs ── */}
       <div className="tabs">
-        {['overview', 'documents', 'roadmap', 'topics'].map((tab) => (
+        {['overview', 'documents', 'roadmap', 'topics', 'notes'].map((tab) => (
           <button
             key={tab}
             className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
@@ -650,6 +666,7 @@ export default function CoursePage() {
             {tab === 'documents' && `Documents (${documents.length})`}
             {tab === 'roadmap' && `Roadmap (${roadmap.length})`}
             {tab === 'topics' && `Topics (${topics.length})`}
+            {tab === 'notes' && `Notes (${notes.length})`}
           </button>
         ))}
       </div>
@@ -910,6 +927,53 @@ export default function CoursePage() {
           confirmMerge={handleConfirmMerge}
           cancelMerge={handleCancelMerge}
         />
+      )}
+
+      {/* ═══════════════ NOTES ═══════════════ */}
+      {activeTab === 'notes' && (
+        <div>
+          <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+            <button className="secondary-btn" style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }} onClick={() => setActiveTab('notes')}>
+              📋 List
+            </button>
+            <button className="secondary-btn" style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }} onClick={() => navigate('/notes')}>
+              📊 Full Notes Page
+            </button>
+          </div>
+
+          {notesLoading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <span className="spinner" /> Loading notes...
+            </div>
+          ) : notes.length === 0 ? (
+            <div className="empty-state">
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+              <p>No notes yet for this course. Create notes to link your study material.</p>
+              <button className="primary-btn" style={{ width: 'auto' }} onClick={() => {
+                apiFetch('/notes', {
+                  method: 'POST',
+                  body: JSON.stringify({ title: 'New Note', content: '', course_id: parseInt(id) })
+                }).then((note) => navigate(`/notes/${note.id}`))
+              }}>
+                ＋ Create Note
+              </button>
+            </div>
+          ) : (
+            <div className="notes-list">
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  onClick={() => navigate(`/notes/${note.id}`)}
+                  className={`topic-item ${note.is_stub ? 'placeholder' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <span className="topic-title-text">{note.title}</span>
+                  {note.is_stub && <span className="badge placeholder-badge">(stub)</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

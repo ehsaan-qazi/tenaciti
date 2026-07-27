@@ -18,6 +18,7 @@ from app.routes.billing import router as billing_router
 from app.routes.documents import router as documents_router
 from app.routes.topics import router as topics_router
 from app.routes.roadmap_nodes import router as roadmap_nodes_router
+from app.routes.notes import router as notes_router
 from app.routes.admin import router as admin_router
 
 app = FastAPI(
@@ -50,4 +51,5 @@ app.include_router(billing_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(topics_router, prefix="/api/v1")
 app.include_router(roadmap_nodes_router, prefix="/api/v1")
+app.include_router(notes_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
