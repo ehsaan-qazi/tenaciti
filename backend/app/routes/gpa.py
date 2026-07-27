@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
-from datetime import datetime
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user
@@ -24,11 +23,8 @@ from app.schemas.gpa import (
     GpaGoalStatus,
 )
 from app.services.gpa_service import (
-    letter_to_points,
-    points_to_letter,
     percentage_to_letter,
     sync_grade_fields,
-    calculate_semester_gpa,
     calculate_cgpa,
     calculate_what_if_scenarios,
     build_semester_summaries,

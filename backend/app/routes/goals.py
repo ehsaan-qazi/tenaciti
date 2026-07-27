@@ -2,9 +2,8 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select
 from typing import List
-from datetime import date
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user
@@ -55,10 +54,6 @@ async def _compute_goal_progress(goal: Goal, db: AsyncSession) -> dict:
 
         # If GPA goal, compute current GPA for those courses/semesters
         if goal.is_gpa_goal and goal.gpa_target is not None:
-            # Get semester from goal or use current
-            target_semester = goal.semester
-            target_year = None
-
             # Get GPA entries for linked courses
             gpa_result = await db.execute(
                 select(GpaEntry).where(

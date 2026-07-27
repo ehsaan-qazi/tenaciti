@@ -12,7 +12,6 @@ from app.models.user import User
 from app.models.roadmap_node import RoadmapNode
 from app.models.self_assessment_log import SelfAssessmentLog
 from app.schemas.self_assessment_log import (
-    SelfAssessmentLogCreate,
     SelfAssessmentLogResponse,
     SelfAssessmentLogUpdate,
     RoadmapNodeSubmitRequest,

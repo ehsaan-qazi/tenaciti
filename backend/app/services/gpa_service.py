@@ -2,7 +2,6 @@
 
 from typing import List, Optional, Dict, Tuple, Any
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
 
 
 # Grade scale mappings for different grading systems
@@ -150,7 +149,6 @@ def sync_grade_fields(
 
 def _entry_to_calc(entry) -> CalcEntry:
     """Convert a GpaEntry model to CalcEntry."""
-    grade_points = letter_to_points(entry.grade_letter, entry.grade_scale)
     return CalcEntry(
         id=entry.id,
         entry_type=entry.entry_type,
@@ -331,8 +329,6 @@ def calculate_what_if_scenarios(
     # Scenario 4: Current trajectory (maintain current semester GPA)
     if current_entries:
         # Calculate current semester GPA from most recent entries
-        from collections import defaultdict
-        recent_semester = None
         if current_entries:
             # Find most recent semester with entries
             semesters = {}
