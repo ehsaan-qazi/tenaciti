@@ -38,44 +38,102 @@ const ALLOWED_UPLOAD_TYPES = {
 }
 const ALLOWED_UPLOAD_EXT = '.pdf,.pptx,.ppt'
 
-// ── Confidence Rating Modal ───────────────────────────────────────────────────
+// ── Self-Assessment Modal ─────────────────────────────────────────────────────
 
-function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
-  const [rating, setRating] = useState(0)
-  const [hovered, setHovered] = useState(0)
+function SelfAssessmentModal({ node, onSubmit, onClose }) {
+  const [form, setForm] = useState({
+    actual_hours: '',
+    quality_self_rating: 5,
+    mood_energy: 3,
+    reflection_note: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
 
-  const display = hovered || rating
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm({ ...form, [name]: name === 'actual_hours' ? parseFloat(value) || '' : parseInt(value) || value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await onSubmit(form)
+      onClose()
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
-    <div className="confidence-modal-overlay" onClick={onSkip}>
-      <div className="confidence-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>✅ Topic Completed!</h3>
-        <p>How confident do you feel about <strong>&ldquo;{topicTitle}&rdquo;</strong>? (optional)</p>
-        <div className="confidence-stars">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={`confidence-star ${display >= star ? 'active' : ''}`}
-              onMouseEnter={() => setHovered(star)}
-              onMouseLeave={() => setHovered(0)}
-              onClick={() => setRating(rating === star ? 0 : star)}
-            >
-              ⭐
-            </span>
-          ))}
+    <div className="modal-overlay open" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+        <div className="modal-header">
+          <h2 className="modal-title">📝 Submit Assessment</h2>
+          <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <div className="confidence-modal-actions">
-          <button className="secondary-btn" style={{ width: 'auto' }} onClick={onSkip}>
-            Skip
-          </button>
-          <button
-            className="primary-btn"
-            style={{ width: 'auto' }}
-            onClick={() => onConfirm(rating || null)}
-          >
-            {rating ? `Save (${rating}★)` : 'Save'}
-          </button>
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Assessment: {node.title}</label>
+          </div>
+          <div className="form-group">
+            <label>Type: {node.node_type}</label>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label>Actual Hours Spent</label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                name="actual_hours"
+                value={form.actual_hours}
+                onChange={handleChange}
+                placeholder="e.g. 3.5"
+                style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Quality Self-Rating (1-5) *</label>
+              <select name="quality_self_rating" value={form.quality_self_rating} onChange={handleChange} required style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}>
+                <option value={5}>5 - Excellent</option>
+                <option value={4}>4 - Good</option>
+                <option value={3}>3 - Average</option>
+                <option value={2}>2 - Below Average</option>
+                <option value={1}>1 - Poor</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-group">
+              <label>Mood/Energy (1-5)</label>
+              <select name="mood_energy" value={form.mood_energy} onChange={handleChange} style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}>
+                <option value={5}>5 - Energized</option>
+                <option value={4}>4 - Good</option>
+                <option value={3}>3 - Neutral</option>
+                <option value={2}>2 - Tired</option>
+                <option value={1}>1 - Exhausted</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label>Reflection Note (optional)</label>
+              <textarea
+                name="reflection_note"
+                value={form.reflection_note}
+                onChange={handleChange}
+                rows={3}
+                placeholder="What went well? What would you do differently? Any insights..."
+                style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="secondary-btn" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button type="submit" className="primary-btn" disabled={submitting} style={{ width: 'auto' }}>
+              {submitting ? 'Submitting…' : 'Submit & Log Self-Assessment'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -190,6 +248,64 @@ export default function CoursePage() {
   // ── Confidence modal state ──
   const [confidencePending, setConfidencePending] = useState(null) // { topicId, isCompleted }
 
+  // ── Self-Assessment state ──
+  const [submitModalOpen, setSubmitModalOpen] = useState(false)
+  const [submittingNode, setSubmittingNode] = useState(null)
+  const [submitForm, setSubmitForm] = useState({
+    quality_self_rating: 3,
+    mood_energy: 3,
+    actual_hours: '',
+    reflection_note: '',
+  })
+  const [submitLoading, setSubmitLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [gapData, setGapData] = useState({}) // { nodeId: SubmissionGapResponse }
+
+  // ── Self-Assessment handlers ───────────────────────────────────────────────
+
+  const openSubmitModal = (node) => {
+    setSubmittingNode(node)
+    setSubmitModalOpen(true)
+    setSubmitError('')
+  }
+
+  const handleNodeSubmit = async (formData) => {
+    if (!submittingNode) return
+    try {
+      await apiFetch(`/self-assessment/nodes/${submittingNode.id}/submit`, {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      })
+      // Refresh roadmap to show new status
+      await fetchRoadmap()
+      // Fetch gap data for the submitted node
+      try {
+        const gap = await apiFetch(`/self-assessment/nodes/${submittingNode.id}/gap`)
+        setGapData(prev => ({ ...prev, [submittingNode.id]: gap }))
+      } catch { /* gap data is optional */ }
+      setSubmitModalOpen(false)
+      setSubmittingNode(null)
+    } catch (err) {
+      throw err // Let the modal handle the error display
+    }
+  }
+
+  // Fetch gap data for all submitted/graded nodes on load
+  const fetchGapData = useCallback(async (nodes) => {
+    const submitted = nodes.filter(n => n.status === 'Submitted' || n.status === 'Graded')
+    if (!submitted.length) return
+    const gaps = {}
+    await Promise.all(
+      submitted.map(async (node) => {
+        try {
+          const gap = await apiFetch(`/self-assessment/nodes/${node.id}/gap`)
+          gaps[node.id] = gap
+        } catch { /* ignore missing assessments */ }
+      })
+    )
+    setGapData(prev => ({ ...prev, ...gaps }))
+  }, [])
+
   // ── Data fetchers ──────────────────────────────────────────────────────────
 
   const fetchCourse = useCallback(async () => {
@@ -252,11 +368,18 @@ export default function CoursePage() {
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true)
-      await Promise.all([fetchCourse(), fetchDocuments(), fetchTopics(), fetchRoadmap(), fetchLimits(), fetchNotes()])
+      const [,, , roadmapData] = await Promise.all([fetchCourse(), fetchDocuments(), fetchTopics(), fetchRoadmap(), fetchLimits(), fetchNotes()])
       setLoading(false)
     }
     loadAll()
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch gap data whenever roadmap changes (for submitted/graded nodes)
+  useEffect(() => {
+    if (roadmap.length > 0) {
+      fetchGapData(roadmap)
+    }
+  }, [roadmap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Upload ────────────────────────────────────────────────────────────────
 
@@ -542,6 +665,7 @@ export default function CoursePage() {
     setMergeMode(false)
     setSelectedForMerge([])
   }
+
 
   // ── Roadmap node actions ───────────────────────────────────────────────────
 
@@ -894,6 +1018,45 @@ export default function CoursePage() {
                               ✓ Confirm
                             </button>
                           )}
+                          {node.is_confirmed && node.status !== 'Submitted' && node.status !== 'Graded' && (
+                            <button className="primary-btn" style={{ width: 'auto', background: 'var(--amber)', borderColor: 'var(--amber)', color: 'var(--bg-primary)' }} onClick={() => openSubmitModal(node)}>
+                              📝 Submit
+                            </button>
+                          )}
+                          {node.status === 'Submitted' && <span className="badge" style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>📤 Submitted</span>}
+                          {node.status === 'Graded' && <span className="badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>✅ Graded</span>}
+                          {/* Inline gap metrics for submitted/graded nodes */}
+                          {(node.status === 'Submitted' || node.status === 'Graded') && gapData[node.id] && (
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                              {gapData[node.id].confidence_gap != null && (
+                                <span className="badge" style={{
+                                  background: gapData[node.id].confidence_gap >= 0 ? 'var(--green-dim)' : 'var(--red-dim, rgba(239,68,68,0.15))',
+                                  color: gapData[node.id].confidence_gap >= 0 ? 'var(--green)' : 'var(--red)',
+                                  fontSize: '10px',
+                                }}>
+                                  {gapData[node.id].confidence_gap >= 0 ? '▲' : '▼'} Quality: {gapData[node.id].confidence_gap > 0 ? '+' : ''}{gapData[node.id].confidence_gap}
+                                </span>
+                              )}
+                              {gapData[node.id].hours_gap != null && (
+                                <span className="badge" style={{
+                                  background: gapData[node.id].hours_gap <= 0 ? 'var(--green-dim)' : 'var(--amber-dim)',
+                                  color: gapData[node.id].hours_gap <= 0 ? 'var(--green)' : 'var(--amber)',
+                                  fontSize: '10px',
+                                }}>
+                                  ⏱ {gapData[node.id].hours_gap > 0 ? '+' : ''}{gapData[node.id].hours_gap}h
+                                </span>
+                              )}
+                              {gapData[node.id].hours_before_deadline != null && (
+                                <span className="badge" style={{
+                                  background: gapData[node.id].hours_before_deadline >= 0 ? 'var(--green-dim)' : 'var(--red-dim, rgba(239,68,68,0.15))',
+                                  color: gapData[node.id].hours_before_deadline >= 0 ? 'var(--green)' : 'var(--red)',
+                                  fontSize: '10px',
+                                }}>
+                                  {gapData[node.id].hours_before_deadline >= 0 ? '⏰ Early' : '⏰ Late'}: {Math.abs(gapData[node.id].hours_before_deadline).toFixed(1)}h
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <button className="secondary-btn" onClick={() => startEdit(node)}>✏️ Edit</button>
                           <button className="icon-btn danger" onClick={() => handleDeleteNode(node.id)}>🗑️</button>
                         </div>
@@ -974,6 +1137,18 @@ export default function CoursePage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ═══════════════ SELF-ASSESSMENT MODAL ═══════════════ */}
+      {submitModalOpen && submittingNode && (
+        <SelfAssessmentModal
+          node={submittingNode}
+          onSubmit={handleNodeSubmit}
+          onClose={() => {
+            setSubmitModalOpen(false)
+            setSubmittingNode(null)
+          }}
+        />
       )}
     </div>
   )

@@ -20,6 +20,9 @@ from app.routes.topics import router as topics_router
 from app.routes.roadmap_nodes import router as roadmap_nodes_router
 from app.routes.notes import router as notes_router
 from app.routes.admin import router as admin_router
+from app.routes.self_assessment import router as self_assessment_router
+from app.routes.goals import router as goals_router
+from app.routes.gpa import router as gpa_router
 
 app = FastAPI(
     title="Koala API",
@@ -52,4 +55,7 @@ app.include_router(documents_router, prefix="/api/v1")
 app.include_router(topics_router, prefix="/api/v1")
 app.include_router(roadmap_nodes_router, prefix="/api/v1")
 app.include_router(notes_router, prefix="/api/v1")
+app.include_router(self_assessment_router, prefix="/api/v1")
+app.include_router(goals_router, prefix="/api/v1")
+app.include_router(gpa_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

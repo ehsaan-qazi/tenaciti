@@ -26,8 +26,24 @@ from app.services.email_service import (
     send_welcome_email,
     send_verification_email,
 )
+from app.services.gpa_service import (
+    letter_to_points,
+    percentage_to_letter,
+    points_to_letter,
+    sync_grade_fields,
+    calculate_semester_gpa,
+    calculate_cgpa,
+    build_semester_summaries,
+    calculate_what_if_scenarios,
+    enrich_entry_response,
+    _entry_to_calc,
+    GRADE_SCALES,
+    PERCENTAGE_THRESHOLDS,
+    CalcEntry,
+)
 
 __all__ = [
+    # Auth service
     "hash_password",
     "verify_password",
     "needs_rehash",
@@ -49,7 +65,22 @@ __all__ = [
     "LOCKOUT_DURATION_MINUTES",
     "MAX_FAILED_LOGIN_ATTEMPTS",
     "VERIFICATION_TOKEN_EXPIRE_HOURS",
+    # Email service
     "send_password_reset_email",
     "send_welcome_email",
     "send_verification_email",
+    # GPA service
+    "letter_to_points",
+    "percentage_to_letter",
+    "points_to_letter",
+    "sync_grade_fields",
+    "calculate_semester_gpa",
+    "calculate_cgpa",
+    "build_semester_summaries",
+    "calculate_what_if_scenarios",
+    "enrich_entry_response",
+    "_entry_to_calc",
+    "GRADE_SCALES",
+    "PERCENTAGE_THRESHOLDS",
+    "CalcEntry",
 ]

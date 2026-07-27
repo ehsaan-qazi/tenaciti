@@ -57,6 +57,7 @@ export default function Sidebar() {
       <div className="sidebar-section">
         <div className="sidebar-label">Tracking</div>
         {navItem('/goals', '🎯', 'Goals')}
+        {navItem('/self-assessment', '📝', 'Self-Assessment')}
         {navItem('/gpa', '🎓', 'GPA Calculator')}
         {navItem('/profile', '📊', 'Insights & Profile')}
         {navItem('/retrospective', '📋', 'Retrospective')}

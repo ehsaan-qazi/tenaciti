@@ -15,12 +15,6 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate()
   const { session } = useAuth()
 
-  // If already logged in, redirect to dashboard
-  if (session) {
-    navigate('/', { replace: true })
-    return null
-  }
-
   // Get token from URL
   useEffect(() => {
     const resetToken = searchParams.get('token')
@@ -30,6 +24,17 @@ export default function ResetPasswordPage() {
       setTokenValid(false)
     }
   }, [searchParams])
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (session) {
+      navigate('/', { replace: true })
+    }
+  }, [session, navigate])
+
+  if (session) {
+    return null
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()

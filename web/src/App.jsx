@@ -6,6 +6,7 @@ import SettingsPage from './pages/SettingsPage'
 import CoursePage from './pages/CoursePage'
 import NotesPage from './pages/NotesPage'
 import GoalsPage from './pages/GoalsPage'
+import SelfAssessmentPage from './pages/SelfAssessmentPage'
 import GPAPage from './pages/GPAPage'
 import ProfilePage from './pages/ProfilePage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -75,6 +76,7 @@ function AppRoutes() {
         <Route path="/notes" element={<NotesPage />} />
         <Route path="/notes/:id" element={<NotesPage />} />
         <Route path="/goals" element={<GoalsPage />} />
+        <Route path="/self-assessment" element={<SelfAssessmentPage />} />
         <Route path="/gpa" element={<GPAPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/retrospective" element={<ProfilePage />} />
