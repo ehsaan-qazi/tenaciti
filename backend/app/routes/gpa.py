@@ -33,7 +33,6 @@ from app.services.gpa_service import (
     calculate_internal_marks,
     enrich_entry_response,
     _entry_to_calc,
-    GRADE_SCALES,
     GRADE_SCALE,
     LETTER_GRADES,
     PERCENTAGE_THRESHOLDS,
