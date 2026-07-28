@@ -1,4 +1,4 @@
-"""GPA routes — CRUD for GPA entries, semester/CGPA summaries, what-if calculator."""
+"""GPA routes — CRUD for GPA entries, semester/CGPA summaries, what-if calculator, internal marks."""
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,8 @@ from app.schemas.gpa import (
     WhatIfResponse,
     WhatIfScenario,
     GpaGoalStatus,
+    InternalMarksRequest,
+    InternalMarksResponse,
 )
 from app.services.gpa_service import (
     percentage_to_letter,
@@ -28,9 +30,13 @@ from app.services.gpa_service import (
     calculate_cgpa,
     calculate_what_if_scenarios,
     build_semester_summaries,
+    calculate_internal_marks,
     enrich_entry_response,
     _entry_to_calc,
     GRADE_SCALES,
+    GRADE_SCALE,
+    LETTER_GRADES,
+    PERCENTAGE_THRESHOLDS,
 )
 
 router = APIRouter(prefix="/gpa", tags=["GPA Calculator"])
@@ -64,11 +70,10 @@ async def create_gpa_entry(
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Course not found")
 
-    # Sync grade fields
+    # Sync grade fields using HEC 4.0 scale
     grade_letter, percentage, _ = sync_grade_fields(
         grade_letter=entry_in.grade_letter,
         percentage=entry_in.percentage,
-        grade_scale=entry_in.grade_scale,
     )
 
     entry = GpaEntry(
@@ -81,7 +86,7 @@ async def create_gpa_entry(
         credit_hours=entry_in.credit_hours,
         grade_letter=grade_letter,
         percentage=percentage,
-        grade_scale=entry_in.grade_scale,
+        grade_scale="4.0",
     )
     db.add(entry)
     await db.flush()
@@ -169,20 +174,21 @@ async def update_gpa_entry(
 
     update_data = entry_in.model_dump(exclude_unset=True)
 
-    # Handle grade sync if grade_letter, percentage, or grade_scale changed
-    grade_fields_changed = any(k in update_data for k in ("grade_letter", "percentage", "grade_scale"))
+    # Handle grade sync if grade_letter or percentage changed
+    grade_fields_changed = any(k in update_data for k in ("grade_letter", "percentage"))
     if grade_fields_changed:
         new_letter = update_data.get("grade_letter", entry.grade_letter)
         new_percentage = update_data.get("percentage", entry.percentage)
-        new_scale = update_data.get("grade_scale", entry.grade_scale)
 
         synced_letter, synced_percentage, _ = sync_grade_fields(
             grade_letter=new_letter,
             percentage=new_percentage,
-            grade_scale=new_scale,
         )
         update_data["grade_letter"] = synced_letter
         update_data["percentage"] = synced_percentage
+
+    # Always force HEC 4.0 scale
+    update_data["grade_scale"] = "4.0"
 
     for key, value in update_data.items():
         setattr(entry, key, value)
@@ -217,7 +223,6 @@ async def delete_gpa_entry(
 async def get_semester_summaries(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
-    grade_scale: str = Query("4.0", pattern="^(4.0|5.0|10)$"),
 ):
     """Get GPA summary grouped by semester."""
     result = await db.execute(
@@ -226,7 +231,7 @@ async def get_semester_summaries(
     entries = result.scalars().all()
 
     calc_entries = [_entry_to_calc(e) for e in entries]
-    summaries = build_semester_summaries(calc_entries, grade_scale)
+    summaries = build_semester_summaries(calc_entries)
 
     return [
         SemesterGpaSummary(
@@ -246,7 +251,6 @@ async def get_semester_summaries(
 async def get_cumulative_gpa(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
-    grade_scale: str = Query("4.0", pattern="^(4.0|5.0|10)$"),
 ):
     """Get cumulative GPA across all semesters."""
     result = await db.execute(
@@ -261,7 +265,7 @@ async def get_cumulative_gpa(
     cgpa, total_qp, total_credits = calculate_cgpa(course_entries)
 
     # Build semester summaries
-    summaries = build_semester_summaries(calc_entries, grade_scale)
+    summaries = build_semester_summaries(calc_entries)
 
     return CumulativeGpaSummary(
         semesters=[
@@ -307,7 +311,6 @@ async def calculate_what_if(
         remaining_credits=request.remaining_credits,
         target_cgpa=request.target_cgpa,
         target_semester_gpa=request.target_semester_gpa,
-        grade_scale=request.grade_scale,
     )
 
     scenarios = [
@@ -334,7 +337,6 @@ async def calculate_what_if(
 async def get_gpa_goals_status(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
-    grade_scale: str = Query("4.0", pattern="^(4.0|5.0|10)$"),
 ):
     """Get status of all GPA-linked goals."""
     # Get GPA goals
@@ -410,11 +412,43 @@ async def get_gpa_goals_status(
 
 @router.get("/grade-scales", response_model=dict)
 async def get_grade_scales():
-    """Get available grade scales and their letter-grade mappings."""
+    """Get the HEC 4.0 grading scale and percentage thresholds."""
     return {
-        "scales": list(GRADE_SCALES.keys()),
-        "mappings": GRADE_SCALES,
+        "scale": GRADE_SCALE,
+        "letter_grades": LETTER_GRADES,
+        "percentage_thresholds": [
+            {"min_percentage": t[0], "grade": t[1]}
+            for t in PERCENTAGE_THRESHOLDS
+        ],
     }
+
+
+@router.post("/internal-marks", response_model=InternalMarksResponse)
+async def calculate_internal_marks_endpoint(
+    request: InternalMarksRequest,
+    current_user: User = Depends(get_verified_user),
+):
+    """Calculate internal marks using COMSATS evaluation structure.
+
+    Standard (no lab): Quizzes/Assignments 25%, Mid-term 25%, Terminal 50%.
+    Lab course: weighted average of theory and practical by credit hours.
+    """
+    result = calculate_internal_marks(
+        quizzes=request.quizzes,
+        assignments=request.assignments,
+        midterm=request.midterm,
+        terminal=request.terminal,
+        quiz_max=request.quiz_max,
+        assignment_max=request.assignment_max,
+        midterm_max=request.midterm_max,
+        terminal_max=request.terminal_max,
+        has_lab=request.has_lab,
+        theory_percentage=request.theory_percentage,
+        practical_percentage=request.practical_percentage,
+        theory_credit_hours=request.theory_credit_hours,
+        practical_credit_hours=request.practical_credit_hours,
+    )
+    return InternalMarksResponse(**result)
 
 
 @router.post("/entries/from-roadmap/{node_id}", response_model=GpaEntryResponse, status_code=status.HTTP_201_CREATED)
@@ -439,7 +473,7 @@ async def create_gpa_entry_from_roadmap(
     if node.status != "Graded" or node.grade is None:
         raise HTTPException(status_code=400, detail="Node must be graded to create GPA entry")
 
-    # Get course for credit hours and grade scale
+    # Get course for credit hours
     course_result = await db.execute(
         select(Course).where(
             Course.id == node.course_id,
@@ -448,10 +482,9 @@ async def create_gpa_entry_from_roadmap(
     )
     course = course_result.scalar_one_or_none()
 
-    # Convert grade (percentage) to letter
+    # Convert grade (percentage) to letter using HEC thresholds
     grade_percentage = float(node.grade) if node.grade else 0
-    grade_scale = course.grade_scale if course else "4.0"
-    grade_letter = percentage_to_letter(grade_percentage, grade_scale)
+    grade_letter = percentage_to_letter(grade_percentage)
     credit_hours = float(course.credit_hours) if course and course.credit_hours else 3.0
 
     entry = GpaEntry(
@@ -464,7 +497,7 @@ async def create_gpa_entry_from_roadmap(
         credit_hours=credit_hours,
         grade_letter=grade_letter,
         percentage=grade_percentage,
-        grade_scale=grade_scale,
+        grade_scale="4.0",
     )
     db.add(entry)
     await db.flush()

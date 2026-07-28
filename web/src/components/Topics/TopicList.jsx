@@ -221,36 +221,77 @@ export default function TopicList({
         <div className="topic-empty">
           <div className="topic-empty-icon">📋</div>
           <p className="topic-empty-text">
-            No topics yet. Upload lecture slides or a syllabus and use <strong>Extract Topics</strong> to get started. (Pro feature)
+            No topics yet. Upload lecture slides or a syllabus and use <strong>Extract Topics</strong> to get started.
           </p>
           <button className="primary-btn" style={{ width: 'auto' }} onClick={onAddTopic}>
             ＋ Add Topic Manually
           </button>
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={topics.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-            {topics.map((topic, idx) => (
-              <TopicItem
-                key={topic.id}
-                topic={topic}
-                index={idx}
-                onEdit={onEdit}
-                onConfirm={onConfirm}
-                onDelete={onDelete}
-                onToggleComplete={onToggleComplete}
-                onStartLinkNode={handleStartLinkNode}
-                mergeMode={mergeMode}
-                isSelectedForMerge={selectedForMerge.includes(topic.id)}
-                onToggleMergeSelect={toggleMergeSelection}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+        <>
+          {/* Active / In-Progress Topics */}
+          {topics.filter(t => !t.is_completed).length > 0 && (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={topics.filter(t => !t.is_completed).map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                {topics.filter(t => !t.is_completed).map((topic, idx) => (
+                  <TopicItem
+                    key={topic.id}
+                    topic={topic}
+                    index={idx}
+                    onEdit={onEdit}
+                    onConfirm={onConfirm}
+                    onDelete={onDelete}
+                    onToggleComplete={onToggleComplete}
+                    onStartLinkNode={handleStartLinkNode}
+                    mergeMode={mergeMode}
+                    isSelectedForMerge={selectedForMerge.includes(topic.id)}
+                    onToggleMergeSelect={toggleMergeSelection}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+          )}
+
+          {/* Completed Topics Section */}
+          {topics.filter(t => t.is_completed).length > 0 && (
+            <div style={{ marginTop: '1.75rem' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'space-between',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+                marginBottom: '0.75rem',
+                paddingBottom: '0.4rem',
+                borderBottom: '1px solid var(--border)',
+              }}>
+                <span>✅ Completed Topics ({topics.filter(t => t.is_completed).length})</span>
+              </div>
+              <div className="completed-topics-list">
+                {topics.filter(t => t.is_completed).map((topic, idx) => (
+                  <TopicItem
+                    key={topic.id}
+                    topic={topic}
+                    index={topics.filter(t => !t.is_completed).length + idx}
+                    onEdit={onEdit}
+                    onConfirm={onConfirm}
+                    onDelete={onDelete}
+                    onToggleComplete={onToggleComplete}
+                    onStartLinkNode={handleStartLinkNode}
+                    mergeMode={mergeMode}
+                    isSelectedForMerge={selectedForMerge.includes(topic.id)}
+                    onToggleMergeSelect={toggleMergeSelection}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Merge Modal ── */}

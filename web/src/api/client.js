@@ -31,8 +31,10 @@ export async function apiFetch(endpoint, options = {}) {
   const explicitToken = options.token
   const localToken = getLocalToken()
 
+  const isFormData = options.body instanceof FormData
+
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...options.headers,
   }
 

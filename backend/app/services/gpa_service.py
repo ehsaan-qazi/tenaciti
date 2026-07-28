@@ -1,59 +1,58 @@
-"""GPA Calculator Service — semester GPA, CGPA, what-if calculations, and grade scale conversions."""
+"""GPA Calculator Service — HEC 4.0 grading scale (COMSATS standard).
+
+Semester GPA, CGPA, what-if calculations, internal marks calculator,
+and grade conversions using the official HEC grading policy (Fall 2021+).
+"""
 
 from typing import List, Optional, Dict, Tuple, Any
 from dataclasses import dataclass
 
 
-# Grade scale mappings for different grading systems
-GRADE_SCALES = {
-    "4.0": {
-        "A+": 4.0, "A": 4.0, "A-": 3.7,
-        "B+": 3.3, "B": 3.0, "B-": 2.7,
-        "C+": 2.3, "C": 2.0, "C-": 1.7,
-        "D+": 1.3, "D": 1.0, "D-": 0.7,
-        "F": 0.0,
-    },
-    "5.0": {
-        "A+": 5.0, "A": 5.0, "A-": 4.5,
-        "B+": 4.0, "B": 3.5, "B-": 3.0,
-        "C+": 2.5, "C": 2.0, "C-": 1.5,
-        "D+": 1.0, "D": 0.5, "D-": 0.0,
-        "F": 0.0,
-    },
-    "10": {
-        "A+": 10.0, "A": 10.0, "A-": 9.0,
-        "B+": 8.5, "B": 8.0, "B-": 7.5,
-        "C+": 7.0, "C": 6.5, "C-": 6.0,
-        "D+": 5.5, "D": 5.0, "D-": 4.5,
-        "F": 0.0,
-    },
+# ---------------------------------------------------------------------------
+# HEC 4.0 Grading Scale (approved by COMSATS Academic Council, Fall 2021)
+# ---------------------------------------------------------------------------
+
+GRADE_SCALE: Dict[str, float] = {
+    "A":  4.00,
+    "A-": 3.70,
+    "B+": 3.30,
+    "B":  3.00,
+    "B-": 2.70,
+    "C+": 2.30,
+    "C":  2.00,
+    "C-": 1.70,
+    "D":  1.00,
+    "F":  0.00,
 }
 
-# Percentage to letter grade thresholds (standard US grading)
-PERCENTAGE_THRESHOLDS = {
-    "4.0": [
-        (97, "A+"), (93, "A"), (90, "A-"),
-        (87, "B+"), (83, "B"), (80, "B-"),
-        (77, "C+"), (73, "C"), (70, "C-"),
-        (67, "D+"), (63, "D"), (60, "D-"),
-        (0, "F"),
-    ],
-    "5.0": [
-        (90, "A+"), (85, "A"), (80, "A-"),
-        (75, "B+"), (70, "B"), (65, "B-"),
-        (60, "C+"), (55, "C"), (50, "C-"),
-        (45, "D+"), (40, "D"), (35, "D-"),
-        (0, "F"),
-    ],
-    "10": [
-        (95, "A+"), (90, "A"), (85, "A-"),
-        (80, "B+"), (75, "B"), (70, "B-"),
-        (65, "C+"), (60, "C"), (55, "C-"),
-        (50, "D+"), (45, "D"), (40, "D-"),
-        (0, "F"),
-    ],
+# Ordered list of (minimum_percentage, letter_grade).
+# Percentage is rounded to the nearest integer before lookup.
+PERCENTAGE_THRESHOLDS: List[Tuple[int, str]] = [
+    (85, "A"),
+    (80, "A-"),
+    (75, "B+"),
+    (70, "B"),
+    (65, "B-"),
+    (61, "C+"),
+    (58, "C"),
+    (55, "C-"),
+    (50, "D"),
+    (0,  "F"),
+]
+
+# Keep legacy multi-scale dict for backward compat with existing API responses.
+# Only "4.0" is actually used.
+GRADE_SCALES: Dict[str, Dict[str, float]] = {
+    "4.0": GRADE_SCALE,
 }
 
+# Valid letter grades in descending order (for UI dropdowns)
+LETTER_GRADES: List[str] = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "F"]
+
+
+# ---------------------------------------------------------------------------
+# Data class for internal calculations
+# ---------------------------------------------------------------------------
 
 @dataclass
 class CalcEntry:
@@ -70,39 +69,56 @@ class CalcEntry:
     academic_year: Optional[str]
 
 
-def get_scale_mapping(grade_scale: str) -> Dict[str, float]:
-    """Get the letter-to-points mapping for a grade scale."""
-    return GRADE_SCALES.get(grade_scale, GRADE_SCALES["4.0"])
-
-
-def get_percentage_thresholds(grade_scale: str) -> List[Tuple[float, str]]:
-    """Get percentage-to-letter thresholds for a grade scale."""
-    return PERCENTAGE_THRESHOLDS.get(grade_scale, PERCENTAGE_THRESHOLDS["4.0"])
-
+# ---------------------------------------------------------------------------
+# Grade conversion helpers
+# ---------------------------------------------------------------------------
 
 def letter_to_points(grade_letter: str, grade_scale: str = "4.0") -> Optional[float]:
-    """Convert letter grade to numeric points on the given scale."""
+    """Convert letter grade to numeric grade points on the HEC 4.0 scale."""
     if not grade_letter:
         return None
-    scale = get_scale_mapping(grade_scale)
-    return scale.get(grade_letter.upper().strip(), None)
+    return GRADE_SCALE.get(grade_letter.strip(), None)
 
 
 def percentage_to_letter(percentage: float, grade_scale: str = "4.0") -> str:
-    """Convert percentage score to letter grade using scale-appropriate thresholds."""
-    thresholds = get_percentage_thresholds(grade_scale)
-    for min_pct, letter in thresholds:
-        if percentage >= min_pct:
+    """Convert percentage to letter grade using HEC thresholds.
+
+    Key rule: percentage is rounded to the nearest whole number before lookup.
+    Example: 79.6 → round(80) → A- (3.70), but 79.4 → round(79) → B+ (3.30).
+    """
+    rounded = round(percentage)
+    for min_pct, letter in PERCENTAGE_THRESHOLDS:
+        if rounded >= min_pct:
             return letter
     return "F"
 
 
 def points_to_letter(points: float, grade_scale: str = "4.0") -> Optional[str]:
     """Find the letter grade that corresponds to the given numeric points."""
-    scale = get_scale_mapping(grade_scale)
-    for letter, pts in scale.items():
-        if abs(pts - points) < 0.01:  # Floating point tolerance
+    for letter, pts in GRADE_SCALE.items():
+        if abs(pts - points) < 0.01:
             return letter
+    return None
+
+
+def letter_to_percentage_midpoint(grade_letter: str) -> Optional[float]:
+    """Estimate the percentage midpoint for a given letter grade.
+
+    Used when user provides a letter grade but not a percentage.
+    Returns the midpoint of that grade's percentage range.
+    """
+    if not grade_letter:
+        return None
+    grade_letter = grade_letter.strip()
+    for i, (min_pct, letter) in enumerate(PERCENTAGE_THRESHOLDS):
+        if letter == grade_letter:
+            if i == 0:
+                # Highest grade — midpoint between min and 100
+                return (min_pct + 100) / 2
+            else:
+                # Midpoint between this grade's min and the previous grade's min
+                prev_min = PERCENTAGE_THRESHOLDS[i - 1][0]
+                return (min_pct + prev_min - 1) / 2
     return None
 
 
@@ -110,45 +126,36 @@ def sync_grade_fields(
     grade_letter: Optional[str] = None,
     percentage: Optional[float] = None,
     grade_scale: str = "4.0",
-) -> Tuple[Optional[str], Optional[float], float]:
-    """
-    Synchronize grade_letter and percentage based on whichever is provided.
+) -> Tuple[Optional[str], Optional[float], Optional[float]]:
+    """Synchronize grade_letter and percentage based on whichever is provided.
+
     Returns (synced_letter, synced_percentage, grade_points).
     """
     grade_points = None
     synced_letter = grade_letter
     synced_percentage = percentage
 
-    if grade_letter and not percentage:
-        # Convert letter to points, then estimate percentage midpoint
-        grade_points = letter_to_points(grade_letter, grade_scale)
-        if grade_points is not None:
-            # Estimate percentage as midpoint of letter's range
-            thresholds = get_percentage_thresholds(grade_scale)
-            for i, (min_pct, letter) in enumerate(thresholds):
-                if letter == grade_letter.upper():
-                    next_min = thresholds[i + 1][0] if i + 1 < len(thresholds) else 0
-                    synced_percentage = (min_pct + next_min) / 2
-                    break
+    if grade_letter and percentage is None:
+        # Letter provided, no percentage — estimate midpoint
+        grade_points = letter_to_points(grade_letter)
+        synced_percentage = letter_to_percentage_midpoint(grade_letter)
     elif percentage is not None and not grade_letter:
-        # Convert percentage to letter
-        synced_letter = percentage_to_letter(percentage, grade_scale)
-        grade_points = letter_to_points(synced_letter, grade_scale)
-
-    if grade_letter and percentage is not None:
-        # Both provided - validate consistency, prefer letter for points
-        grade_points = letter_to_points(grade_letter, grade_scale)
-        # Check if percentage maps to same letter
-        expected_letter = percentage_to_letter(percentage, grade_scale)
-        if expected_letter != grade_letter.upper():
-            # Letter takes precedence for grade points
-            pass
+        # Percentage provided, no letter — convert using HEC thresholds
+        synced_letter = percentage_to_letter(percentage)
+        grade_points = letter_to_points(synced_letter)
+    elif grade_letter and percentage is not None:
+        # Both provided — letter takes precedence for grade points
+        grade_points = letter_to_points(grade_letter)
 
     return synced_letter, synced_percentage, grade_points
 
 
+# ---------------------------------------------------------------------------
+# Model → CalcEntry converter
+# ---------------------------------------------------------------------------
+
 def _entry_to_calc(entry) -> CalcEntry:
-    """Convert a GpaEntry model to CalcEntry."""
+    """Convert a GpaEntry ORM model to CalcEntry."""
     return CalcEntry(
         id=entry.id,
         entry_type=entry.entry_type,
@@ -163,9 +170,14 @@ def _entry_to_calc(entry) -> CalcEntry:
     )
 
 
+# ---------------------------------------------------------------------------
+# GPA calculations
+# ---------------------------------------------------------------------------
+
 def calculate_semester_gpa(entries: List[CalcEntry], grade_scale: str = "4.0") -> Tuple[float, float, float]:
-    """
-    Calculate GPA for a single semester.
+    """Calculate GPA for a single semester.
+
+    Formula: GPA = Σ(Grade Points × Credit Hours) ÷ Σ(Credit Hours)
     Returns (gpa, total_quality_points, total_credits).
     """
     total_qp = 0.0
@@ -177,7 +189,7 @@ def calculate_semester_gpa(entries: List[CalcEntry], grade_scale: str = "4.0") -
         if entry.credit_hours <= 0:
             continue
 
-        grade_points = letter_to_points(entry.grade_letter, entry.grade_scale)
+        grade_points = letter_to_points(entry.grade_letter)
         if grade_points is None:
             continue
 
@@ -185,15 +197,15 @@ def calculate_semester_gpa(entries: List[CalcEntry], grade_scale: str = "4.0") -
         total_credits += entry.credit_hours
 
     gpa = total_qp / total_credits if total_credits > 0 else 0.0
-    return round(gpa, 2), total_qp, total_credits
+    return round(gpa, 2), round(total_qp, 2), total_credits
 
 
 def calculate_cgpa(entries: List[CalcEntry]) -> Tuple[float, float, float]:
-    """
-    Calculate cumulative GPA across all semesters.
+    """Calculate cumulative GPA across all semesters.
+
+    Formula: CGPA = Σ(All Quality Points) ÷ Σ(All Credit Hours)
     Returns (cgpa, total_quality_points, total_credits).
     """
-    # Filter to course entries only
     course_entries = [e for e in entries if e.entry_type == "course"]
 
     total_qp = 0.0
@@ -202,7 +214,7 @@ def calculate_cgpa(entries: List[CalcEntry]) -> Tuple[float, float, float]:
     for entry in course_entries:
         if entry.credit_hours <= 0:
             continue
-        grade_points = letter_to_points(entry.grade_letter, entry.grade_scale)
+        grade_points = letter_to_points(entry.grade_letter)
         if grade_points is None:
             continue
 
@@ -210,12 +222,11 @@ def calculate_cgpa(entries: List[CalcEntry]) -> Tuple[float, float, float]:
         total_credits += entry.credit_hours
 
     cgpa = total_qp / total_credits if total_credits > 0 else 0.0
-    return round(cgpa, 2), total_qp, total_credits
+    return round(cgpa, 2), round(total_qp, 2), total_credits
 
 
 def build_semester_summaries(entries: List[CalcEntry], grade_scale: str = "4.0") -> List[Dict]:
     """Build semester summaries from entries, sorted chronologically."""
-    # Group by semester + academic_year
     from collections import defaultdict
     grouped = defaultdict(list)
     for entry in entries:
@@ -223,7 +234,6 @@ def build_semester_summaries(entries: List[CalcEntry], grade_scale: str = "4.0")
         grouped[key].append(entry)
 
     summaries = []
-    # Sort by academic year then semester order
     semester_order = {"Spring": 1, "Summer": 2, "Fall": 3}
 
     for (semester, year), sem_entries in sorted(
@@ -232,10 +242,9 @@ def build_semester_summaries(entries: List[CalcEntry], grade_scale: str = "4.0")
     ):
         gpa, qp, credits = calculate_semester_gpa(sem_entries, grade_scale)
 
-        # Build entry responses
         entry_responses = []
         for e in sorted(sem_entries, key=lambda x: x.course_label):
-            gp = letter_to_points(e.grade_letter, e.grade_scale)
+            gp = letter_to_points(e.grade_letter)
             entry_responses.append({
                 "id": e.id,
                 "course_label": e.course_label,
@@ -260,6 +269,10 @@ def build_semester_summaries(entries: List[CalcEntry], grade_scale: str = "4.0")
     return summaries
 
 
+# ---------------------------------------------------------------------------
+# What-if scenarios
+# ---------------------------------------------------------------------------
+
 def calculate_what_if_scenarios(
     current_entries: List[CalcEntry],
     remaining_credits: float,
@@ -267,39 +280,35 @@ def calculate_what_if_scenarios(
     target_semester_gpa: Optional[float] = None,
     grade_scale: str = "4.0",
 ) -> Dict:
-    """
-    Calculate what-if scenarios for GPA planning.
-    """
-    # Current CGPA
+    """Calculate what-if scenarios for GPA planning."""
     current_cgpa, current_qp, current_credits = calculate_cgpa(current_entries)
 
     scenarios = []
+    is_achievable = None
+    needed_gpa = None
 
-    # Scenario 1: Target CGPA - what grade average needed on remaining credits
+    # Scenario 1: Target CGPA — what grade average needed on remaining credits
     if target_cgpa is not None and remaining_credits > 0:
-        # target_cgpa = (current_qp + remaining_credits * needed_gpa) / (current_credits + remaining_credits)
-        # needed_gpa = (target_cgpa * (current_credits + remaining_credits) - current_qp) / remaining_credits
         needed_gpa = (
             target_cgpa * (current_credits + remaining_credits) - current_qp
         ) / remaining_credits
 
+        grade_needed_letter = points_to_letter(needed_gpa) or (
+            "Above A" if needed_gpa > 4.0 else "Below F"
+        )
+
         scenarios.append({
             "name": f"Achieve {target_cgpa:.2f} CGPA",
-            "description": f"Need {needed_gpa:.2f} GPA on {remaining_credits} remaining credits",
+            "description": f"Need {needed_gpa:.2f} GPA on {remaining_credits} remaining credits ({grade_needed_letter} average)",
             "projected_cgpa": target_cgpa,
             "projected_credits": current_credits + remaining_credits,
             "grade_needed": round(needed_gpa, 2),
         })
 
-        # Check if achievable (max on scale)
-        max_scale = max(GRADE_SCALES[grade_scale].values())
-        is_achievable = needed_gpa <= max_scale
-    else:
-        is_achievable = None
-
+        is_achievable = needed_gpa <= 4.0
+    
     # Scenario 2: Target semester GPA
     if target_semester_gpa is not None and remaining_credits > 0:
-        # Projected CGPA if we hit target semester GPA
         projected_qp = current_qp + remaining_credits * target_semester_gpa
         projected_credits = current_credits + remaining_credits
         projected_cgpa = projected_qp / projected_credits if projected_credits > 0 else 0
@@ -312,8 +321,8 @@ def calculate_what_if_scenarios(
             "grade_needed": target_semester_gpa,
         })
 
-    # Scenario 3: Straight A's
-    max_grade = max(GRADE_SCALES[grade_scale].values())
+    # Scenario 3: Straight A's (max = 4.0)
+    max_grade = 4.0
     max_qp = current_qp + remaining_credits * max_grade
     max_credits = current_credits + remaining_credits
     max_cgpa = max_qp / max_credits if max_credits > 0 else 0
@@ -326,49 +335,155 @@ def calculate_what_if_scenarios(
         "grade_needed": max_grade,
     })
 
-    # Scenario 4: Current trajectory (maintain current semester GPA)
+    # Scenario 4: Current trajectory
     if current_entries:
-        # Calculate current semester GPA from most recent entries
-        if current_entries:
-            # Find most recent semester with entries
-            semesters = {}
-            for e in current_entries:
-                key = (e.semester, e.academic_year or "")
-                if key not in semesters:
-                    semesters[key] = []
-                semesters[key].append(e)
+        semesters = {}
+        for e in current_entries:
+            key = (e.semester, e.academic_year or "")
+            if key not in semesters:
+                semesters[key] = []
+            semesters[key].append(e)
 
-            if semesters:
-                sorted_sems = sorted(
-                    semesters.items(),
-                    key=lambda x: (x[0][1] or "0", {"Spring": 1, "Summer": 2, "Fall": 3}.get(x[0][0], 0)),
-                    reverse=True,
-                )
-                recent_entries = sorted_sems[0][1]
-                recent_gpa, _, _ = calculate_semester_gpa(recent_entries, grade_scale)
+        if semesters:
+            sorted_sems = sorted(
+                semesters.items(),
+                key=lambda x: (x[0][1] or "0", {"Spring": 1, "Summer": 2, "Fall": 3}.get(x[0][0], 0)),
+                reverse=True,
+            )
+            recent_entries = sorted_sems[0][1]
+            recent_gpa, _, _ = calculate_semester_gpa(recent_entries, grade_scale)
 
-                proj_qp = current_qp + remaining_credits * recent_gpa
-                proj_credits = current_credits + remaining_credits
-                proj_cgpa = proj_qp / proj_credits if proj_credits > 0 else 0
+            proj_qp = current_qp + remaining_credits * recent_gpa
+            proj_credits = current_credits + remaining_credits
+            proj_cgpa = proj_qp / proj_credits if proj_credits > 0 else 0
 
-                scenarios.append({
-                    "name": f"Maintain {recent_gpa:.2f} semester GPA",
-                    "description": f"Projected CGPA: {proj_cgpa:.2f}",
-                    "projected_cgpa": round(proj_cgpa, 2),
-                    "projected_credits": proj_credits,
-                    "grade_needed": recent_gpa,
-                })
+            scenarios.append({
+                "name": f"Maintain {recent_gpa:.2f} semester GPA",
+                "description": f"Projected CGPA: {proj_cgpa:.2f}",
+                "projected_cgpa": round(proj_cgpa, 2),
+                "projected_credits": proj_credits,
+                "grade_needed": recent_gpa,
+            })
 
     return {
         "scenarios": scenarios,
-        "grade_needed_for_target_cgpa": round(needed_gpa, 2) if target_cgpa else None,
+        "grade_needed_for_target_cgpa": round(needed_gpa, 2) if needed_gpa is not None else None,
         "is_target_achievable": is_achievable,
     }
 
 
+# ---------------------------------------------------------------------------
+# Internal marks calculator
+# ---------------------------------------------------------------------------
+
+def calculate_internal_marks(
+    quizzes: Optional[List[float]] = None,
+    assignments: Optional[List[float]] = None,
+    midterm: Optional[float] = None,
+    terminal: Optional[float] = None,
+    quiz_max: float = 10.0,
+    assignment_max: float = 10.0,
+    midterm_max: float = 25.0,
+    terminal_max: float = 50.0,
+    has_lab: bool = False,
+    theory_percentage: Optional[float] = None,
+    practical_percentage: Optional[float] = None,
+    theory_credit_hours: Optional[float] = None,
+    practical_credit_hours: Optional[float] = None,
+) -> Dict[str, Any]:
+    """Calculate internal marks using COMSATS evaluation structure.
+
+    Standard weightage (no lab):
+        Quizzes/Assignments: 25%
+        Mid-Term Exam: 25%
+        Terminal Exam: 50%
+
+    With lab:
+        Total % = ((% Theory × Theory CH) + (% Practical × Practical CH)) ÷ Total CH
+    """
+    result: Dict[str, Any] = {
+        "quiz_average": None,
+        "assignment_average": None,
+        "midterm_percentage": None,
+        "terminal_percentage": None,
+        "internal_total": None,
+        "total_percentage": None,
+        "predicted_grade": None,
+        "predicted_gpa": None,
+        "has_lab": has_lab,
+    }
+
+    # Quiz average (out of max)
+    if quizzes:
+        valid_quizzes = [q for q in quizzes if q is not None]
+        if valid_quizzes:
+            result["quiz_average"] = round(sum(valid_quizzes) / len(valid_quizzes), 2)
+
+    # Assignment average (out of max)
+    if assignments:
+        valid_assignments = [a for a in assignments if a is not None]
+        if valid_assignments:
+            result["assignment_average"] = round(sum(valid_assignments) / len(valid_assignments), 2)
+
+    # Midterm percentage
+    if midterm is not None and midterm_max > 0:
+        result["midterm_percentage"] = round((midterm / midterm_max) * 100, 2)
+
+    # Terminal percentage
+    if terminal is not None and terminal_max > 0:
+        result["terminal_percentage"] = round((terminal / terminal_max) * 100, 2)
+
+    if not has_lab:
+        # Standard calculation (no lab)
+        # Internal = sessional marks (quizzes + assignments out of 25%) + midterm (25%)
+        # Total = internal + terminal (50%)
+        sessional_pct = 0.0
+        sessional_components = 0
+
+        if result["quiz_average"] is not None and quiz_max > 0:
+            sessional_pct += (result["quiz_average"] / quiz_max) * 100
+            sessional_components += 1
+        if result["assignment_average"] is not None and assignment_max > 0:
+            sessional_pct += (result["assignment_average"] / assignment_max) * 100
+            sessional_components += 1
+
+        if sessional_components > 0:
+            sessional_pct /= sessional_components
+
+        # Weighted contributions
+        sessional_weighted = sessional_pct * 0.25  # 25% weight
+        midterm_weighted = (result["midterm_percentage"] or 0) * 0.25  # 25% weight
+        terminal_weighted = (result["terminal_percentage"] or 0) * 0.50  # 50% weight
+
+        result["internal_total"] = round(sessional_weighted + midterm_weighted, 2)
+        result["total_percentage"] = round(sessional_weighted + midterm_weighted + terminal_weighted, 2)
+    else:
+        # Lab course: weighted average by credit hours
+        if (theory_percentage is not None and practical_percentage is not None
+                and theory_credit_hours and practical_credit_hours):
+            total_ch = theory_credit_hours + practical_credit_hours
+            result["total_percentage"] = round(
+                (theory_percentage * theory_credit_hours + practical_percentage * practical_credit_hours) / total_ch,
+                2
+            )
+        elif theory_percentage is not None:
+            result["total_percentage"] = theory_percentage
+
+    # Predict grade from total percentage
+    if result["total_percentage"] is not None:
+        result["predicted_grade"] = percentage_to_letter(result["total_percentage"])
+        result["predicted_gpa"] = letter_to_points(result["predicted_grade"])
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Response enrichment
+# ---------------------------------------------------------------------------
+
 def enrich_entry_response(entry: CalcEntry) -> Dict[str, Any]:
     """Enrich a CalcEntry with computed fields for API response."""
-    grade_points = letter_to_points(entry.grade_letter, entry.grade_scale)
+    grade_points = letter_to_points(entry.grade_letter)
     quality_points = (
         round(entry.credit_hours * grade_points, 2)
         if grade_points is not None else None

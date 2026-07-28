@@ -14,6 +14,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch, supabase } from '../api/client'
 import TopicList from '../components/Topics/TopicList'
+import ConfidenceModal from '../components/Topics/ConfidenceModal'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -406,18 +407,10 @@ export default function CoursePage() {
       formData.append('file', file)
       formData.append('doc_type', docType)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
-      const response = await fetch(`${API_BASE}/documents/courses/${id}/upload`, {
+      await apiFetch(`/documents/courses/${id}/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session?.access_token}` },
         body: formData,
       })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.detail || 'Upload failed')
-      }
 
       setUploadSuccess(`"${file.name}" uploaded successfully!`)
       await fetchDocuments()
@@ -907,30 +900,24 @@ export default function CoursePage() {
                     </div>
                     <div className="document-actions">
                       <span className={`status-badge ${doc.processing_status}`}>{doc.processing_status}</span>
-                      {doc.processing_status === 'pending' && (
-                        <>
-                          <button
-                            className="extract-btn"
-                            onClick={() => handleExtractRoadmap(doc.id)}
-                            disabled={extracting === doc.id || polling || topicPolling}
-                          >
-                            {extracting === doc.id || polling
-                              ? <><span className="spinner" /> Extracting…</>
-                              : <>🗺️ Extract Roadmap</>}
-                          </button>
-                          {user?.plan === 'pro' && (
-                            <button
-                              className="extract-btn secondary"
-                              onClick={() => handleExtractTopics(doc.id)}
-                              disabled={topicExtracting === doc.id || topicPolling || polling}
-                            >
-                              {topicExtracting === doc.id
-                                ? <><span className="spinner" /> Extracting…</>
-                                : <>📋 Extract Topics</>}
-                            </button>
-                          )}
-                        </>
-                      )}
+                      <button
+                        className="extract-btn"
+                        onClick={() => handleExtractRoadmap(doc.id)}
+                        disabled={extracting === doc.id || polling || topicPolling}
+                      >
+                        {extracting === doc.id || polling
+                          ? <><span className="spinner" /> Extracting…</>
+                          : <>🗺️ Extract Roadmap</>}
+                      </button>
+                      <button
+                        className="extract-btn secondary"
+                        onClick={() => handleExtractTopics(doc.id)}
+                        disabled={topicExtracting === doc.id || topicPolling || polling}
+                      >
+                        {topicExtracting === doc.id
+                          ? <><span className="spinner" /> Extracting…</>
+                          : <>📋 Extract Topics</>}
+                      </button>
                       <button className="icon-btn danger" title="Delete" onClick={() => handleDeleteDocument(doc.id)}>🗑️</button>
                     </div>
                   </div>

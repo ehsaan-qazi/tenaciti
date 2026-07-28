@@ -21,6 +21,7 @@ class GpaEntry(Base):
     course_label: Mapped[str] = mapped_column(String(255), nullable=False)
     credit_hours: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
     grade_letter: Mapped[str | None] = mapped_column(String(5))
+    percentage: Mapped[float | None] = mapped_column(Numeric(5, 2))
     semester_gpa: Mapped[float | None] = mapped_column(Numeric(4, 2))
     grade_scale: Mapped[str] = mapped_column(String(10), nullable=False, default="4.0", server_default="4.0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
