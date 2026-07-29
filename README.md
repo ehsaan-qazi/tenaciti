@@ -1,4 +1,4 @@
-# 🐨 Tenaciti — AI-Assisted Study Companion
+# Tenaciti — AI-Assisted Study Companion
 
 > **Academic Roadmap, Notes & Progress Tracker** — An AI-powered study app that extracts roadmaps from syllabi, tracks topic completion with confidence ratings, and builds a connected knowledge graph from markdown notes.
 
