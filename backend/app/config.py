@@ -1,5 +1,5 @@
 """
-Koala backend configuration.
+Tenaciti backend configuration.
 Loads settings from environment variables / .env file.
 """
 
@@ -15,10 +15,10 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""  # For local JWT verification
 
     # ── Database ──────────────────────────────────────────────
-    database_url: str = "postgresql+psycopg://koala:koala@localhost:5432/koala"
+    database_url: str = "postgresql+psycopg://tenaciti:tenaciti@localhost:5432/tenaciti"
 
     # ── App ───────────────────────────────────────────────────
-    app_secret_key: str = "koala-dev-secret-change-in-prod"
+    app_secret_key: str = "tenaciti-dev-secret-change-in-prod"
     debug: bool = True
 
     # ── LemonSqueezy (Billing) ────────────────────────────────
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     r2_account_id: str = ""
     r2_access_key_id: str = ""
     r2_secret_access_key: str = ""
-    r2_bucket_name: str = "koala-uploads"
+    r2_bucket_name: str = "tenaciti-uploads"
 
     # ── AI (Groq) ─────────────────────────────────────────────
     llm_api_key: str = ""

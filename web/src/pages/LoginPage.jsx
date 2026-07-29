@@ -46,7 +46,7 @@ export default function LoginPage() {
         <div className="orb orb-2"></div>
         <div className="brand">
           <div className="brand-icon">📚</div>
-          <span className="brand-name">Koala</span>
+          <span className="brand-name">Tenaciti</span>
         </div>
         <div className="hero-content">
           <div className="hero-tag">✨ v2.0 — AI-Assisted</div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
       <div className="right-panel">
         <div className="auth-header">
           <h2>{activeTab === 'login' ? 'Welcome back 👋' : 'Create your account'}</h2>
-          <p>{activeTab === 'login' ? 'Sign in to your Koala account to continue.' : 'Start tracking your academic journey today.'}</p>
+          <p>{activeTab === 'login' ? 'Sign in to your Tenaciti account to continue.' : 'Start tracking your academic journey today.'}</p>
         </div>
 
         <div className="auth-toggle">

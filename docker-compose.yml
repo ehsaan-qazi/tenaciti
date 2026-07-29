@@ -1,15 +1,15 @@
 # Local development database (fallback if Supabase DB not configured)
 # Usage: docker compose up -d
-# Then set DATABASE_URL=postgresql+asyncpg://koala:koala@localhost:5432/koala
+# Then set DATABASE_URL=postgresql+asyncpg://tenaciti:tenaciti@localhost:5432/tenaciti
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: koala-db
+    container_name: tenaciti-db
     environment:
-      POSTGRES_USER: koala
-      POSTGRES_PASSWORD: koala
-      POSTGRES_DB: koala
+      POSTGRES_USER: tenaciti
+      POSTGRES_PASSWORD: tenaciti
+      POSTGRES_DB: tenaciti
     ports:
       - "5432:5432"
     volumes:

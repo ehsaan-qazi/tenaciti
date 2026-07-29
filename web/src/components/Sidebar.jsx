@@ -44,7 +44,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
         <div className="brand-logo">📚</div>
-        <span className="brand-text">Koala</span>
+        <span className="brand-text">Tenaciti</span>
       </div>
 
       <div className="sidebar-section">

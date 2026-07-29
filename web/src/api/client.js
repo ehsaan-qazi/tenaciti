@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
 // Local token storage key
-const LOCAL_TOKEN_KEY = 'koala_local_token'
+const LOCAL_TOKEN_KEY = 'tenaciti_local_token'
 
 export function getLocalToken() {
   return localStorage.getItem(LOCAL_TOKEN_KEY)

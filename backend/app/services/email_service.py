@@ -33,12 +33,12 @@ async def send_password_reset_email(
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
                 <div style="font-size: 32px; margin-bottom: 8px;">📚</div>
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Koala</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Tenaciti</h1>
             </div>
             <!-- Body -->
             <div style="padding: 40px;">
                 <h2 style="color: #1a1a2e; margin: 0 0 16px; font-size: 20px; font-weight: 700;">Reset Your Password</h2>
-                <p style="color: #555; margin: 0 0 24px;">You requested a password reset for your Koala account. Click the button below to set a new password.</p>
+                <p style="color: #555; margin: 0 0 24px;">You requested a password reset for your Tenaciti account. Click the button below to set a new password.</p>
                 <div style="text-align: center; margin: 32px 0;">
                     <a href="{reset_link}"
                        style="background: linear-gradient(135deg, #7c6af7 0%, #6b58f0 100%); color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 16px rgba(124,106,247,0.4);">
@@ -54,7 +54,7 @@ async def send_password_reset_email(
             </div>
             <!-- Footer -->
             <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
-                <p style="color: #bbb; font-size: 12px; margin: 0;">Koala Study App · Helping you learn better</p>
+                <p style="color: #bbb; font-size: 12px; margin: 0;">Tenaciti Study App · Helping you learn better</p>
             </div>
         </div>
     </body>
@@ -65,7 +65,7 @@ async def send_password_reset_email(
         params: resend.Emails.SendParams = {
             "from": settings.mail_from,
             "to": [email],
-            "subject": "Reset Your Koala Password",
+            "subject": "Reset Your Tenaciti Password",
             "html": html_content,
         }
         resend.Emails.send(params)
@@ -96,11 +96,11 @@ async def send_welcome_email(
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
                 <div style="font-size: 32px; margin-bottom: 8px;">📚</div>
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Koala</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Tenaciti</h1>
             </div>
             <!-- Body -->
             <div style="padding: 40px;">
-                <h2 style="color: #1a1a2e; margin: 0 0 16px; font-size: 20px; font-weight: 700;">Welcome to Koala, {name}! 🐨</h2>
+                <h2 style="color: #1a1a2e; margin: 0 0 16px; font-size: 20px; font-weight: 700;">Welcome to Tenaciti, {name}! 🐨</h2>
                 <p style="color: #555; margin: 0 0 16px;">
                     Thanks for creating an account. You're all set to start organizing your study materials,
                     tracking your progress, and achieving your learning goals.
@@ -120,7 +120,7 @@ async def send_welcome_email(
             </div>
             <!-- Footer -->
             <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
-                <p style="color: #bbb; font-size: 12px; margin: 0;">Koala Study App · Helping you learn better</p>
+                <p style="color: #bbb; font-size: 12px; margin: 0;">Tenaciti Study App · Helping you learn better</p>
             </div>
         </div>
     </body>
@@ -131,7 +131,7 @@ async def send_welcome_email(
         params: resend.Emails.SendParams = {
             "from": settings.mail_from,
             "to": [email],
-            "subject": "Welcome to Koala! 🐨",
+            "subject": "Welcome to Tenaciti! 🐨",
             "html": html_content,
         }
         resend.Emails.send(params)
@@ -159,11 +159,11 @@ async def send_verification_email(
         <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
                 <div style="font-size: 32px; margin-bottom: 8px;">📚</div>
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Koala</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Tenaciti</h1>
             </div>
             <div style="padding: 40px;">
                 <h2 style="color: #1a1a2e; margin: 0 0 16px; font-size: 20px; font-weight: 700;">Verify your email address</h2>
-                <p style="color: #555; margin: 0 0 24px;">Thanks for signing up! Click the button below to verify your email address and activate your Koala account.</p>
+                <p style="color: #555; margin: 0 0 24px;">Thanks for signing up! Click the button below to verify your email address and activate your Tenaciti account.</p>
                 <div style="text-align: center; margin: 32px 0;">
                     <a href="{verification_link}"
                        style="background: linear-gradient(135deg, #7c6af7 0%, #6b58f0 100%); color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; box-shadow: 0 4px 16px rgba(124,106,247,0.4);">
@@ -174,11 +174,11 @@ async def send_verification_email(
                 <p style="word-break: break-all; color: #7c6af7; font-size: 12px; background: #f4f3ff; padding: 12px; border-radius: 6px; margin: 0 0 24px;">{verification_link}</p>
                 <p style="color: #888; font-size: 13px; margin: 0;">
                     This link expires in <strong>{expiry_hours} hours</strong>.
-                    If you didn't create a Koala account, you can safely ignore this email.
+                    If you didn't create a Tenaciti account, you can safely ignore this email.
                 </p>
             </div>
             <div style="background: #f9f9f9; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
-                <p style="color: #bbb; font-size: 12px; margin: 0;">Koala Study App · Helping you learn better</p>
+                <p style="color: #bbb; font-size: 12px; margin: 0;">Tenaciti Study App · Helping you learn better</p>
             </div>
         </div>
     </body>
@@ -189,7 +189,7 @@ async def send_verification_email(
         params: resend.Emails.SendParams = {
             "from": settings.mail_from,
             "to": [email],
-            "subject": "Verify your Koala email address",
+            "subject": "Verify your Tenaciti email address",
             "html": html_content,
         }
         resend.Emails.send(params)

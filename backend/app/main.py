@@ -23,10 +23,11 @@ from app.routes.admin import router as admin_router
 from app.routes.self_assessment import router as self_assessment_router
 from app.routes.goals import router as goals_router
 from app.routes.gpa import router as gpa_router
+from app.routes.streaks import router as streaks_router
 
 app = FastAPI(
-    title="Koala API",
-    description="Backend API for the Koala learning app",
+    title="Tenaciti API",
+    description="Backend API for the Tenaciti learning app",
     version="1.0.0",
 )
 
@@ -45,7 +46,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "Koala API is running"}
+    return {"status": "ok", "message": "Tenaciti API is running"}
 
 # Register all routers
 app.include_router(auth_router, prefix="/api/v1")
@@ -58,4 +59,5 @@ app.include_router(notes_router, prefix="/api/v1")
 app.include_router(self_assessment_router, prefix="/api/v1")
 app.include_router(goals_router, prefix="/api/v1")
 app.include_router(gpa_router, prefix="/api/v1")
+app.include_router(streaks_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api/client';
+import {
+  UpcomingDeadlines as UpcomingDeadlinesWidget,
+  TopicCoverage as TopicCoverageWidget,
+  WeeklyWorkload as WeeklyWorkloadWidget,
+  StreakSummaryCards,
+  StreakHeatmap,
+} from '../components/Dashboard/DashboardWidgets';
+import { logActivity, getWeeklyWorkload } from '../api/streakApi';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -23,7 +31,7 @@ function getGreeting() {
   return 'Good evening';
 }
 
-// ─── New Course Modal ────────────────────────────────────────────────────────
+// ─── New Course Modal ───────────────────────────────────────────────────────
 
 function NewCourseModal({ onClose, onCreated }) {
   const [form, setForm] = useState({
@@ -42,7 +50,10 @@ function NewCourseModal({ onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) { setError('Course name is required'); return; }
+    if (!form.name.trim()) {
+      setError('Course name is required');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -166,10 +177,7 @@ function CourseCard({ course, onClick }) {
       </div>
       <div className="course-card-progress">
         <div className="progress-bar" style={{ marginTop: '0.75rem' }}>
-          <div
-            className="progress-fill"
-            style={{ width: '0%', background: accent }}
-          />
+          <div className="progress-fill" style={{ width: '0%', background: accent }} />
         </div>
         <div className="course-card-docs">
           📄 {course.doc_upload_count || 0} doc{course.doc_upload_count !== 1 ? 's' : ''}
@@ -193,12 +201,25 @@ export default function DashboardPage() {
   const currentSemester = getCurrentSemester();
   const currentYear = getCurrentYear();
 
+  // Log activity when dashboard loads
   useEffect(() => {
-    apiFetch('/courses')
-      .then((data) => setCourses(data))
-      .catch(console.error)
-      .finally(() => setLoadingCourses(false));
+    logActivity(1).catch(console.error);
   }, []);
+
+  const fetchCourses = useCallback(async () => {
+    try {
+      const data = await apiFetch('/courses');
+      setCourses(data);
+    } catch (err) {
+      console.error('Failed to fetch courses:', err);
+    } finally {
+      setLoadingCourses(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
   // Filter to current semester, or show all
   const semesterCourses = courses.filter(
@@ -271,6 +292,32 @@ export default function DashboardPage() {
             {user?.plan === 'pro' ? 'All features unlocked' : 'Upgrade for AI extraction'}
           </div>
         </div>
+      </div>
+
+      {/* Main Dashboard Grid */}
+      <div className="dash-grid" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
+        {/* Left Column - Wider */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Upcoming Deadlines */}
+          <UpcomingDeadlinesWidget />
+
+          {/* Topic Coverage */}
+          <TopicCoverageWidget />
+        </div>
+
+        {/* Right Column - Narrower */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Streak Summary Cards */}
+          <StreakSummaryCards />
+
+          {/* Weekly Workload */}
+          <WeeklyWorkloadWidget />
+        </div>
+      </div>
+
+      {/* Full-width Streak Heatmap */}
+      <div style={{ marginTop: '16px' }}>
+        <StreakHeatmap />
       </div>
 
       {/* Courses Section */}
@@ -348,7 +395,7 @@ export default function DashboardPage() {
         <div className="tip-card" style={{ marginTop: '1.5rem' }}>
           <span>💡</span>
           <span>
-            Start by creating a course, then upload your syllabus PDF — Koala will extract
+            Start by creating a course, then upload your syllabus PDF — Tenaciti will extract
             your roadmap, topics, and deadlines automatically.
           </span>
         </div>

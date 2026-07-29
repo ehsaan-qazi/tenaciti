@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
     return (
       <div className="loading-screen">
         <div className="loading-spinner" />
-        <span>Loading Koala...</span>
+        <span>Loading Tenaciti...</span>
       </div>
     )
   }

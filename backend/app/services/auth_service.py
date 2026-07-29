@@ -187,7 +187,7 @@ def generate_password_reset_email_body(
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #1a1a2e;">Reset Your Password</h2>
-            <p>You requested a password reset for your Koala account.</p>
+            <p>You requested a password reset for your Tenaciti account.</p>
             <p>Click the button below to set a new password:</p>
             <p style="text-align: center; margin: 30px 0;">
                 <a href="{reset_link}" style="background-color: #1a1a2e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block;">
@@ -199,7 +199,7 @@ def generate_password_reset_email_body(
             <p>This link expires in <strong>{expiry_hours} hour{'s' if expiry_hours != 1 else ''}</strong>.</p>
             <p>If you didn't request this, please ignore this email.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="color: #999; font-size: 12px;">Koala Study App</p>
+            <p style="color: #999; font-size: 12px;">Tenaciti Study App</p>
         </div>
     </body>
     </html>
