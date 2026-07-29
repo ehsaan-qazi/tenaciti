@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
+from datetime import datetime, timezone
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user
@@ -16,6 +17,7 @@ from app.schemas.roadmap_node import (
     RoadmapNodeResponse,
 )
 from app.schemas.roadmap_node import ALLOWED_NODE_TYPE_VALUES
+from app.services.streak_service import StreakService
 
 router = APIRouter(prefix="/roadmap-nodes", tags=["Roadmap Nodes"])
 
@@ -121,12 +123,26 @@ async def update_roadmap_node(
     if "node_type" in update_data and update_data["node_type"] is not None:
         update_data["node_type"] = _validate_node_type(update_data["node_type"])
 
+    # Track status change for streak updates
+    old_status = node.status
+
     for key, value in update_data.items():
         setattr(node, key, value)
 
     _recompute_placeholder(node)
     await db.flush()
     await db.refresh(node)
+
+    # If status changed to Submitted or Graded, update on-time streak
+    if old_status != node.status and node.status in ("Submitted", "Graded") and node.deadline:
+        await StreakService.log_submission(
+            user_id=current_user.id,
+            node_id=node.id,
+            submitted_at=node.submitted_at or datetime.now(timezone.utc),
+            deadline=node.deadline,
+            db=db,
+        )
+
     return node
 
 

@@ -1,6 +1,6 @@
-# 🐨 Koala Frontend
+# 🐨 Tenaciti Frontend
 
-React 19 + Vite frontend for the Koala AI-assisted study companion.
+React 19 + Vite frontend for the Tenaciti AI-assisted study companion.
 
 ## Quick Start
 

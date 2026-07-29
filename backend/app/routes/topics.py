@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List
+from datetime import datetime, timezone
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user
@@ -17,6 +18,7 @@ from app.schemas.topic import (
     TopicBulkReorder, TopicMerge, TopicLinkNode,
     TopicResponse, TopicWithCompletion, TopicCompletionStats
 )
+from app.services.streak_service import StreakService
 
 router = APIRouter(prefix="/topics", tags=["Topics"])
 
@@ -167,6 +169,14 @@ async def toggle_topic_completion(
         db.add(completion)
 
     await db.flush()
+
+    # Log activity for streak tracking when topic is completed
+    if completion.is_completed:
+        await StreakService.log_activity(
+            user_id=current_user.id,
+            action_count=1,
+            db=db,
+        )
 
     return TopicWithCompletion(
         id=topic.id,

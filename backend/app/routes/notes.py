@@ -15,6 +15,7 @@ from app.models.course import Course
 from app.models.roadmap_node import RoadmapNode
 from app.models.topic import Topic
 from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse, NoteWithBacklinks, NoteSearchResponse
+from app.services.streak_service import StreakService
 
 router = APIRouter(prefix="/notes", tags=["Notes"])
 
@@ -99,6 +100,14 @@ async def create_note(
         await _parse_wikilinks(note, db)
         await db.flush()
     await db.refresh(note)
+
+    # Log activity for streak tracking
+    await StreakService.log_activity(
+        user_id=current_user.id,
+        action_count=1,
+        db=db,
+    )
+
     return note
 
 
@@ -170,6 +179,14 @@ async def update_note(
 
     await db.flush()
     await db.refresh(note)
+
+    # Log activity for streak tracking
+    await StreakService.log_activity(
+        user_id=current_user.id,
+        action_count=1,
+        db=db,
+    )
+
     return note
 
 

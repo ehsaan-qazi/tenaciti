@@ -17,7 +17,7 @@ import tempfile
 import os
 
 # Create a temporary file for the test database
-_test_db_fd, _test_db_path = tempfile.mkstemp(suffix='.db', prefix='test_koala_')
+_test_db_fd, _test_db_path = tempfile.mkstemp(suffix='.db', prefix='test_tenaciti_')
 os.close(_test_db_fd)
 TEST_DATABASE_URL = f"sqlite+aiosqlite:///{_test_db_path}"
 

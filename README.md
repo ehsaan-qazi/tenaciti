@@ -1,4 +1,4 @@
-# 🐨 Koala — AI-Assisted Study Companion
+# 🐨 Tenaciti — AI-Assisted Study Companion
 
 > **Academic Roadmap, Notes & Progress Tracker** — An AI-powered study app that extracts roadmaps from syllabi, tracks topic completion with confidence ratings, and builds a connected knowledge graph from markdown notes.
 
@@ -27,7 +27,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              KOALA ARCHITECTURE                               │
+│                              TENACITI ARCHITECTURE                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                 │
@@ -92,7 +92,7 @@
 ## 📁 Project Structure
 
 ```
-Koala/
+Tenaciti/
 ├── backend/                    # FastAPI Backend
 │   ├── app/
 │   │   ├── main.py            # App entry point, router registration
@@ -580,7 +580,7 @@ LEMONSQUEEZY_VARIANT_ID=...
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=koala-uploads
+R2_BUCKET_NAME=tenaciti-uploads
 
 # AI (Groq)
 LLM_API_KEY=gsk_...

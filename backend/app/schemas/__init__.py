@@ -1,4 +1,4 @@
-"""Schema exports for the Koala API."""
+"""Schema exports for the Tenaciti API."""
 
 # Auth schemas
 from app.schemas.auth import (
@@ -86,6 +86,17 @@ from app.schemas.gpa import (
     GpaGoalStatus,
 )
 
+# Streak schemas
+from app.schemas.streak import (
+    StreakSummaryResponse,
+    HeatmapResponse,
+    ActivityLogRequest,
+    ActivityLogResponse,
+    UpcomingDeadlinesResponse,
+    TopicCoverageResponse,
+    WeeklyWorkloadResponse,
+)
+
 __all__ = [
     # Auth
     "RegisterRequest",
@@ -146,4 +157,12 @@ __all__ = [
     "WhatIfResponse",
     "WhatIfScenario",
     "GpaGoalStatus",
+    # Streaks
+    "StreakSummaryResponse",
+    "HeatmapResponse",
+    "ActivityLogRequest",
+    "ActivityLogResponse",
+    "UpcomingDeadlinesResponse",
+    "TopicCoverageResponse",
+    "WeeklyWorkloadResponse",
 ]

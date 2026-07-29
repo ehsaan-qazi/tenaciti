@@ -17,6 +17,7 @@ from app.schemas.self_assessment_log import (
     RoadmapNodeSubmitRequest,
     SubmissionGapResponse,
 )
+from app.services.streak_service import StreakService
 
 router = APIRouter(prefix="/self-assessment", tags=["Self-Assessment"])
 
@@ -74,6 +75,16 @@ async def submit_roadmap_node(
 
     await db.flush()
     await db.refresh(assessment)
+
+    # Update streak: log submission for on-time streak tracking
+    await StreakService.log_submission(
+        user_id=current_user.id,
+        node_id=node.id,
+        submitted_at=node.submitted_at,
+        deadline=node.deadline,
+        db=db,
+    )
+
     return assessment
 
 

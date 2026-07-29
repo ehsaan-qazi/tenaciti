@@ -19,7 +19,7 @@ export default function Layout() {
     if (path.startsWith('/retrospective')) return 'Retrospective';
     if (path.startsWith('/settings')) return 'Settings';
     if (path.startsWith('/graph')) return 'Note Graph';
-    return 'Koala';
+    return 'Tenaciti';
   };
 
   const streakCount = user?.streak_count ?? null;
