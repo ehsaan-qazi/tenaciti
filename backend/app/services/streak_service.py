@@ -11,7 +11,7 @@ Features:
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 
-from sqlalchemy import select, func, and_, or_, delete
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.streak import Streak
@@ -19,7 +19,6 @@ from app.models.streak_daily_log import StreakDailyLog
 from app.models.roadmap_node import RoadmapNode
 from app.models.self_assessment_log import SelfAssessmentLog
 from app.models.topic_completion import TopicCompletion
-from app.models.user import User
 
 
 class StreakService:
@@ -327,6 +326,7 @@ class StreakService:
                 RoadmapNode.user_id == user_id,
                 RoadmapNode.status.in_(["Pending", "In Progress"]),
                 RoadmapNode.deadline.is_not(None),
+                RoadmapNode.deadline <= future_cutoff,
             )
             .order_by(RoadmapNode.deadline.asc())
         )
@@ -377,7 +377,7 @@ class StreakService:
         from app.models.topic import Topic
 
         result = await db.execute(
-            select(Course).where(Course.user_id == user_id, Course.is_archived == False)
+            select(Course).where(Course.user_id == user_id, Course.is_archived.is_(False))
         )
         courses = result.scalars().all()
 
@@ -399,7 +399,7 @@ class StreakService:
             completed_result = await db.execute(
                 select(func.count(TopicCompletion.id)).where(
                     TopicCompletion.user_id == user_id,
-                    TopicCompletion.is_completed == True,
+                    TopicCompletion.is_completed.is_(True),
                     TopicCompletion.topic_id.in_(
                         select(Topic.id).where(
                             Topic.course_id == course.id,
@@ -489,7 +489,6 @@ class StreakService:
         This is a placeholder for the notification logic - actual
         email/push sending would be implemented separately.
         """
-        from app.config import settings
 
         now = datetime.now(timezone.utc)
         today = now.date()

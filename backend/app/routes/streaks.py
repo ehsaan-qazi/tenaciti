@@ -4,7 +4,6 @@ Streak routes — activity tracking, heatmap, deadlines, topic coverage, and wor
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user

@@ -4,7 +4,6 @@ Streak schemas — Pydantic models for streak API requests and responses.
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import date, datetime
 
 
 class StreakSummaryResponse(BaseModel):
