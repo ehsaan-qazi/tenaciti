@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TENACITI - Coming Soon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- We load Montserrat as a very versatile and premium geometric sans font that matches modern AI brand designs -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000; /* Deep dark background */
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Canvas background for cursor animation */
+        #cursor-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Top bar for logo */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 3rem 4rem;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .logo-icon {
+            width: 75px; 
+            height: auto;
+            color: #ffffff;
+        }
+
+        .brand-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-top: 5px; /* Slight alignment tweak */
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
+            pointer-events: none; 
+        }
+
+        .coming-soon {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 6vw;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-align: center;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: textFadeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.3s;
+            text-shadow: 0 0 40px rgba(255,255,255,0.2);
+        }
+
+        @keyframes textFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 2rem;
+                justify-content: center;
+            }
+            .coming-soon {
+                font-size: 3rem;
+            }
+            .logo-icon {
+                width: 50px;
+            }
+            .brand-name {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cursor-canvas"></canvas>
+
+    <div class="header">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 503 217" class="logo-icon">
+              <g transform="translate(503 0) scale(-1 1)">
+                <path fill="currentColor" d="M268.8 7.5c-31.3 6.8-53.6 28.3-61.9 59.5-.6 2.5-1.2 9-1.3 14.5l-.1 10h31l.2-4.5c.7-12.8 6.2-25.8 14.3-33.9 5.5-5.5 14.4-10.4 22.5-12.6 8.7-2.2 189.5-2.3 189.5 0 0 .8-1 4-2.2 7.2-2.9 7.8-11.1 16.1-19.3 19.4l-6 2.4-65 .5-65 .5-5.7 2.3c-7.7 3.1-16.9 10-20.8 15.7-3.6 5.3-7.4 13.4-6.6 14.2.3.3 36.4.5 80.3.5 71.5 0 80.6-.2 87.3-1.7 26.7-6.1 48-26.5 55.5-53.1 1.2-4.1 1.9-11.6 2.2-24.2l.5-18.2-111.8.1c-85.6.1-113.2.4-117.6 1.4M70.5 115c-23.9 3.5-45.8 18.9-56.2 39.5-6.6 12.9-7.6 17.6-8.1 38.2L5.8 212h112.4c109.4 0 112.7-.1 120.4-2 17.2-4.4 32.2-13.9 42.9-27.2 11.6-14.6 16.2-26.8 17.2-45.6l.6-11.3-15.9.3-15.9.3-.6 6.5c-1.4 13.3-5.2 22.2-13.1 30.6a48.5 48.5 0 0 1-20.8 13.5c-7.4 2.6-10.8 2.6-130.2 2.1L41 179v-2.3c0-3.3 5.3-13.6 9.4-18.4 2.4-2.7 6.5-5.6 11.3-8l7.7-3.8 65-.5 65.1-.5 6-2.4c11.1-4.4 20-12.4 24.5-21.8 3.8-8 11.1-7.3-76.2-7.2-43.1.1-80.6.5-83.3.9"/>
+              </g>
+            </svg>
+            <div class="brand-name">TENACITI</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="coming-soon">Coming Soon</div>
+    </div>
+
+    <script>
+        // Morphing Particle Animation similar to antigravity.google background
+        const canvas = document.getElementById('cursor-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        let targetMouse = { x: -1000, y: -1000 }; 
+        let currentMouse = { x: -1000, y: -1000 }; // Eased mouse position
+        let isMoving = false;
+        let moveTimeout = null;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                // Random velocity
+                this.vx = (Math.random() - 0.5) * 3;
+                this.vy = (Math.random() - 0.5) * 3;
+                this.size = Math.random() * 6 + 2; 
+                this.life = 1; 
+                this.decay = Math.random() * 0.015 + 0.005;
+                // Soft blue and purple hues to match the antigravity.google theme
+                const hues = [210, 230, 260];
+                this.hue = hues[Math.floor(Math.random() * hues.length)];
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+                if(this.size > 0.1) this.size *= 0.98; // Gradual shrink
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 75%, ${this.life})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `hsla(${this.hue}, 100%, 75%, ${this.life})`;
+                ctx.fill();
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            targetMouse.x = e.clientX;
+            targetMouse.y = e.clientY;
+            isMoving = true;
+            
+            // Spawn some particles while moving
+            if (Math.random() > 0.3) {
+                for(let i = 0; i < 2; i++) {
+                    particles.push(new Particle(currentMouse.x, currentMouse.y));
+                }
+            }
+
+            clearTimeout(moveTimeout);
+            moveTimeout = setTimeout(() => {
+                isMoving = false;
+            }, 100);
+        });
+
+        function animate() {
+            // Very dark clear to create motion blur trails
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Ease the mouse position for smoother glowing blob
+            currentMouse.x += (targetMouse.x - currentMouse.x) * 0.15;
+            currentMouse.y += (targetMouse.y - currentMouse.y) * 0.15;
+
+            // Draw the main cursor glow blob (similar to antigravity platform)
+            if (currentMouse.x > -100) {
+                const gradient = ctx.createRadialGradient(currentMouse.x, currentMouse.y, 0, currentMouse.x, currentMouse.y, 250);
+                gradient.addColorStop(0, 'rgba(60, 110, 255, 0.08)');
+                gradient.addColorStop(0.5, 'rgba(60, 110, 255, 0.02)');
+                gradient.addColorStop(1, 'rgba(60, 110, 255, 0)');
+                
+                ctx.beginPath();
+                ctx.arc(currentMouse.x, currentMouse.y, 250, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            for(let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw(ctx);
+                
+                if(p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
