@@ -24,6 +24,7 @@ from app.routes.self_assessment import router as self_assessment_router
 from app.routes.goals import router as goals_router
 from app.routes.gpa import router as gpa_router
 from app.routes.streaks import router as streaks_router
+from app.routes.profile import router as profile_router
 
 app = FastAPI(
     title="Tenaciti API",
@@ -60,4 +61,5 @@ app.include_router(self_assessment_router, prefix="/api/v1")
 app.include_router(goals_router, prefix="/api/v1")
 app.include_router(gpa_router, prefix="/api/v1")
 app.include_router(streaks_router, prefix="/api/v1")
+app.include_router(profile_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

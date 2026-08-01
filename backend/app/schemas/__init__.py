@@ -97,6 +97,28 @@ from app.schemas.streak import (
     WeeklyWorkloadResponse,
 )
 
+# Profile & Retrospective schemas (Phase 7)
+from app.schemas.profile import (
+    ProfileSummaryResponse,
+    PlanningAccuracyResponse,
+    CoursePlanningAccuracy,
+    ConfidenceTrendsResponse,
+    CourseConfidenceTrend,
+    ConfidenceTrendPoint,
+    TopicCoverageTrendsResponse,
+    CourseTopicCoverageTrend,
+    TopicCoverageTrendPoint,
+    NoteDensityCorrelationResponse,
+    NoteDensityPoint,
+    ProcrastinationFingerprintResponse,
+    ProcrastinationBucket,
+    RetrospectiveReportResponse,
+    RetrospectiveSemesterSummary,
+    RetrospectiveCourseDetail,
+    RetrospectiveRequest,
+    ProfileTrendsQuery,
+)
+
 __all__ = [
     # Auth
     "RegisterRequest",
@@ -165,4 +187,23 @@ __all__ = [
     "UpcomingDeadlinesResponse",
     "TopicCoverageResponse",
     "WeeklyWorkloadResponse",
+    # Profile & Retrospective (Phase 7)
+    "ProfileSummaryResponse",
+    "PlanningAccuracyResponse",
+    "CoursePlanningAccuracy",
+    "ConfidenceTrendsResponse",
+    "CourseConfidenceTrend",
+    "ConfidenceTrendPoint",
+    "TopicCoverageTrendsResponse",
+    "CourseTopicCoverageTrend",
+    "TopicCoverageTrendPoint",
+    "NoteDensityCorrelationResponse",
+    "NoteDensityPoint",
+    "ProcrastinationFingerprintResponse",
+    "ProcrastinationBucket",
+    "RetrospectiveReportResponse",
+    "RetrospectiveSemesterSummary",
+    "RetrospectiveCourseDetail",
+    "RetrospectiveRequest",
+    "ProfileTrendsQuery",
 ]
