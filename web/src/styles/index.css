@@ -28,6 +28,151 @@
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 14px;
+      
+      /* --- New Tenaciti Design Tokens --- */
+      --surface: #f8f9fa;
+      --surface-dim: #d9dadb;
+      --surface-bright: #f8f9fa;
+      --surface-container-lowest: #ffffff;
+      --surface-container-low: #f3f4f5;
+      --surface-container: #edeeef;
+      --surface-container-high: #e7e8e9;
+      --surface-container-highest: #e1e3e4;
+      --on-surface: #191c1d;
+      --on-surface-variant: #444748;
+      --outline: #747878;
+      --outline-variant: #c4c7c7;
+      --primary: #000000;
+      --on-primary: #ffffff;
+      --secondary: #712ae2;
+      --on-secondary: #ffffff;
+      --secondary-container: #8a4cfc;
+      --secondary-fixed: #eaddff;
+      --tertiary-container: #2a1700;
+      --tertiary-fixed: #ffddb8;
+      --error: #EF4444;
+      --on-error: #ffffff;
+      --error-container: #ffdad6;
+      --on-error-container: #93000a;
+      --success: #22C55E;
+      --gradient-start: #7C3AED;
+      --gradient-mid: #EC4899;
+      --gradient-end: #F59E0B;
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --sidebar-w-new: 240px;
+      --radius-2xl: 16px;
+      --radius-3xl: 24px;
+      --radius-full: 9999px;
+    }
+
+    /* --- Glassmorphism & Dashboard Layout Utilities --- */
+    .glass-theme {
+      font-family: 'Hanken Grotesk', sans-serif;
+      color: var(--on-surface);
+    }
+    
+    .glass-sidebar {
+      width: var(--sidebar-w-new);
+      background: var(--surface-container-lowest);
+      box-shadow: 1px 0 0 0 rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+      font-family: 'Hanken Grotesk', sans-serif;
+      color: var(--on-surface);
+      z-index: 50;
+    }
+
+    .glass-topbar {
+      height: 64px;
+      background: rgba(248, 249, 250, 0.8);
+      backdrop-filter: blur(24px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.02);
+      z-index: 40;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    .glass-main-bg {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      background: var(--background, #f8f9fa);
+      min-height: 100vh;
+      color: var(--on-surface);
+      font-family: 'Hanken Grotesk', sans-serif;
+    }
+
+    .glass-card {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-3xl);
+      padding: 16px;
+      box-shadow: 0 10px 30px -15px rgba(0,0,0,0.04);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card:hover {
+      box-shadow: 0 15px 40px -15px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    
+    .glass-input-search {
+      width: 100%;
+      background: var(--surface-container);
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 16px 10px 48px;
+      outline: none;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 16px;
+      color: var(--on-surface);
+    }
+    .glass-input-search:focus {
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .glass-btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-radius: var(--radius-sm);
+      padding: 12px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .glass-btn-primary:active {
+      transform: scale(0.95);
+    }
+    .glass-btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    /* Abstract Blobs */
+    .blob-1 {
+      position: absolute; top: 0; right: 0; width: 500px; height: 500px;
+      background: rgba(124, 58, 237, 0.05); border-radius: 50%;
+      filter: blur(100px); transform: translate(25%, -50%); pointer-events: none; z-index: 0;
+    }
+    .blob-2 {
+      position: absolute; top: 160px; left: 0; width: 400px; height: 400px;
+      background: rgba(245, 158, 11, 0.05); border-radius: 50%;
+      filter: blur(80px); transform: translateX(-50%); pointer-events: none; z-index: 0;
     }
 
     body {
