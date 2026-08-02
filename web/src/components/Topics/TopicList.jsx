@@ -128,37 +128,30 @@ export default function TopicList({
       )}
 
       {/* ── Toolbar ── */}
-      <div className="topic-toolbar">
-        <div className="topic-toolbar-left">
-          <span className="topic-toolbar-title">
-            {total} topic{total !== 1 ? 's' : ''}
-          </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', backgroundColor: 'var(--surface-container-lowest)', padding: '12px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {!mergeMode && (
             <>
-              <button className="secondary-btn" style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '12px' }} onClick={onAddTopic}>
-                ＋ Add
+              <button onClick={onAddTopic} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'var(--primary)', color: 'var(--on-primary)', borderRadius: '8px', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                Add Topic
               </button>
+              <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--surface-container-high)', margin: '0 8px' }}></div>
               {total > 0 && (
-                <button
-                  className="secondary-btn"
-                  style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '12px', color: 'var(--amber)' }}
-                  onClick={() => setMergeMode(true)}
-                >
-                  🔀 Merge
-                </button>
-              )}
-              {confirmed < total && total > 0 && (
-                <button
-                  className="secondary-btn"
-                  style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '12px', color: 'var(--green)' }}
-                  onClick={onConfirmAll}
-                >
-                  ✓ Confirm All
+                <button onClick={() => setMergeMode(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface)', borderRadius: '8px', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>merge</span>
+                  Merge Mode
                 </button>
               )}
             </>
           )}
         </div>
+        {!mergeMode && confirmed < total && total > 0 && (
+          <button onClick={onConfirmAll} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface)', borderRadius: '8px', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>done_all</span>
+            Confirm All
+          </button>
+        )}
       </div>
 
       {/* ── Merge Mode Banner ── */}
@@ -218,13 +211,14 @@ export default function TopicList({
 
       {/* ── Topic Items ── */}
       {topics.length === 0 ? (
-        <div className="topic-empty">
-          <div className="topic-empty-icon">📋</div>
-          <p className="topic-empty-text">
-            No topics yet. Upload lecture slides or a syllabus and use <strong>Extract Topics</strong> to get started.
-          </p>
-          <button className="primary-btn" style={{ width: 'auto' }} onClick={onAddTopic}>
-            ＋ Add Topic Manually
+        <div style={{ marginTop: '32px', padding: '24px', backgroundColor: 'var(--surface-container-lowest)', borderRadius: '24px', border: '1px solid var(--surface-container)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', opacity: 0.7 }}>
+          <div style={{ width: '192px', height: '128px', marginBottom: '16px', backgroundColor: 'var(--surface-container-low)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--outline)' }}>account_tree</span>
+          </div>
+          <p style={{ fontSize: '20px', fontWeight: '600', color: 'var(--on-surface)', margin: '0 0 8px 0' }}>Build Your Knowledge Graph</p>
+          <p style={{ fontSize: '16px', color: 'var(--on-surface-variant)', maxWidth: '400px', margin: '0 0 24px 0' }}>Drag and drop topics to reorganize. Connect topics to notes and assignments to create a cohesive study plan.</p>
+          <button onClick={onAddTopic} style={{ padding: '12px 24px', backgroundColor: 'var(--primary)', color: 'var(--on-primary)', borderRadius: '12px', fontSize: '16px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span> Add Topic Manually
           </button>
         </div>
       ) : (

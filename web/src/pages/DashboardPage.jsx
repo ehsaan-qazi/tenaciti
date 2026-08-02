@@ -10,19 +10,9 @@ import {
   StreakHeatmap,
 } from '../components/Dashboard/DashboardWidgets';
 import { logActivity, getWeeklyWorkload } from '../api/streakApi';
+import CourseCard from '../components/Courses/CourseCard';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
-function getCurrentSemester() {
-  const month = new Date().getMonth() + 1;
-  if (month >= 1 && month <= 5) return 'Spring';
-  if (month >= 6 && month <= 7) return 'Summer';
-  return 'Fall';
-}
-
-function getCurrentYear() {
-  return String(new Date().getFullYear());
-}
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -31,161 +21,8 @@ function getGreeting() {
   return 'Good evening';
 }
 
-// ─── New Course Modal ───────────────────────────────────────────────────────
-
-function NewCourseModal({ onClose, onCreated }) {
-  const [form, setForm] = useState({
-    name: '',
-    code: '',
-    semester: getCurrentSemester(),
-    academic_year: getCurrentYear(),
-    credit_hours: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) {
-      setError('Course name is required');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      const payload = {
-        name: form.name.trim(),
-        code: form.code.trim() || null,
-        semester: form.semester,
-        academic_year: form.academic_year,
-        credit_hours: form.credit_hours ? parseFloat(form.credit_hours) : null,
-      };
-      const created = await apiFetch('/courses', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      onCreated(created);
-      onClose();
-    } catch (err) {
-      setError(err.message || 'Failed to create course');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay open" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">📖 New Course</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Course Name *</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="e.g. Software Engineering"
-              autoFocus
-            />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
-              <label>Course Code</label>
-              <input
-                name="code"
-                value={form.code}
-                onChange={handleChange}
-                placeholder="e.g. SE301"
-              />
-            </div>
-            <div className="form-group">
-              <label>Credit Hours</label>
-              <input
-                name="credit_hours"
-                type="number"
-                step="0.5"
-                min="0"
-                max="10"
-                value={form.credit_hours}
-                onChange={handleChange}
-                placeholder="e.g. 3"
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
-              <label>Semester</label>
-              <select name="semester" value={form.semester} onChange={handleChange}>
-                <option value="Spring">Spring</option>
-                <option value="Summer">Summer</option>
-                <option value="Fall">Fall</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Academic Year</label>
-              <input
-                name="academic_year"
-                value={form.academic_year}
-                onChange={handleChange}
-                placeholder="e.g. 2026"
-              />
-            </div>
-          </div>
-          {error && <div className="error-message">{error}</div>}
-          <div className="modal-actions">
-            <button type="button" className="secondary-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="primary-btn" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Course'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Course Card ─────────────────────────────────────────────────────────────
-
-function CourseCard({ course, onClick }) {
-  const colors = ['#7c6af7', '#34d399', '#60a5fa', '#fbbf24', '#f472b6', '#fb923c'];
-  const colorIndex = course.id % colors.length;
-  const accent = colors[colorIndex];
-
-  return (
-    <div
-      className="course-card"
-      onClick={onClick}
-      style={{ '--course-accent': accent, cursor: 'pointer' }}
-    >
-      <div className="course-card-top">
-        <div className="course-card-icon" style={{ background: `${accent}22`, color: accent }}>
-          📖
-        </div>
-        <div className="course-card-badge">{course.code || '—'}</div>
-      </div>
-      <div className="course-card-name">{course.name}</div>
-      <div className="course-card-meta">
-        <span>{course.semester} {course.academic_year}</span>
-        {course.credit_hours && <span>· {course.credit_hours} cr</span>}
-      </div>
-      <div className="course-card-progress">
-        <div className="progress-bar" style={{ marginTop: '0.75rem' }}>
-          <div className="progress-fill" style={{ width: '0%', background: accent }} />
-        </div>
-        <div className="course-card-docs">
-          📄 {course.doc_upload_count || 0} doc{course.doc_upload_count !== 1 ? 's' : ''}
-        </div>
-      </div>
-    </div>
-  );
-}
+// Helpers imported from NewCourseModal
+import NewCourseModal, { getCurrentSemester, getCurrentYear } from '../components/Courses/NewCourseModal';
 
 // ─── Dashboard Page ──────────────────────────────────────────────────────────
 
@@ -221,7 +58,6 @@ export default function DashboardPage() {
     fetchCourses();
   }, [fetchCourses]);
 
-  // Filter to current semester, or show all
   const semesterCourses = courses.filter(
     (c) => c.semester === currentSemester && String(c.academic_year) === currentYear
   );
@@ -235,171 +71,169 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="page active" id="page-dashboard">
+    <div style={{ padding: '24px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+      {/* Abstract Decor Blobs */}
+      <div className="blob-1"></div>
+      <div className="blob-2"></div>
+
       {/* Page Header */}
-      <div className="page-header">
-        <div>
-          <div className="page-title">{getGreeting()}, {firstName} 👋</div>
-          <div className="page-subtitle">
-            {currentSemester} {currentYear}
-            {semesterCourses.length > 0
-              ? ` · ${semesterCourses.length} active course${semesterCourses.length !== 1 ? 's' : ''}`
-              : ' · No courses yet — add one!'}
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ position: 'relative' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid var(--surface-container-lowest)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+              {firstName[0]?.toUpperCase()}
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: '16px', height: '16px', background: 'var(--success)', borderRadius: '50%', border: '2px solid var(--surface-container-lowest)' }}></div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h1 style={{ margin: 0, padding: 0, fontSize: '32px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              {getGreeting()}, {firstName} <span style={{ display: 'inline-block', transformOrigin: '70% 70%' }}>👋</span>
+            </h1>
+            <p style={{ margin: '4px 0 0 0', fontSize: '16px', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'JetBrains Mono', background: 'var(--surface-variant)', padding: '4px 8px', borderRadius: '4px' }}>
+                {currentSemester} {currentYear}
+              </span>
+              <span>·</span>
+              <span>
+                {semesterCourses.length} active course{semesterCourses.length !== 1 ? 's' : ''}
+              </span>
+            </p>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          + New Course
+        <button className="glass-btn-primary" onClick={() => setShowModal(true)}>
+          <span className="material-symbols-outlined">add</span>
+          New Course
         </button>
       </div>
 
       {/* Stats Row */}
-      <div className="stats-row">
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <div className="stat-card-label">Active Courses</div>
-            <div className="stat-card-icon">📖</div>
+      <div style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--secondary-fixed)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--secondary)' }}>auto_stories</span>
+            </div>
+            <span style={{ fontSize: '14px', fontFamily: 'JetBrains Mono', background: 'var(--surface-container)', padding: '4px 8px', borderRadius: '6px', color: 'var(--on-surface-variant)' }}>Semester</span>
           </div>
-          <div className="stat-card-value">{semesterCourses.length}</div>
-          <div className="stat-card-sub">{currentSemester} {currentYear}</div>
+          <div>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--on-surface-variant)' }}>Active Courses</h2>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{semesterCourses.length}</div>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <div className="stat-card-label">Documents Uploaded</div>
-            <div className="stat-card-icon">📄</div>
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--tertiary-fixed)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--tertiary-container)', fontSize: '20px' }}>file_copy</span>
+            </div>
           </div>
-          <div className="stat-card-value">
-            {semesterCourses.reduce((sum, c) => sum + (c.doc_upload_count || 0), 0)}
+          <div>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--on-surface-variant)' }}>Documents Uploaded</h2>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{semesterCourses.reduce((sum, c) => sum + (c.doc_upload_count || 0), 0)}</div>
           </div>
-          <div className="stat-card-sub">Across all courses</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <div className="stat-card-label">Topics Completed</div>
-            <div className="stat-card-icon">✅</div>
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '20px' }}>task_alt</span>
+            </div>
+            <span style={{ fontSize: '12px', fontFamily: 'JetBrains Mono', background: 'var(--surface-container)', padding: '4px 8px', borderRadius: '6px', color: 'var(--on-surface-variant)' }}>Progress</span>
           </div>
-          <div className="stat-card-value">—</div>
-          <div className="stat-card-sub">Upload syllabus to track</div>
+          <div>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--on-surface-variant)' }}>Topics Completed</h2>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>—</div>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <div className="stat-card-label">Your Plan</div>
-            <div className="stat-card-icon">⭐</div>
+        <div className="glass-card" style={{ background: 'var(--secondary)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: 'var(--on-primary)', position: 'relative' }}>
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.1, background: 'radial-gradient(ellipse at top right, white, transparent)' }}></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--on-primary)', fontSize: '20px' }}>workspace_premium</span>
+            </div>
+            <span style={{ fontSize: '12px', fontFamily: 'JetBrains Mono', background: 'rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '6px', color: 'var(--on-primary)' }}>Subscription</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '1.2rem' }}>
-            {user?.plan === 'pro' ? 'Pro' : 'Free'}
-          </div>
-          <div className="stat-card-sub">
-            {user?.plan === 'pro' ? 'All features unlocked' : 'Upgrade for AI extraction'}
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)' }}>Your Plan</h2>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--on-primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{user?.plan === 'pro' ? 'Pro' : 'Free'}</div>
           </div>
         </div>
       </div>
 
       {/* Main Dashboard Grid */}
-      <div className="dash-grid" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
-        {/* Left Column - Wider */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Upcoming Deadlines */}
+      <div style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <UpcomingDeadlinesWidget />
-
-          {/* Topic Coverage */}
           <TopicCoverageWidget />
         </div>
-
-        {/* Right Column - Narrower */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Streak Summary Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <StreakSummaryCards />
-
-          {/* Weekly Workload */}
           <WeeklyWorkloadWidget />
         </div>
       </div>
 
       {/* Full-width Streak Heatmap */}
-      <div style={{ marginTop: '16px' }}>
+      <div style={{ position: 'relative', zIndex: 10, marginTop: '24px' }}>
         <StreakHeatmap />
       </div>
 
       {/* Courses Section */}
-      <div className="section-header" style={{ marginTop: '1.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span className="card-title">
-            {showAll ? '📚 All Courses' : `📚 ${currentSemester} ${currentYear} Courses`}
-          </span>
+      <div style={{ position: 'relative', zIndex: 10, marginTop: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--surface-container-high)', paddingBottom: '16px' }}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            📚 {showAll ? 'All' : `${currentSemester} ${currentYear}`} Courses
+            <span style={{ fontSize: '14px', fontFamily: 'JetBrains Mono', background: 'var(--secondary-fixed)', color: 'var(--on-secondary-fixed-variant)', padding: '4px 8px', borderRadius: '6px' }}>
+              {displayedCourses.length} Active
+            </span>
+          </h2>
           {hasOtherCourses && (
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setShowAll((v) => !v)}
-            >
-              {showAll ? `Show ${currentSemester} only` : `Show all (${courses.length})`}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>Show all</span>
+              <button 
+                style={{ width: '48px', height: '24px', borderRadius: '9999px', background: showAll ? 'var(--primary)' : 'var(--surface-container-highest)', border: 'none', position: 'relative', cursor: 'pointer', transition: 'all 0.2s' }}
+                onClick={() => setShowAll((v) => !v)}
+              >
+                <span style={{ position: 'absolute', top: '4px', left: showAll ? '28px' : '4px', width: '16px', height: '16px', background: 'white', borderRadius: '50%', transition: 'all 0.2s' }}></span>
+              </button>
+            </div>
           )}
         </div>
-        {displayedCourses.length > 0 && (
-          <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-            {displayedCourses.length} course{displayedCourses.length !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
 
-      {loadingCourses ? (
-        <div className="courses-grid">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="course-card skeleton-card" style={{ height: '140px' }} />
-          ))}
-        </div>
-      ) : displayedCourses.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📖</div>
-          <p>
-            {showAll
-              ? 'No courses yet. Create your first course to get started!'
-              : `No courses for ${currentSemester} ${currentYear}. Add one or switch to show all.`}
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="primary-btn" style={{ width: 'auto' }} onClick={() => setShowModal(true)}>
-              + Add Course
-            </button>
-            {!showAll && hasOtherCourses && (
-              <button className="secondary-btn" onClick={() => setShowAll(true)}>
-                Show all semesters
-              </button>
-            )}
+        {loadingCourses ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="glass-card" style={{ height: '240px', animation: 'pulse 2s infinite' }} />
+            ))}
           </div>
-        </div>
-      ) : (
-        <div className="courses-grid">
-          {displayedCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onClick={() => navigate(`/courses/${course.id}`)}
-            />
-          ))}
-          {/* Add course tile */}
-          <div
-            className="course-card course-card-add"
-            onClick={() => setShowModal(true)}
-            style={{ cursor: 'pointer' }}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>+</div>
-              <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>New Course</div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+            {displayedCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onClick={() => navigate(`/courses/${course.id}`)}
+              />
+            ))}
+            {/* Add course tile */}
+            <div
+              onClick={() => setShowModal(true)}
+              style={{ borderRadius: '24px', padding: '16px', border: '2px dashed var(--outline-variant)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', cursor: 'pointer', minHeight: '200px', transition: 'all 0.3s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--primary)';
+                e.currentTarget.style.backgroundColor = 'var(--surface-container-lowest)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--outline-variant)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--on-surface-variant)' }}>add</span>
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'var(--primary)' }}>Add New Course</h3>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--on-surface-variant)' }}>Import syllabus to generate plan.</p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Quick Tip */}
-      {!loadingCourses && courses.length === 0 && (
-        <div className="tip-card" style={{ marginTop: '1.5rem' }}>
-          <span>💡</span>
-          <span>
-            Start by creating a course, then upload your syllabus PDF — Tenaciti will extract
-            your roadmap, topics, and deadlines automatically.
-          </span>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* New Course Modal */}
       {showModal && (

@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import CoursesPage from './pages/CoursesPage'
 import CoursePage from './pages/CoursePage'
 import NotesPage from './pages/NotesPage'
 import GoalsPage from './pages/GoalsPage'
@@ -72,6 +73,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/notes" element={<NotesPage />} />
         <Route path="/notes/:id" element={<NotesPage />} />
