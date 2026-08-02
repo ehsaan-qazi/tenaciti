@@ -79,3 +79,5 @@ audit.md
 implementation_plan.md
 upgrade_user.py
 backend/upgrade_user.py
+assets/*
+missing_backend_features.md
