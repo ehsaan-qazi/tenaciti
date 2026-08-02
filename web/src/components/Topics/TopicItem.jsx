@@ -97,114 +97,132 @@ export default function TopicItem({
     isDragging ? 'dragging' : '',
   ].filter(Boolean).join(' ')
 
+  const isCompleted = topic.is_completed
+  const isConfirmed = topic.is_confirmed
+  const isUnconfirmed = !isConfirmed
+
+  let wrapperStyle = {
+    display: 'flex', flexDirection: 'column', backgroundColor: 'var(--surface-container-lowest)', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'all 0.2s', cursor: 'default', border: '1px solid transparent', position: 'relative'
+  }
+  if (isUnconfirmed) {
+    wrapperStyle = { ...wrapperStyle, backgroundColor: 'rgba(225, 227, 228, 0.3)', border: '1px dashed var(--outline-variant)' }
+  }
+  if (isSelectedForMerge) {
+    wrapperStyle = { ...wrapperStyle, borderLeft: '4px solid var(--secondary)' }
+  }
+  if (isDragging) {
+    wrapperStyle = { ...wrapperStyle, opacity: 0.5, transform: 'scale(0.98)', zIndex: 50, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }
+  }
+
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={classNames}
+      style={{ ...style, ...wrapperStyle, marginBottom: '12px' }}
+      className={`group ${classNames}`}
       onClick={handleItemClick}
     >
-      {/* Drag handle — only active when not in merge mode */}
-      <div
-        className="drag-handle"
-        {...(mergeMode ? {} : attributes)}
-        {...(mergeMode ? {} : listeners)}
-        title={mergeMode ? '' : 'Drag to reorder'}
-        onClick={(e) => e.stopPropagation()}
-      >
-        ⋮⋮
-      </div>
-
-      {/* Completion checkbox OR merge select checkbox */}
-      {mergeMode ? (
-        <div className="topic-merge-check" onClick={handleMergeClick}>
-          <div className={`topic-merge-check-visual ${isSelectedForMerge ? 'selected' : ''}`}>
-            {isSelectedForMerge ? '✓' : ''}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px', gap: '16px' }}>
+        
+        {/* Drag handle */}
+        {!mergeMode && (
+          <div
+            {...attributes}
+            {...listeners}
+            title="Drag to reorder"
+            onClick={(e) => e.stopPropagation()}
+            style={{ flexShrink: 0, cursor: 'grab', color: 'var(--surface-variant)', display: 'flex', alignItems: 'center', paddingTop: '4px' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px', transition: 'color 0.2s' }}>drag_indicator</span>
           </div>
-        </div>
-      ) : (
-        <div className="topic-check-area" onClick={handleCheckClick}>
-          <div className={`topic-check-visual ${topic.is_completed ? 'checked' : ''}`}>
-            {topic.is_completed ? '✓' : ''}
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Content area: title (or inline edit) + badges */}
-      <div className="topic-content-area">
-        <div className="topic-content-main">
-          <span className="topic-index">{index + 1}.</span>
+        {/* Completion checkbox / Merge select */}
+        <div style={{ flexShrink: 0 }}>
+          {mergeMode ? (
+            <button onClick={handleMergeClick} style={{ width: '24px', height: '24px', borderRadius: '4px', border: isSelectedForMerge ? 'none' : '2px solid var(--outline)', backgroundColor: isSelectedForMerge ? 'var(--secondary)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isSelectedForMerge ? 'var(--on-primary)' : 'transparent', cursor: 'pointer' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', fontWeight: 'bold' }}>check</span>
+            </button>
+          ) : (
+            <button onClick={handleCheckClick} disabled={!isConfirmed} style={{ width: '24px', height: '24px', borderRadius: '4px', border: (isCompleted || !isConfirmed) ? 'none' : '2px solid var(--outline)', backgroundColor: isCompleted ? 'var(--success)' : (!isConfirmed ? 'transparent' : 'transparent'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: isCompleted ? 'var(--on-primary)' : 'transparent', cursor: isConfirmed ? 'pointer' : 'not-allowed', opacity: !isConfirmed ? 0.5 : 1, transition: 'all 0.2s' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', fontWeight: 'bold' }}>check</span>
+            </button>
+          )}
+        </div>
 
+        {/* Content area */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
           {editing ? (
-            <div className="topic-inline-edit" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }} onClick={(e) => e.stopPropagation()}>
               <input
                 ref={inputRef}
-                className="topic-inline-input"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
+                style={{ flex: 1, padding: '8px 12px', fontSize: '16px', color: 'var(--on-surface)', backgroundColor: 'var(--surface-container-low)', border: 'none', borderRadius: '8px', outline: 'none' }}
               />
-              <button className="topic-inline-save" onClick={handleSaveEdit} title="Save">✓</button>
-              <button className="topic-inline-cancel" onClick={handleCancelEdit} title="Cancel">✕</button>
+              <button onClick={handleSaveEdit} style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--success)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check</span></button>
+              <button onClick={handleCancelEdit} style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span></button>
             </div>
           ) : (
-            <span className="topic-title-text" title={topic.title}>
-              {topic.title}
-            </span>
+            <>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: isUnconfirmed ? 'var(--on-surface-variant)' : 'var(--on-surface)', fontStyle: isUnconfirmed ? 'italic' : 'normal', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span style={{ color: 'var(--on-surface-variant)', marginRight: '8px', fontWeight: '500' }}>{index + 1}.</span>
+                {topic.title}
+              </h3>
+              
+              <div style={{ display: 'none' }} className="md-flex items-center gap-2"></div>
+              {/* Desktop badges */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {topic.linked_node_id && (
+                  <span style={{ padding: '4px 8px', backgroundColor: 'var(--surface-container)', borderRadius: '6px', fontSize: '12px', fontWeight: '500', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>link</span>
+                    Linked
+                  </span>
+                )}
+                {isUnconfirmed && (
+                  <span style={{ padding: '4px 8px', backgroundColor: 'var(--surface-container)', borderRadius: '6px', fontSize: '12px', fontWeight: '500', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>auto_awesome</span>
+                    Suggested
+                  </span>
+                )}
+                {isSelectedForMerge && (
+                  <span style={{ padding: '4px 8px', backgroundColor: 'rgba(138, 76, 252, 0.2)', borderRadius: '6px', fontSize: '12px', fontWeight: '500', color: 'var(--secondary)' }}>
+                    Selected for Merge
+                  </span>
+                )}
+              </div>
+            </>
           )}
+        </div>
 
-          {/* Badges */}
-          <div className="topic-badges">
-            {topic.is_confirmed && (
-              <span className="badge-confirmed" title="Confirmed">✓</span>
-            )}
-            {topic.linked_node_id && (
-              <span className="badge-linked" title={`Linked to roadmap node #${topic.linked_node_id}`}>🔗</span>
-            )}
-            {topic.is_completed && topic.confidence_rating && (
-              <span className="badge-confidence" title={`Confidence: ${topic.confidence_rating}/5`}>
-                {'⭐'.repeat(topic.confidence_rating)}
-              </span>
+        {/* Action buttons */}
+        {!mergeMode && !editing && (
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px', opacity: isUnconfirmed ? 1 : 0.6, transition: 'opacity 0.2s' }} className="hover-opacity-100">
+            {isUnconfirmed ? (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); onConfirm(topic.id, true) }} style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--primary)', color: 'var(--on-primary)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check</span> Confirm
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(topic.id) }} style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }} title="Discard">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); onStartLinkNode(topic) }} style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_link</span> Link
+                </button>
+                <button onClick={handleStartEdit} style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }} title="Edit">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(topic.id) }} style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)', backgroundColor: 'transparent', border: 'none', cursor: 'pointer' }} title="Delete">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                </button>
+              </>
             )}
           </div>
-        </div>
+        )}
       </div>
-
-      {/* Action buttons */}
-      {!mergeMode && (
-        <div className="topic-actions" onClick={(e) => e.stopPropagation()}>
-          {!editing && (
-            <button
-              className="topic-action-btn"
-              onClick={handleStartEdit}
-              title="Edit title"
-            >
-              ✏️
-            </button>
-          )}
-          <button
-            className="topic-action-btn confirm-btn"
-            onClick={(e) => { e.stopPropagation(); onConfirm(topic.id, !topic.is_confirmed) }}
-            title={topic.is_confirmed ? 'Unconfirm' : 'Confirm topic'}
-          >
-            {topic.is_confirmed ? '↩️' : '✓'}
-          </button>
-          <button
-            className="topic-action-btn link-btn"
-            onClick={(e) => { e.stopPropagation(); onStartLinkNode(topic) }}
-            title="Link to roadmap node"
-          >
-            🔗
-          </button>
-          <button
-            className="topic-action-btn danger"
-            onClick={(e) => { e.stopPropagation(); onDelete(topic.id) }}
-            title="Delete topic"
-          >
-            🗑️
-          </button>
-        </div>
-      )}
     </div>
   )
 }
