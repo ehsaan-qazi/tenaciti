@@ -4,7 +4,6 @@ Profile & Retrospective schemas — Pydantic models for Phase 7 insights API.
 
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
-from datetime import date
 
 
 # ============================================================

@@ -5,14 +5,13 @@ procrastination fingerprints, and auto-generated retrospective reports.
 """
 
 import math
-from datetime import datetime, date, timedelta, timezone
-from typing import List, Optional, Dict, Any, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional, Dict
 
-from sqlalchemy import select, func, and_, or_, desc, asc
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.user import User
 from app.models.course import Course
 from app.models.roadmap_node import RoadmapNode
 from app.models.topic import Topic
@@ -20,7 +19,6 @@ from app.models.topic_completion import TopicCompletion
 from app.models.note import Note
 from app.models.note_link import NoteLink
 from app.models.self_assessment_log import SelfAssessmentLog
-from app.models.gpa_entry import GpaEntry
 from app.models.streak import Streak
 
 from app.schemas.profile import (
@@ -107,7 +105,7 @@ class ProfileService:
         # 2. Active courses count
         courses_res = await db.execute(
             select(func.count(Course.id)).where(
-                and_(Course.user_id == user_id, Course.is_archived == False)
+                and_(Course.user_id == user_id, Course.is_archived.is_(False))
             )
         )
         total_courses = courses_res.scalar_one() or 0
@@ -122,7 +120,7 @@ class ProfileService:
             select(func.count(TopicCompletion.id)).where(
                 and_(
                     TopicCompletion.user_id == user_id,
-                    TopicCompletion.is_completed == True,
+                    TopicCompletion.is_completed.is_(True),
                 )
             )
         )
@@ -377,7 +375,7 @@ class ProfileService:
             .where(
                 and_(
                     TopicCompletion.user_id == user_id,
-                    TopicCompletion.is_completed == True,
+                    TopicCompletion.is_completed.is_(True),
                     TopicCompletion.completed_at >= cutoff_date,
                 )
             )
@@ -488,9 +486,9 @@ class ProfileService:
         )
         links = note_links_res.scalars().all()
         note_link_counts: Dict[int, int] = {}
-        for l in links:
-            note_link_counts[l.source_note_id] = note_link_counts.get(l.source_note_id, 0) + 1
-            note_link_counts[l.target_note_id] = note_link_counts.get(l.target_note_id, 0) + 1
+        for link in links:
+            note_link_counts[link.source_note_id] = note_link_counts.get(link.source_note_id, 0) + 1
+            note_link_counts[link.target_note_id] = note_link_counts.get(link.target_note_id, 0) + 1
 
         # Pre-fetch self assessment logs by roadmap node id
         sal_res = await db.execute(
@@ -501,8 +499,6 @@ class ProfileService:
         data_points: List[NoteDensityPoint] = []
         notes_vec: List[float] = []
         links_vec: List[float] = []
-        grade_vec: List[float] = []
-        quality_vec: List[float] = []
 
         for t in topics:
             c_name = t.course.name if t.course else "Unknown"
@@ -845,7 +841,7 @@ class ProfileService:
                         and_(
                             TopicCompletion.user_id == user_id,
                             TopicCompletion.topic_id.in_([t.id for t in sem_topics]),
-                            TopicCompletion.is_completed == True,
+                            TopicCompletion.is_completed.is_(True),
                         )
                     )
                 )
@@ -936,7 +932,7 @@ class ProfileService:
                             and_(
                                 TopicCompletion.user_id == user_id,
                                 TopicCompletion.topic_id.in_([t.id for t in c_topics]),
-                                TopicCompletion.is_completed == True,
+                                TopicCompletion.is_completed.is_(True),
                             )
                         )
                     )

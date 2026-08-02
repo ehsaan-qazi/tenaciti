@@ -26,23 +26,10 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    // Check for local JWT first (email/password auth)
-    const localToken = getLocalToken()
-    if (localToken) {
-      fetchUserProfile(localToken)
-    } else {
-      // Fallback to Supabase session (Google OAuth)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session)
-        if (session) {
-          fetchUserProfile()
-        } else {
-          setLoading(false)
-        }
-      })
-    }
-
-    // Listen for Supabase auth changes (Google OAuth)
+    // ─── Step 1: Set up the auth state change listener FIRST ───
+    // This must be registered before getSession() so we don't miss
+    // the SIGNED_IN event that fires when Supabase processes the
+    // OAuth callback hash fragments in the URL.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session)
@@ -58,6 +45,40 @@ export function AuthProvider({ children }) {
         }
       }
     )
+
+    // ─── Step 2: Check for existing auth ───
+    const localToken = getLocalToken()
+    if (localToken) {
+      // Email/password user — validate their stored token
+      fetchUserProfile(localToken)
+    } else {
+      // Check for an existing Supabase session (returning Google user)
+      // Also handles the OAuth callback: Supabase processes hash fragments
+      // in the URL during getSession() and fires onAuthStateChange above.
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session)
+        if (session) {
+          fetchUserProfile()
+        } else {
+          // Only stop loading if there are NO hash fragments indicating
+          // an OAuth callback is still being processed.
+          const hasOAuthCallback = window.location.hash.includes('access_token')
+            || window.location.hash.includes('error')
+          if (!hasOAuthCallback) {
+            setLoading(false)
+          } else {
+            // Safety timeout: if onAuthStateChange hasn't fired within 5s,
+            // stop loading to avoid infinite spinner.
+            setTimeout(() => {
+              setLoading(prev => {
+                // Only force-stop if still loading (callback may have already resolved)
+                return prev ? false : prev
+              })
+            }, 5000)
+          }
+        }
+      })
+    }
 
     return () => {
       subscription.unsubscribe()
@@ -75,33 +96,45 @@ export function AuthProvider({ children }) {
   }
 
   const loginWithEmail = async (email, password) => {
-    const response = await apiFetch('/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    // Store the local JWT
-    setLocalToken(response.access_token)
-    setUser(response.user)
-    return response
+    try {
+      const response = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+      // Store the local JWT
+      setLocalToken(response.access_token)
+      setUser(response.user)
+      return response
+    } catch (err) {
+      // Provide a user-friendly message for network errors
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        throw new Error('Cannot reach the server. Please check that the backend is running.')
+      }
+      throw err
+    }
   }
 
   const registerWithEmail = async (email, password, fullName) => {
-    const response = await apiFetch('/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, full_name: fullName }),
-    })
-    // Store the local JWT
-    setLocalToken(response.access_token)
-    setUser(response.user)
-    return response
+    try {
+      const response = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, full_name: fullName }),
+      })
+      // Store the local JWT
+      setLocalToken(response.access_token)
+      setUser(response.user)
+      return response
+    } catch (err) {
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        throw new Error('Cannot reach the server. Please check that the backend is running.')
+      }
+      throw err
+    }
   }
 
   const forgotPassword = async (email) => {
     await apiFetch('/auth/forgot-password', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
   }
@@ -109,7 +142,6 @@ export function AuthProvider({ children }) {
   const resetPassword = async (token, password) => {
     await apiFetch('/auth/reset-password', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password }),
     })
   }
@@ -117,7 +149,6 @@ export function AuthProvider({ children }) {
   const verifyEmail = async (token) => {
     const updatedUser = await apiFetch('/auth/verify-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     })
     setUser(updatedUser)
