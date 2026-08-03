@@ -30,11 +30,11 @@ function percentageToLetter(pct) {
 
 function gradeColor(letter) {
   const pts = GRADE_SCALE[letter] ?? 0;
-  if (pts >= 3.7) return 'var(--green)';
-  if (pts >= 3.0) return '#22d3ee';
-  if (pts >= 2.0) return 'var(--amber)';
-  if (pts >= 1.0) return '#fb923c';
-  return 'var(--red)';
+  if (pts >= 3.7) return 'var(--success)';
+  if (pts >= 3.0) return 'var(--primary)';
+  if (pts >= 2.0) return 'var(--gradient-end)'; // Amber
+  if (pts >= 1.0) return 'var(--gradient-end)'; // Amber/Orange
+  return 'var(--error)';
 }
 
 /* =========================================================================
@@ -60,17 +60,19 @@ function SGPACalculator() {
   const sgpa = totalCredits > 0 ? totalQP / totalCredits : 0;
 
   return (
-    <div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+    <div className="gpa-glass-card" style={{ gap: '24px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Current Semester Calculation</h2>
+      
+      <div className="gpa-table-wrapper">
+        <table className="gpa-table">
           <thead>
-            <tr style={{ borderBottom: '2px solid var(--border)' }}>
-              <th style={thStyle}>Course Name</th>
-              <th style={{ ...thStyle, width: '100px', textAlign: 'center' }}>Credit Hours</th>
-              <th style={{ ...thStyle, width: '120px', textAlign: 'center' }}>Grade</th>
-              <th style={{ ...thStyle, width: '90px', textAlign: 'center' }}>Points</th>
-              <th style={{ ...thStyle, width: '110px', textAlign: 'center' }}>Quality Pts</th>
-              <th style={{ ...thStyle, width: '50px' }}></th>
+            <tr>
+              <th>Course Name</th>
+              <th style={{ width: '100px', textAlign: 'center' }}>Credits</th>
+              <th style={{ width: '120px', textAlign: 'center' }}>Grade</th>
+              <th style={{ width: '90px', textAlign: 'right' }}>Points</th>
+              <th style={{ width: '110px', textAlign: 'right' }}>Quality Pts</th>
+              <th style={{ width: '50px' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -78,39 +80,42 @@ function SGPACalculator() {
               const pts = GRADE_SCALE[c.grade];
               const qp = pts !== undefined ? c.creditHours * pts : null;
               return (
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={tdStyle}>
+                <tr key={i} className="gpa-table-row">
+                  <td>
                     <input
+                      className="gpa-input"
                       type="text" value={c.name} placeholder={`Course ${i + 1}`}
                       onChange={e => updateCourse(i, 'name', e.target.value)}
-                      style={inputStyle}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <input
+                      className="gpa-input"
                       type="number" min="0.5" max="6" step="0.5" value={c.creditHours}
                       onChange={e => updateCourse(i, 'creditHours', parseFloat(e.target.value) || 0)}
-                      style={{ ...inputStyle, width: '70px', textAlign: 'center' }}
+                      style={{ textAlign: 'center' }}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td>
                     <select
+                      className="gpa-select"
                       value={c.grade} onChange={e => updateCourse(i, 'grade', e.target.value)}
-                      style={{ ...inputStyle, width: '90px', textAlign: 'center' }}
                     >
-                      <option value="">—</option>
+                      <option value="" disabled>Grade</option>
                       {LETTER_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: c.grade ? gradeColor(c.grade) : 'var(--text-muted)' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 600, color: c.grade ? gradeColor(c.grade) : 'var(--on-surface-variant)' }}>
                     {pts !== undefined ? pts.toFixed(2) : '—'}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: 'var(--blue)' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--on-surface)' }}>
                     {qp !== null ? qp.toFixed(2) : '—'}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     {courses.length > 1 && (
-                      <button onClick={() => removeCourse(i)} style={deleteBtnStyle}>✕</button>
+                      <button onClick={() => removeCourse(i)} className="notes-action-btn" style={{ padding: '4px', background: 'transparent', border: 'none' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--error)' }}>close</span>
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -120,14 +125,32 @@ function SGPACalculator() {
         </table>
       </div>
 
-      <button onClick={addCourse} style={addRowBtnStyle}>+ Add Course</button>
+      <div>
+        <button onClick={addCourse} className="notes-action-btn" style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '14px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span> Add Course
+        </button>
+      </div>
+
+      <div style={{ height: '1px', background: 'var(--surface-container-highest)', margin: '8px 0' }} />
 
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginTop: '1.5rem', padding: '1.25rem', background: 'var(--bg-tertiary)', borderRadius: '12px' }}>
-        <SummaryItem label="Total Credits" value={totalCredits} />
-        <SummaryItem label="Quality Points" value={totalQP.toFixed(2)} />
-        <SummaryItem label="Semester GPA" value={sgpa.toFixed(2)} large color="var(--green)" />
-        <SummaryItem label="Grade" value={totalCredits > 0 ? percentageToLetter(sgpa * 25) : '—'} />
+      <div className="gpa-summary-grid">
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Total Credits</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{totalCredits}</span>
+        </div>
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Quality Points</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{totalQP.toFixed(2)}</span>
+        </div>
+        <div className="gpa-summary-item highlight">
+          <span style={{ fontSize: '12px', color: 'var(--on-secondary-fixed-variant)', fontWeight: 500 }}>Semester GPA</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--success)' }}>{sgpa.toFixed(2)}</span>
+        </div>
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Letter Grade</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{totalCredits > 0 ? percentageToLetter(sgpa * 25) : '—'}</span>
+        </div>
       </div>
     </div>
   );
@@ -156,49 +179,55 @@ function CGPACalculator() {
   const cgpa = totalCredits > 0 ? totalQP / totalCredits : 0;
 
   return (
-    <div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+    <div className="gpa-glass-card" style={{ gap: '24px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Cumulative GPA Calculation</h2>
+      
+      <div className="gpa-table-wrapper">
+        <table className="gpa-table">
           <thead>
-            <tr style={{ borderBottom: '2px solid var(--border)' }}>
-              <th style={thStyle}>Semester</th>
-              <th style={{ ...thStyle, width: '130px', textAlign: 'center' }}>SGPA</th>
-              <th style={{ ...thStyle, width: '130px', textAlign: 'center' }}>Credit Hours</th>
-              <th style={{ ...thStyle, width: '130px', textAlign: 'center' }}>Quality Points</th>
-              <th style={{ ...thStyle, width: '50px' }}></th>
+            <tr>
+              <th>Semester</th>
+              <th style={{ width: '130px', textAlign: 'center' }}>SGPA</th>
+              <th style={{ width: '130px', textAlign: 'center' }}>Credit Hours</th>
+              <th style={{ width: '130px', textAlign: 'right' }}>Quality Points</th>
+              <th style={{ width: '50px' }}></th>
             </tr>
           </thead>
           <tbody>
             {semesters.map((s, i) => {
               const qp = s.sgpa && s.creditHours ? (parseFloat(s.sgpa) * parseFloat(s.creditHours)) : null;
               return (
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={tdStyle}>
+                <tr key={i} className="gpa-table-row">
+                  <td>
                     <input
+                      className="gpa-input"
                       type="text" value={s.label} onChange={e => updateSemester(i, 'label', e.target.value)}
-                      style={inputStyle}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <input
+                      className="gpa-input"
                       type="number" min="0" max="4" step="0.01" value={s.sgpa}
                       onChange={e => updateSemester(i, 'sgpa', e.target.value)}
-                      placeholder="0.00" style={{ ...inputStyle, width: '90px', textAlign: 'center' }}
+                      placeholder="0.00" style={{ textAlign: 'center' }}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <input
+                      className="gpa-input"
                       type="number" min="1" max="30" step="1" value={s.creditHours}
                       onChange={e => updateSemester(i, 'creditHours', e.target.value)}
-                      placeholder="0" style={{ ...inputStyle, width: '90px', textAlign: 'center' }}
+                      placeholder="0" style={{ textAlign: 'center' }}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: 'var(--blue)' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--on-surface)' }}>
                     {qp !== null ? qp.toFixed(2) : '—'}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     {semesters.length > 1 && (
-                      <button onClick={() => removeSemester(i)} style={deleteBtnStyle}>✕</button>
+                      <button onClick={() => removeSemester(i)} className="notes-action-btn" style={{ padding: '4px', background: 'transparent', border: 'none' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--error)' }}>close</span>
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -208,13 +237,31 @@ function CGPACalculator() {
         </table>
       </div>
 
-      <button onClick={addSemester} style={addRowBtnStyle}>+ Add Semester</button>
+      <div>
+        <button onClick={addSemester} className="notes-action-btn" style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '14px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span> Add Semester
+        </button>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginTop: '1.5rem', padding: '1.25rem', background: 'var(--bg-tertiary)', borderRadius: '12px' }}>
-        <SummaryItem label="Total Semesters" value={validSemesters.length} />
-        <SummaryItem label="Total Credits" value={totalCredits} />
-        <SummaryItem label="Total Quality Pts" value={totalQP.toFixed(2)} />
-        <SummaryItem label="Cumulative GPA" value={cgpa.toFixed(2)} large color="var(--green)" />
+      <div style={{ height: '1px', background: 'var(--surface-container-highest)', margin: '8px 0' }} />
+
+      <div className="gpa-summary-grid">
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Total Semesters</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{validSemesters.length}</span>
+        </div>
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Total Credits</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{totalCredits}</span>
+        </div>
+        <div className="gpa-summary-item">
+          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Total Quality Pts</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{totalQP.toFixed(2)}</span>
+        </div>
+        <div className="gpa-summary-item highlight">
+          <span style={{ fontSize: '12px', color: 'var(--on-secondary-fixed-variant)', fontWeight: 500 }}>Cumulative GPA</span>
+          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--success)' }}>{cgpa.toFixed(2)}</span>
+        </div>
       </div>
     </div>
   );
@@ -283,119 +330,229 @@ function InternalMarksCalculator() {
   const predictedGPA = predictedGrade ? GRADE_SCALE[predictedGrade] : null;
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '14px' }}>
-          <input type="checkbox" checked={hasLab} onChange={e => setHasLab(e.target.checked)}
-            style={{ width: '18px', height: '18px', accentColor: 'var(--green)' }}
-          />
-          This course has a Lab component
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      {/* Controls */}
+      <div className="gpa-glass-card" style={{ padding: '16px 24px', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: '16px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 500 }}>
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <input 
+              type="checkbox" 
+              checked={hasLab} 
+              onChange={e => setHasLab(e.target.checked)}
+              style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+            />
+          </div>
+          Lab Component
         </label>
+        <button 
+          className="notes-action-btn"
+          onClick={() => {
+            setHasLab(false); setQuizzes(['', '', '', '']); setAssignments(['', '', '', '']); setMidterm(''); setTerminal('');
+            setTheoryPct(''); setPracticalPct(''); setTheoryCH(''); setPracticalCH('');
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span> Reset
+        </button>
       </div>
 
-      {!hasLab ? (
-        <>
-          {/* Quizzes */}
-          <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Quizzes (out of {quizMax} each)</h4>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              {quizzes.map((q, i) => (
-                <input key={i} type="number" min="0" max={quizMax} step="0.5" value={q}
-                  onChange={e => updateQuiz(i, e.target.value)}
-                  placeholder={`Q${i + 1}`}
-                  style={{ ...inputStyle, width: '70px', textAlign: 'center' }}
-                />
-              ))}
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Avg: {quizAvg !== null ? quizAvg.toFixed(1) : '—'}
-              </span>
-            </div>
-          </div>
+      <div className="gpa-grid">
+        <div className="gpa-main-col">
+          {!hasLab ? (
+            <>
+              {/* Quizzes & Assignments */}
+              <div className="gpa-internal-grid">
+                
+                {/* Quizzes */}
+                <div className="gpa-internal-card group">
+                  <div className="card-glow" style={{ background: 'linear-gradient(to bottom right, rgba(124, 58, 237, 0.05), transparent)' }}></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                    <h3 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--gradient-start)' }}>quiz</span> Quizzes
+                    </h3>
+                    <span style={{ background: 'var(--surface-container-high)', padding: '4px 12px', borderRadius: '999px', fontSize: '14px', fontWeight: 500 }}>Weight: 15%</span>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                    {quizzes.map((q, i) => (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Q{i+1}</label>
+                        <input className="gpa-input-box" type="number" min="0" max={quizMax} step="0.5" value={q}
+                          onChange={e => updateQuiz(i, e.target.value)} placeholder="-" />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(196, 199, 199, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Current Average</span>
+                    <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--primary)' }}>{quizAvg !== null ? `${quizAvg.toFixed(1)} / ${quizMax}` : '—'}</span>
+                  </div>
+                </div>
 
-          {/* Assignments */}
-          <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Assignments (out of {assignmentMax} each)</h4>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              {assignments.map((a, i) => (
-                <input key={i} type="number" min="0" max={assignmentMax} step="0.5" value={a}
-                  onChange={e => updateAssignment(i, e.target.value)}
-                  placeholder={`A${i + 1}`}
-                  style={{ ...inputStyle, width: '70px', textAlign: 'center' }}
-                />
-              ))}
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Avg: {assignAvg !== null ? assignAvg.toFixed(1) : '—'}
-              </span>
-            </div>
-          </div>
+                {/* Assignments */}
+                <div className="gpa-internal-card group">
+                  <div className="card-glow" style={{ background: 'linear-gradient(to bottom right, rgba(113, 42, 226, 0.05), transparent)' }}></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                    <h3 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--secondary)' }}>assignment</span> Assignments
+                    </h3>
+                    <span style={{ background: 'var(--surface-container-high)', padding: '4px 12px', borderRadius: '999px', fontSize: '14px', fontWeight: 500 }}>Weight: 25%</span>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                    {assignments.map((a, i) => (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>A{i+1}</label>
+                        <input className="gpa-input-box" type="number" min="0" max={assignmentMax} step="0.5" value={a}
+                          onChange={e => updateAssignment(i, e.target.value)} placeholder="-" />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(196, 199, 199, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Current Average</span>
+                    <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--primary)' }}>{assignAvg !== null ? `${assignAvg.toFixed(1)} / ${assignmentMax}` : '—'}</span>
+                  </div>
+                </div>
 
-          {/* Mid & Terminal */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div className="card" style={{ padding: '1rem' }}>
-              <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Mid-Term (out of {midtermMax})</h4>
-              <input type="number" min="0" max={midtermMax} step="0.5" value={midterm}
-                onChange={e => setMidterm(e.target.value)} placeholder="Score"
-                style={{ ...inputStyle, width: '100%' }}
-              />
-              {midtermPct !== null && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{midtermPct.toFixed(1)}%</span>}
-            </div>
-            <div className="card" style={{ padding: '1rem' }}>
-              <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Terminal Exam (out of {terminalMax})</h4>
-              <input type="number" min="0" max={terminalMax} step="0.5" value={terminal}
-                onChange={e => setTerminal(e.target.value)} placeholder="Score"
-                style={{ ...inputStyle, width: '100%' }}
-              />
-              {terminalPct !== null && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{terminalPct.toFixed(1)}%</span>}
-            </div>
-          </div>
+              </div>
 
-          {/* Weightage info */}
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '1rem', padding: '0.75rem', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
-            <strong>Weightage:</strong> Quizzes/Assignments = 25% · Mid-Term = 25% · Terminal = 50%
-          </div>
-        </>
-      ) : (
-        /* Lab course mode */
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-          <div className="card" style={{ padding: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Theory</h4>
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '12px' }}>Percentage (%)</label>
-              <input type="number" min="0" max="100" step="0.1" value={theoryPct}
-                onChange={e => setTheoryPct(e.target.value)} placeholder="0" style={inputStyle} />
+              {/* Exams */}
+              <div className="gpa-internal-grid">
+                
+                {/* Mid-Term */}
+                <div className="gpa-internal-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--gradient-mid)' }}>description</span>
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Mid-Term</h4>
+                      <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Weight: 20%</span>
+                    </div>
+                  </div>
+                  <div style={{ width: '96px', position: 'relative' }}>
+                    <input className="gpa-input-box" type="number" min="0" max={midtermMax} step="0.5" value={midterm}
+                        onChange={e => setMidterm(e.target.value)} style={{ paddingRight: '24px', textAlign: 'center' }} />
+                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--on-surface-variant)' }}>/ {midtermMax}</span>
+                  </div>
+                </div>
+
+                {/* Terminal Exam */}
+                <div className="gpa-internal-card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--error)' }}>school</span>
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Terminal Exam</h4>
+                      <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Weight: 40%</span>
+                    </div>
+                  </div>
+                  <div style={{ width: '96px', position: 'relative' }}>
+                    <input className="gpa-input-box" type="number" min="0" max={terminalMax} step="0.5" value={terminal}
+                        onChange={e => setTerminal(e.target.value)} placeholder="-" style={{ paddingRight: '24px', textAlign: 'center' }} />
+                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--on-surface-variant)' }}>/ {terminalMax}</span>
+                  </div>
+                </div>
+
+              </div>
+            </>
+          ) : (
+            /* Lab Course Mode */
+            <div className="gpa-internal-grid">
+              <div className="gpa-internal-card">
+                <h4 style={{ margin: '0 0 16px', fontSize: '16px' }}>Theory</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '12px' }}>Percentage (%)</label>
+                    <input className="gpa-input-box" type="number" min="0" max="100" step="0.1" value={theoryPct}
+                      onChange={e => setTheoryPct(e.target.value)} placeholder="0" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '12px' }}>Credit Hours</label>
+                    <input className="gpa-input-box" type="number" min="0.5" max="6" step="0.5" value={theoryCH}
+                      onChange={e => setTheoryCH(e.target.value)} placeholder="0" />
+                  </div>
+                </div>
+              </div>
+              <div className="gpa-internal-card">
+                <h4 style={{ margin: '0 0 16px', fontSize: '16px' }}>Practical / Lab</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '12px' }}>Percentage (%)</label>
+                    <input className="gpa-input-box" type="number" min="0" max="100" step="0.1" value={practicalPct}
+                      onChange={e => setPracticalPct(e.target.value)} placeholder="0" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '12px' }}>Credit Hours</label>
+                    <input className="gpa-input-box" type="number" min="0.5" max="6" step="0.5" value={practicalCH}
+                      onChange={e => setPracticalCH(e.target.value)} placeholder="0" />
+                  </div>
+                </div>
+              </div>
+              <div style={{ gridColumn: '1 / -1', fontSize: '14px', color: 'var(--on-surface-variant)', padding: '16px', background: 'var(--surface-container-low)', borderRadius: '12px' }}>
+                <strong>Formula:</strong> Total % = ((Theory % × Theory CH) + (Practical % × Practical CH)) ÷ Total CH<br />
+                <em>You must pass theory and lab separately. Failing either = failing the course.</em>
+              </div>
             </div>
-            <div className="form-group">
-              <label style={{ fontSize: '12px' }}>Credit Hours</label>
-              <input type="number" min="0.5" max="6" step="0.5" value={theoryCH}
-                onChange={e => setTheoryCH(e.target.value)} placeholder="0" style={inputStyle} />
-            </div>
-          </div>
-          <div className="card" style={{ padding: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px', color: 'var(--text-muted)' }}>Practical / Lab</h4>
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '12px' }}>Percentage (%)</label>
-              <input type="number" min="0" max="100" step="0.1" value={practicalPct}
-                onChange={e => setPracticalPct(e.target.value)} placeholder="0" style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label style={{ fontSize: '12px' }}>Credit Hours</label>
-              <input type="number" min="0.5" max="6" step="0.5" value={practicalCH}
-                onChange={e => setPracticalCH(e.target.value)} placeholder="0" style={inputStyle} />
-            </div>
-          </div>
-          <div style={{ gridColumn: '1 / -1', fontSize: '12px', color: 'var(--text-muted)', padding: '0.75rem', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
-            <strong>Formula:</strong> Total % = ((Theory % × Theory CH) + (Practical % × Practical CH)) ÷ Total CH<br />
-            <em>You must pass theory and lab separately. Failing either = failing the course.</em>
-          </div>
+          )}
         </div>
-      )}
+        
+        {/* Right Sidebar */}
+        <div className="gpa-sidebar">
+          
+          {/* Main Result Card */}
+          <div className="gpa-prediction-card">
+            <div className="prediction-glow-1"></div>
+            <div className="prediction-glow-2"></div>
+            <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
+              <span style={{ fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.7 }}>Current Standing</span>
+              <div style={{ fontSize: '72px', fontWeight: 700, lineHeight: 1 }}>{predictedGrade || '—'}</div>
+              <span style={{ fontSize: '16px', opacity: 0.9, marginTop: '8px' }}>Predicted Grade</span>
+            </div>
+            <div style={{ position: 'relative', zIndex: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', padding: '20px', borderRadius: '16px', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8 }}>Total Percentage</span>
+                <span style={{ fontSize: '18px', fontWeight: 600 }}>{totalPct !== null ? `${totalPct}%` : '—'}</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${totalPct || 0}%`, background: 'linear-gradient(to right, var(--success), var(--gradient-mid))', borderRadius: '999px' }}></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                <span style={{ fontSize: '10px', opacity: 0.5 }}>0%</span>
+                <span style={{ fontSize: '10px', opacity: 0.5 }}>100%</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* What-If Scenario widget */}
+          <div className="gpa-glass-card">
+            <h3 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--gradient-end)' }}>explore</span> What-If Scenario
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--on-surface-variant)', marginBottom: '20px' }}>
+              Calculate what you need on your remaining assessments to hit your target grade.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '14px' }}>Target Grade</label>
+                <select className="gpa-select" style={{ padding: '10px 12px' }}>
+                  <option>A (85%+)</option>
+                  <option>A- (80%+)</option>
+                  <option>B+ (75%+)</option>
+                  <option>B (70%+)</option>
+                </select>
+              </div>
+              <div style={{ background: 'var(--surface-container)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(196,199,199,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--on-surface-variant)' }}>Required in Terminal</span>
+                  <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--error)' }}>—</span>
+                </div>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--on-surface-variant)', opacity: 0.8 }}>Based on current weights and scores.</p>
+              </div>
+            </div>
+          </div>
 
-      {/* Result summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', padding: '1.25rem', background: 'var(--bg-tertiary)', borderRadius: '12px' }}>
-        {!hasLab && <SummaryItem label="Internal Marks" value={internalTotal !== null ? `${internalTotal}%` : '—'} />}
-        <SummaryItem label="Total Percentage" value={totalPct !== null ? `${totalPct}%` : '—'} />
-        <SummaryItem label="Predicted Grade" value={predictedGrade || '—'} large color={predictedGrade ? gradeColor(predictedGrade) : 'var(--text-muted)'} />
-        <SummaryItem label="Grade Points" value={predictedGPA !== null ? predictedGPA.toFixed(2) : '—'} color="var(--blue)" />
+        </div>
       </div>
     </div>
   );
@@ -406,54 +563,37 @@ function InternalMarksCalculator() {
    Shared components & styles
    ========================================================================= */
 
-function SummaryItem({ label, value, large, color }) {
-  return (
-    <div>
-      <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>{label}</span>
-      <strong style={{ fontSize: large ? '1.75rem' : '1.1rem', color: color || 'var(--text-primary)' }}>{value}</strong>
-    </div>
-  );
-}
-
 function GradeScaleTable() {
   return (
-    <div className="card" style={{ padding: '1rem' }}>
-      <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px' }}>HEC 4.0 Grading Scale</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid var(--border)' }}>
-            <th style={{ padding: '0.4rem', textAlign: 'left' }}>Grade</th>
-            <th style={{ padding: '0.4rem', textAlign: 'center' }}>Percentage</th>
-            <th style={{ padding: '0.4rem', textAlign: 'center' }}>Points</th>
-          </tr>
-        </thead>
+    <div className="gpa-glass-card" style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>rule</span>
+        <h3 style={{ margin: 0, fontSize: '20px' }}>HEC 4.0 Scale</h3>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
         <tbody>
           {PERCENTAGE_THRESHOLDS.map(([min, letter], i) => {
             const max = i === 0 ? 100 : PERCENTAGE_THRESHOLDS[i - 1][0] - 1;
             return (
-              <tr key={letter} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '0.4rem', fontWeight: 600, color: gradeColor(letter) }}>{letter}</td>
-                <td style={{ padding: '0.4rem', textAlign: 'center', color: 'var(--text-muted)' }}>{min} – {max}%</td>
-                <td style={{ padding: '0.4rem', textAlign: 'center', fontWeight: 600 }}>{GRADE_SCALE[letter].toFixed(2)}</td>
+              <tr key={letter} style={{ borderBottom: '1px solid var(--surface-container-highest)' }}>
+                <td style={{ padding: '8px 0', fontWeight: 600, color: gradeColor(letter) }}>{letter}</td>
+                <td style={{ padding: '8px 0', textAlign: 'right' }}>{GRADE_SCALE[letter].toFixed(2)}</td>
+                <td style={{ padding: '8px 0', textAlign: 'right', color: letter === 'A' ? 'var(--success)' : 'var(--on-surface-variant)' }}>{min} – {max}%</td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      <button style={{ width: '100%', textAlign: 'center', marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--secondary)', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}>
+        View full scale
+      </button>
     </div>
   );
 }
 
-// Shared inline styles
-const thStyle = { padding: '0.75rem', textAlign: 'left', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 };
-const tdStyle = { padding: '0.6rem 0.75rem' };
-const inputStyle = { padding: '0.45rem 0.6rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', width: '100%' };
-const deleteBtnStyle = { background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: '1rem', padding: '0.25rem 0.5rem', borderRadius: '6px' };
-const addRowBtnStyle = { marginTop: '0.75rem', padding: '0.5rem 1rem', background: 'transparent', border: '1px dashed var(--border)', borderRadius: '8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px', width: '100%', transition: 'all 0.2s' };
-
 
 /* =========================================================================
-   What-If Calculator (overlay)
+   What-If Calculator (overlay) - Minimal updates for existing functionality
    ========================================================================= */
 
 function WhatIfCalculator({ currentCGPA, currentCredits, remainingCredits, onClose }) {
@@ -486,31 +626,31 @@ function WhatIfCalculator({ currentCGPA, currentCredits, remainingCredits, onClo
   results.push({ name: "Straight A's", projected: straightA.toFixed(2), needed: 4.0, achievable: true });
 
   return (
-    <div className="card" style={{ marginTop: '1.5rem' }}>
-      <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>🔮 What-If Calculator</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label>Target CGPA</label>
-          <input type="number" step="0.01" min="0" max="4" value={targetCGPA} onChange={e => setTargetCGPA(e.target.value)} placeholder="4.00" />
+    <div className="gpa-glass-card" style={{ marginTop: '24px' }}>
+      <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>🔮 What-If Calculator</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <label style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Target CGPA</label>
+          <input className="gpa-input-box" type="number" step="0.01" min="0" max="4" value={targetCGPA} onChange={e => setTargetCGPA(e.target.value)} placeholder="4.00" />
         </div>
-        <div className="form-group">
-          <label>Target Semester GPA</label>
-          <input type="number" step="0.01" min="0" max="4" value={targetSemGPA} onChange={e => setTargetSemGPA(e.target.value)} placeholder="4.00" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <label style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Target Semester GPA</label>
+          <input className="gpa-input-box" type="number" step="0.01" min="0" max="4" value={targetSemGPA} onChange={e => setTargetSemGPA(e.target.value)} placeholder="4.00" />
         </div>
       </div>
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
         {results.map((r, i) => (
-          <div key={i} className="card" style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: r.achievable === false ? 'var(--red-dim)' : 'var(--bg-tertiary)' }}>
-            <span>{r.name}</span>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div key={i} style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: r.achievable === false ? 'rgba(239, 68, 68, 0.1)' : 'var(--surface-container-low)', borderRadius: '12px' }}>
+            <span style={{ fontSize: '14px' }}>{r.name}</span>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {r.needed && <span style={{ fontSize: '13px' }}>Need: <strong>{r.needed}</strong> ({r.letter})</span>}
-              {r.projected && <span style={{ color: 'var(--green)' }}>Projected CGPA: <strong>{r.projected}</strong></span>}
-              {!r.achievable && <span className="badge" style={{ background: 'var(--red-dim)', color: 'var(--red)' }}>Not Achievable</span>}
+              {r.projected && <span style={{ color: 'var(--success)', fontSize: '13px' }}>Projected CGPA: <strong>{r.projected}</strong></span>}
+              {!r.achievable && <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>Not Achievable</span>}
             </div>
           </div>
         ))}
       </div>
-      <button className="secondary-btn" style={{ width: 'auto', marginTop: '1rem' }} onClick={onClose}>Close</button>
+      <button className="notes-action-btn" style={{ width: 'max-content', marginTop: '16px' }} onClick={onClose}>Close</button>
     </div>
   );
 }
@@ -521,9 +661,9 @@ function WhatIfCalculator({ currentCGPA, currentCredits, remainingCredits, onClo
    ========================================================================= */
 
 const TABS = [
-  { key: 'sgpa', label: 'SGPA Calculator', icon: '📊' },
-  { key: 'cgpa', label: 'CGPA Calculator', icon: '📈' },
-  { key: 'internal', label: 'Internal Marks', icon: '📝' },
+  { key: 'sgpa', label: 'SGPA', icon: 'bar_chart' },
+  { key: 'cgpa', label: 'CGPA', icon: 'trending_up' },
+  { key: 'internal', label: 'Internal', icon: 'edit_document' },
 ];
 
 export default function GPAPage() {
@@ -647,62 +787,81 @@ export default function GPAPage() {
     .filter(e => e.entry_type === 'course' && !e.grade_letter)
     .reduce((sum, e) => sum + e.credit_hours, 0);
 
-  if (loading) return <div className="page active"><div className="loading-screen"><div className="loading-spinner" />Loading GPA Calculator...</div></div>;
+  if (loading) return (
+    <div className="gpa-page">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', flexDirection: 'column', gap: '16px' }}>
+        <span className="spinner" style={{ borderTopColor: 'var(--primary)', width: '32px', height: '32px' }} />
+        <p style={{ color: 'var(--on-surface-variant)' }}>Loading GPA Calculator...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="page active">
-      <div className="page-header">
+    <div className="gpa-page">
+      {/* Decorative blobs */}
+      <div className="notes-blob-1" />
+      <div className="notes-blob-2" />
+
+      {/* Header */}
+      <div className="gpa-header">
         <div>
-          <h1 className="page-title">🎓 GPA Calculator</h1>
-          <p className="page-subtitle">HEC 4.0 Scale · SGPA · CGPA · Internal Marks</p>
+          <h1>🎓 GPA Calculator</h1>
+          <p className="gpa-header-subtitle">HEC 4.0 Scale · SGPA · CGPA · Internal Marks</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>+ Add Entry</button>
+        <button 
+          className="notes-action-btn primary" 
+          onClick={openAddModal}
+          style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '12px 24px', borderRadius: '8px' }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+          Add Entry
+        </button>
       </div>
 
-      {error && <div className="error-message" style={{ marginBottom: '1rem' }}>{error}</div>}
+      {error && <div style={{ background: 'var(--error-container)', color: 'var(--on-error-container)', padding: '12px 16px', borderRadius: '8px' }}>{error}</div>}
 
-      {/* Calculator Tabs */}
-      <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '12px' }}>
-        {TABS.map(tab => (
+      {/* Tabs - Hoisted to take full width */}
+      <div className="gpa-tabs-container">
+        <div 
+          className="gpa-tab-pill" 
+          style={{ transform: `translateX(${TABS.findIndex(t => t.key === activeTab) * 160}px)` }} 
+        />
+        {TABS.map((tab, idx) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            style={{
-              flex: 1, padding: '0.6rem 1rem', border: 'none', borderRadius: '10px', cursor: 'pointer',
-              fontSize: '14px', fontWeight: activeTab === tab.key ? 600 : 400, transition: 'all 0.2s',
-              background: activeTab === tab.key ? 'var(--bg-primary)' : 'transparent',
-              color: activeTab === tab.key ? 'var(--text-primary)' : 'var(--text-muted)',
-              boxShadow: activeTab === tab.key ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-            }}
+            className={`gpa-tab-btn ${activeTab === tab.key ? 'active' : ''}`}
           >
-            {tab.icon} {tab.label}
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{tab.icon}</span> {tab.label}
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }}>
-        {/* Main content */}
-        <div>
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
+      {activeTab === 'internal' ? (
+        <InternalMarksCalculator />
+      ) : (
+        <div className="gpa-grid">
+          {/* Main Content Column */}
+          <div className="gpa-main-col">
+            
+            {/* Active Calculator Component */}
             {activeTab === 'sgpa' && <SGPACalculator />}
             {activeTab === 'cgpa' && <CGPACalculator />}
-            {activeTab === 'internal' && <InternalMarksCalculator />}
-          </div>
 
-          {/* Saved entries table */}
-          {entries.length > 0 && (
-            <div className="card">
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>📋 Saved Grade Entries</h3>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          {/* Saved grade entries table for SGPA / CGPA views */}
+          {(activeTab === 'sgpa' || activeTab === 'cgpa') && entries.length > 0 && (
+            <div className="gpa-glass-card">
+              <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Saved Grade Entries</h2>
+              <div className="gpa-table-wrapper">
+                <table className="gpa-table">
                   <thead>
-                    <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
-                      <th style={thStyle}>Course</th>
-                      <th style={{ ...thStyle, textAlign: 'center', width: '80px' }}>Credits</th>
-                      <th style={{ ...thStyle, textAlign: 'center', width: '80px' }}>Grade</th>
-                      <th style={{ ...thStyle, textAlign: 'center', width: '80px' }}>Points</th>
-                      <th style={{ ...thStyle, textAlign: 'center', width: '100px' }}>Quality Pts</th>
-                      <th style={{ ...thStyle, width: '70px' }}></th>
+                    <tr>
+                      <th>Course / Semester</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Credits</th>
+                      <th style={{ width: '96px', textAlign: 'center' }}>Grade</th>
+                      <th style={{ width: '96px', textAlign: 'right' }}>Points</th>
+                      <th style={{ width: '128px', textAlign: 'right' }}>Quality Pts</th>
+                      <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -710,27 +869,30 @@ export default function GPAPage() {
                       const pts = GRADE_SCALE[entry.grade_letter] ?? null;
                       const qp = pts !== null ? entry.credit_hours * pts : null;
                       return (
-                        <tr key={entry.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={tdStyle}>
-                            <span style={{ fontSize: '13px' }}>
-                              {entry.course_id ? '🔗' : '✏️'} {entry.course_label}
+                        <tr key={entry.id} className="gpa-table-row">
+                          <td style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 500 }}>{entry.course_label}</span>
+                            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>{entry.semester} {entry.academic_year || ''}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>{entry.credit_hours}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ background: entry.grade_letter ? 'var(--secondary-fixed)' : 'var(--surface-container-highest)', color: entry.grade_letter ? 'var(--on-secondary-fixed-variant)' : 'var(--on-surface)', padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 500 }}>
+                              {entry.grade_letter || '—'}
                             </span>
-                            <br />
-                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{entry.semester} {entry.academic_year || ''}</span>
                           </td>
-                          <td style={{ ...tdStyle, textAlign: 'center' }}>{entry.credit_hours}</td>
-                          <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: entry.grade_letter ? gradeColor(entry.grade_letter) : 'var(--text-muted)' }}>
-                            {entry.grade_letter || '—'}
-                          </td>
-                          <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600 }}>
+                          <td style={{ textAlign: 'right', fontWeight: 500, fontFamily: 'JetBrains Mono, monospace' }}>
                             {pts !== null ? pts.toFixed(2) : '—'}
                           </td>
-                          <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: 'var(--blue)' }}>
+                          <td style={{ textAlign: 'right', fontWeight: 500 }}>
                             {qp !== null ? qp.toFixed(2) : '—'}
                           </td>
-                          <td style={{ ...tdStyle, textAlign: 'center' }}>
-                            <button onClick={() => openEditModal(idx)} style={{ ...deleteBtnStyle, color: 'var(--text-muted)', marginRight: '0.25rem' }}>✏️</button>
-                            <button onClick={() => handleDelete(idx)} style={deleteBtnStyle}>🗑️</button>
+                          <td style={{ textAlign: 'center' }}>
+                            <button onClick={() => openEditModal(idx)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', padding: '4px' }} title="Edit">
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                            </button>
+                            <button onClick={() => handleDelete(idx)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', padding: '4px' }} title="Delete">
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                            </button>
                           </td>
                         </tr>
                       );
@@ -740,194 +902,169 @@ export default function GPAPage() {
               </div>
             </div>
           )}
+
         </div>
 
-        {/* Sidebar */}
-        <div>
-          {/* CGPA summary */}
-          {cumulative && (
-            <div className="card" style={{ marginBottom: '1rem', borderLeft: '4px solid var(--green)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Cumulative CGPA</div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--green)' }}>{cumulative.cumulative_gpa.toFixed(2)}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{cumulative.total_credits} credits · {cumulative.semesters.length} semesters</div>
+        {/* Sidebar Column */}
+        <div className="gpa-sidebar">
+          
+          {/* Cumulative CGPA Card (hidden on Internal Marks if we want to save space, but keeping it as it was in sample) */}
+          {activeTab !== 'internal' && cumulative && (
+            <div className="gpa-cumulative-card">
+              <div className="success-glow"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--success)' }}>stars</span>
+                <h3 style={{ margin: 0, fontSize: '20px' }}>Cumulative CGPA</h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                <span style={{ fontSize: '64px', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>{cumulative.cumulative_gpa.toFixed(2)}</span>
+                <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>/ 4.0</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--on-surface-variant)', marginTop: '8px' }}>
+                <span>Total Credits: <strong style={{ color: 'var(--on-surface)' }}>{cumulative.total_credits}</strong></span>
+                <span>Semesters: <strong style={{ color: 'var(--on-surface)' }}>{cumulative.semesters.length}</strong></span>
+              </div>
+              <div style={{ width: '100%', height: '6px', background: 'var(--surface-container)', borderRadius: '999px', overflow: 'hidden', marginTop: '4px' }}>
+                <div style={{ width: '93%', height: '100%', background: 'var(--success)', borderRadius: '999px' }}></div>
+              </div>
             </div>
           )}
 
-          {/* Grade scale reference */}
-          <GradeScaleTable />
+          {activeTab !== 'internal' && <GradeScaleTable />}
 
           {/* GPA Goals */}
-          {goals.length > 0 && (
-            <div className="card" style={{ marginTop: '1rem' }}>
-              <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px' }}>🎯 GPA Goals</h4>
-              {goals.map(g => (
-                <div key={g.goal_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--border)', fontSize: '13px' }}>
-                  <span>{g.title}</span>
-                  <span style={{ fontWeight: 600, color: g.is_met ? 'var(--green)' : 'var(--amber)' }}>
-                    {g.current_gpa?.toFixed(2) || '—'} / {g.target_gpa}
-                  </span>
-                </div>
-              ))}
+          {activeTab !== 'internal' && goals.length > 0 && (
+            <div className="gpa-glass-card" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--gradient-end)' }}>emoji_events</span>
+                <h3 style={{ margin: 0, fontSize: '20px' }}>GPA Goals</h3>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {goals.map((g, idx) => (
+                  <div key={g.goal_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'var(--surface-container-low)', borderRadius: '12px', border: '1px solid var(--surface-container)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(113, 42, 226, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--secondary)' }}>workspace_premium</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 500 }}>{g.title}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Target: {g.target_gpa}</span>
+                      </div>
+                    </div>
+                    {/* Visual status based on whether goal is met or not. The sample UI showed specific "In Progress" / "Locked" labels. */}
+                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 8px', background: 'var(--surface)', borderRadius: '4px', color: 'var(--on-surface-variant)' }}>
+                      {g.is_met ? 'Unlocked' : 'In Progress'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Quick actions */}
-          <div className="card" style={{ marginTop: '1rem' }}>
-            <h4 style={{ margin: '0 0 0.75rem', fontSize: '14px' }}>⚡ Quick Actions</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', fontSize: '13px' }} onClick={openAddModal}>➕ Add Grade Entry</button>
-              <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', fontSize: '13px' }} onClick={() => setShowWhatIf(true)}>🔮 What-If Scenario</button>
-              <a href="/goals" style={{ textDecoration: 'none' }}>
-                <button className="btn btn-secondary" style={{ justifyContent: 'flex-start', width: '100%', fontSize: '13px' }}>🎯 Manage Goals</button>
-              </a>
+          {/* Quick Actions */}
+          {activeTab !== 'internal' && (
+            <div className="gpa-glass-card" style={{ padding: '24px' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '20px' }}>Quick Actions</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button className="gpa-list-item" onClick={openAddModal} style={{ width: '100%', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>playlist_add</span>
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Add Grade Entry</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--on-surface-variant)' }}>chevron_right</span>
+                </button>
+                <button className="gpa-list-item" onClick={() => setShowWhatIf(true)} style={{ width: '100%', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>psychology_alt</span>
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>What-If Scenario</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--on-surface-variant)' }}>chevron_right</span>
+                </button>
+                <a href="/goals" style={{ textDecoration: 'none' }} className="gpa-list-item">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>track_changes</span>
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Manage Goals</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--on-surface-variant)' }}>chevron_right</span>
+                </a>
+              </div>
             </div>
-          </div>
+          )}
+
+          {showWhatIf && cumulative && activeTab !== 'internal' && (
+            <WhatIfCalculator
+              currentCGPA={cumulative.cumulative_gpa}
+              currentCredits={cumulative.total_credits}
+              remainingCredits={remainingCredits || 15}
+              onClose={() => setShowWhatIf(false)}
+            />
+          )}
+
         </div>
       </div>
-
-      {/* What-if */}
-      {showWhatIf && cumulative && (
-        <WhatIfCalculator
-          currentCGPA={cumulative.cumulative_gpa}
-          currentCredits={cumulative.total_credits}
-          remainingCredits={remainingCredits || 15}
-          onClose={() => setShowWhatIf(false)}
-        />
       )}
 
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="modal-overlay open" onClick={() => setShowAddModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px', maxHeight: '90vh', overflow: 'auto' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">➕ Add Grade Entry</h2>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Semester *</label>
-                  <select value={formData.semester} onChange={e => setFormData({...formData, semester: e.target.value})} required>
-                    <option value="">Select</option>
+      {/* Legacy Add / Edit Modals (Styling adapted minimally to maintain functionality) */}
+      {(showAddModal || showEditModal) && (
+        <div className="modal-overlay open" onClick={() => { setShowAddModal(false); setShowEditModal(false); }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(24px)', borderRadius: '24px', padding: '32px' }}>
+            <h2 style={{ margin: '0 0 24px', fontSize: '24px' }}>{showEditModal ? 'Edit Entry' : 'Add Grade Entry'}</h2>
+            <form onSubmit={showEditModal ? handleUpdate : handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '14px' }}>Entry Type</label>
+                <select className="gpa-select" value={formData.entry_type} onChange={e => setFormData({ ...formData, entry_type: e.target.value })}>
+                  <option value="course">Course</option>
+                  <option value="semester">Semester (Batch)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '14px' }}>Semester</label>
+                  <select className="gpa-select" required value={formData.semester} onChange={e => setFormData({ ...formData, semester: e.target.value })}>
+                    <option value="">Select...</option>
+                    <option value="Fall">Fall</option>
                     <option value="Spring">Spring</option>
                     <option value="Summer">Summer</option>
-                    <option value="Fall">Fall</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Academic Year</label>
-                  <input value={formData.academic_year} onChange={e => setFormData({...formData, academic_year: e.target.value})} placeholder="2026" />
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '14px' }}>Year</label>
+                  <input className="gpa-input-box" required type="text" placeholder="e.g. 2023" value={formData.academic_year} onChange={e => setFormData({ ...formData, academic_year: e.target.value })} />
                 </div>
               </div>
+
               {formData.entry_type === 'course' && (
                 <>
-                  <div className="form-group">
-                    <label>Course</label>
-                    <select value={formData.course_id || ''} onChange={e => {
-                      const id = e.target.value ? parseInt(e.target.value) : null;
-                      const course = courses.find(c => c.id === id);
-                      setFormData({...formData, course_id: id, course_label: course?.name || '', credit_hours: course?.credit_hours || formData.credit_hours});
-                    }}>
-                      <option value="">Manual Entry</option>
-                      {courses.map(c => <option key={c.id} value={c.id}>{c.code} {c.name} ({c.credit_hours} cr)</option>)}
-                    </select>
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '14px' }}>Course</label>
+                    <input className="gpa-input-box" type="text" required placeholder="Course Name" value={formData.course_label} onChange={e => setFormData({ ...formData, course_label: e.target.value })} />
                   </div>
-                  <div className="form-group">
-                    <label>Course Name (if manual)</label>
-                    <input value={formData.course_label} onChange={e => setFormData({...formData, course_label: e.target.value})} placeholder="e.g., Programming Fundamentals" />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '14px' }}>Credit Hours</label>
+                      <input className="gpa-input-box" type="number" required min="1" max="6" value={formData.credit_hours} onChange={e => setFormData({ ...formData, credit_hours: Number(e.target.value) })} />
+                    </div>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '14px' }}>Grade</label>
+                      <select className="gpa-select" value={formData.grade_letter || ''} onChange={e => setFormData({ ...formData, grade_letter: e.target.value || null })}>
+                        <option value="">-- Not Graded Yet --</option>
+                        {LETTER_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Credit Hours</label>
-                  <input type="number" step="0.5" min="0.5" max="6" value={formData.credit_hours} onChange={e => setFormData({...formData, credit_hours: parseFloat(e.target.value) || 0})} required />
-                </div>
-                <div className="form-group">
-                  <label>Grade</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <select value={formData.grade_letter || ''} onChange={e => {
-                      const letter = e.target.value;
-                      setFormData({...formData, grade_letter: letter || null});
-                    }}>
-                      <option value="">Select</option>
-                      {LETTER_GRADES.map(g => <option key={g} value={g}>{g} ({GRADE_SCALE[g].toFixed(2)})</option>)}
-                    </select>
-                    <input type="number" min="0" max="100" step="0.1" value={formData.percentage || ''} onChange={e => {
-                      const pct = parseFloat(e.target.value);
-                      const letter = !isNaN(pct) ? percentageToLetter(pct) : null;
-                      setFormData({...formData, percentage: isNaN(pct) ? null : pct, grade_letter: letter});
-                    }} placeholder="%" style={{ width: '70px' }} />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Add Entry</button>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <button type="button" className="notes-action-btn" onClick={() => { setShowAddModal(false); setShowEditModal(false); }}>Cancel</button>
+                <button type="submit" className="notes-action-btn primary" style={{ background: 'var(--primary)', color: 'var(--on-primary)' }}>Save</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Edit Modal */}
-      {showEditModal && editingIndex !== null && (
-        <div className="modal-overlay open" onClick={() => { setShowEditModal(false); setEditingIndex(null); }}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px', maxHeight: '90vh', overflow: 'auto' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">✏️ Edit Grade Entry</h2>
-              <button className="modal-close" onClick={() => { setShowEditModal(false); setEditingIndex(null); }}>✕</button>
-            </div>
-            <form onSubmit={handleUpdate}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Semester *</label>
-                  <select value={formData.semester} onChange={e => setFormData({...formData, semester: e.target.value})} required>
-                    <option value="Spring">Spring</option>
-                    <option value="Summer">Summer</option>
-                    <option value="Fall">Fall</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Academic Year</label>
-                  <input value={formData.academic_year} onChange={e => setFormData({...formData, academic_year: e.target.value})} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Course Name</label>
-                <input value={formData.course_label} onChange={e => setFormData({...formData, course_label: e.target.value})} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Credit Hours</label>
-                  <input type="number" step="0.5" min="0.5" max="6" value={formData.credit_hours} onChange={e => setFormData({...formData, credit_hours: parseFloat(e.target.value) || 0})} required />
-                </div>
-                <div className="form-group">
-                  <label>Grade</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <select value={formData.grade_letter || ''} onChange={e => {
-                      const letter = e.target.value;
-                      setFormData({...formData, grade_letter: letter || null});
-                    }}>
-                      <option value="">Select</option>
-                      {LETTER_GRADES.map(g => <option key={g} value={g}>{g} ({GRADE_SCALE[g].toFixed(2)})</option>)}
-                    </select>
-                    <input type="number" min="0" max="100" step="0.1" value={formData.percentage || ''} onChange={e => {
-                      const pct = parseFloat(e.target.value);
-                      const letter = !isNaN(pct) ? percentageToLetter(pct) : null;
-                      setFormData({...formData, percentage: isNaN(pct) ? null : pct, grade_letter: letter});
-                    }} placeholder="%" style={{ width: '70px' }} />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => { setShowEditModal(false); setEditingIndex(null); }}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Changes</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
