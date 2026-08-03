@@ -1,12 +1,13 @@
 /**
- * MarkdownEditor — Simple markdown editor with wikilink detection.
+ * MarkdownEditor — Glassmorphic markdown editor with wikilink detection.
  *
  * Features:
- * - Textarea with markdown formatting toolbar
+ * - Transparent title input with large heading font
+ * - Glass toolbar with Material icon buttons
  * - Wikilink autocomplete ([[note title]] support)
  * - Auto-save with debounce
  * - Live preview toggle
- * - Sticky save/cancel buttons when dirty
+ * - Save status indicator (green dot + "Saved" + word count)
  */
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { apiFetch } from '../../api/client'
@@ -30,6 +31,11 @@ export default function MarkdownEditor({
   const isDirty = useMemo(() => {
     return content !== (note?.content || '') || title !== (note?.title || '')
   }, [content, title, note])
+
+  // Word count
+  const wordCount = useMemo(() => {
+    return content.trim() ? content.trim().split(/\s+/).length : 0
+  }, [content])
 
   // Auto-save on blur when dirty
   const handleSave = async () => {
@@ -108,6 +114,18 @@ export default function MarkdownEditor({
         formatted = `*${selected}*`
         newCursorPos = start + 1
         break
+      case 'underline':
+        formatted = `<u>${selected}</u>`
+        newCursorPos = start + 3
+        break
+      case 'bullet-list':
+        formatted = `\n- ${selected}`
+        newCursorPos = start + 3
+        break
+      case 'numbered-list':
+        formatted = `\n1. ${selected}`
+        newCursorPos = start + 4
+        break
       case 'link':
         formatted = `[${selected}](url)`
         newCursorPos = start + (selected ? selected.length + 3 : 1)
@@ -138,7 +156,7 @@ export default function MarkdownEditor({
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/`(.+?)`/g, '<code>$1</code>')
-      .replace(/\[\[([^\]]+)\]\]/g, '<span class="wikilink">[[[$1]]]</span>')
+      .replace(/\[\[([^\]]+)\]\]/g, '<span class="wikilink">[[$1]]</span>')
       .replace(/\n/g, '<br>')
   }
 
@@ -148,61 +166,64 @@ export default function MarkdownEditor({
     : []
 
   return (
-    <div className="markdown-editor">
-      {/* Title input */}
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Note title..."
-        className="note-title-input"
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-light)',
-          borderRadius: '6px',
-          marginBottom: '1rem',
-          color: 'var(--text-primary)',
-        }}
-      />
+    <div className="notes-editor-container">
+      {/* Title + Toolbar area */}
+      <div className="notes-editor-title-area">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Note Title..."
+          className="notes-title-input"
+        />
 
-      {/* Toolbar */}
-      <div className="editor-toolbar" style={{
-        display: 'flex',
-        gap: '0.5rem',
-        marginBottom: '0.5rem',
-        padding: '0.5rem',
-        background: 'var(--bg-surface)',
-        borderRadius: '6px',
-        border: '1px solid var(--border-light)',
-      }}>
-        <button type="button" onClick={() => applyFormat('bold')} title="Bold" className="secondary-btn">**</button>
-        <button type="button" onClick={() => applyFormat('italic')} title="Italic" className="secondary-btn">*</button>
-        <button type="button" onClick={() => applyFormat('link')} title="Link" className="secondary-btn">🔗</button>
-        <button type="button" onClick={() => applyFormat('code')} title="Code" className="secondary-btn">`</button>
-        <button type="button" onClick={() => setShowPreview(!showPreview)} className="secondary-btn">
-          {showPreview ? '✏️ Edit' : '👁️ Preview'}
-        </button>
+        {/* Toolbar */}
+        <div className="notes-editor-toolbar">
+          <div className="notes-toolbar-buttons">
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('bold')} title="Bold">
+              <span className="material-symbols-outlined">format_bold</span>
+            </button>
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('italic')} title="Italic">
+              <span className="material-symbols-outlined">format_italic</span>
+            </button>
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('underline')} title="Underline">
+              <span className="material-symbols-outlined">format_underlined</span>
+            </button>
+            <div className="notes-toolbar-divider" />
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('bullet-list')} title="Bullet List">
+              <span className="material-symbols-outlined">format_list_bulleted</span>
+            </button>
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('numbered-list')} title="Numbered List">
+              <span className="material-symbols-outlined">format_list_numbered</span>
+            </button>
+            <div className="notes-toolbar-divider" />
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('link')} title="Link">
+              <span className="material-symbols-outlined">link</span>
+            </button>
+            <button type="button" className="notes-toolbar-btn" onClick={() => applyFormat('code')} title="Code">
+              <span className="material-symbols-outlined">code</span>
+            </button>
+            <button type="button" className="notes-toolbar-btn" onClick={() => setShowPreview(!showPreview)} title={showPreview ? 'Edit' : 'Preview'}>
+              <span className="material-symbols-outlined">{showPreview ? 'edit' : 'image'}</span>
+            </button>
+          </div>
+
+          {/* Status indicator */}
+          <div className="notes-editor-status">
+            <span className={`status-dot ${isDirty ? 'unsaved' : ''}`} />
+            <span>{saving ? 'Saving…' : isDirty ? 'Unsaved' : 'Saved'}</span>
+            <span>•</span>
+            <span>{wordCount} words</span>
+          </div>
+        </div>
       </div>
 
       {/* Editor / Preview */}
-      <div style={{ position: 'relative' }}>
+      <div className="notes-editor-content notes-custom-scroll" style={{ position: 'relative' }}>
         {showPreview ? (
           <div
-            className="markdown-preview"
+            className="notes-markdown-preview"
             dangerouslySetInnerHTML={{ __html: renderPreview(content) }}
-            style={{
-              minHeight: '300px',
-              padding: '1rem',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '6px',
-              color: 'var(--text-primary)',
-              overflow: 'auto',
-            }}
           />
         ) : (
           <textarea
@@ -212,40 +233,16 @@ export default function MarkdownEditor({
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
             placeholder="Start writing your note... Use [[note title]] for wikilinks"
-            style={{
-              width: '100%',
-              minHeight: '300px',
-              padding: '1rem',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '6px',
-              color: 'var(--text-primary)',
-              fontFamily: 'monospace',
-              fontSize: '14px',
-              resize: 'vertical',
-            }}
+            className="notes-editor-textarea"
           />
         )}
 
         {/* Wikilink autocomplete dropdown */}
         {wikilinkDropdown.open && (
-          <div
-            className="wikilink-dropdown"
-            style={{
-              position: 'absolute',
-              top: wikilinkDropdown.position.top,
-              left: wikilinkDropdown.position.left,
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '6px',
-              maxHeight: '200px',
-              overflow: 'auto',
-              zIndex: 100,
-              minWidth: '200px',
-            }}
-          >
+          <div className="notes-wikilink-dropdown">
+            <div className="wl-header">Link to note</div>
             {filteredNotes.length === 0 ? (
-              <div style={{ padding: '0.5rem 1rem', color: 'var(--text-secondary)' }}>
+              <div className="wl-empty">
                 No notes found. Press Enter to create: "[[{wikilinkDropdown.query}]]"
               </div>
             ) : (
@@ -253,47 +250,15 @@ export default function MarkdownEditor({
                 <button
                   key={n.id}
                   onClick={() => insertWikilink(n.title)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 1rem',
-                    textAlign: 'left',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = 'var(--border-light)'}
-                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
                 >
-                  {n.title}
+                  <span className="wl-title">{n.title}</span>
+                  <span className="wl-path">Note #{n.id}</span>
                 </button>
               ))
             )}
           </div>
         )}
       </div>
-
-      {/* Action buttons when dirty */}
-      {isDirty && (
-        <div style={{
-          position: 'sticky',
-          bottom: 0,
-          marginTop: '1rem',
-          padding: '1rem',
-          background: 'var(--bg-surface)',
-          borderTop: '1px solid var(--border-light)',
-          display: 'flex',
-          gap: '0.5rem',
-          justifyContent: 'flex-end',
-        }}>
-          <button onClick={onCancel} className="secondary-btn" disabled={saving}>
-            Cancel
-          </button>
-          <button onClick={handleSave} className="primary-btn" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-        </div>
-      )}
     </div>
   )
 }

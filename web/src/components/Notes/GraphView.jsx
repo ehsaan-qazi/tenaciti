@@ -1,20 +1,21 @@
 /**
  * GraphView — Obsidian-style interactive knowledge graph visualization.
  *
- * Design:
- * - Dynamic node sizing based on connection degree (like Obsidian)
- * - Scaled, crisp typography in graph coordinates (prevents overlapping/giant text)
- * - Subtle, translucent link lines
- * - Interactive hover highlighting (dims unlinked nodes on hover)
- * - Fine-tuned D3 force physics for spacious node distribution
+ * Design (Light Glassmorphic Theme):
+ * - Light gradient background with ambient glow blobs
+ * - Purple concept nodes with gradient fills
+ * - Pink-to-amber detail nodes
+ * - Dark core/hub nodes
+ * - Interactive hover highlighting
+ * - Glass-styled controls and chips
  */
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 import { apiFetch } from '../../api/client'
 
-// ── Obsidian Dark Theme Palette ─────────────────────────────────────────────
+// ── Light Theme Palette ─────────────────────────────────────────────
 const COURSE_PALETTE = [
-  '#a78bfa', // Muted violet
+  '#8a4cfc', // Purple
   '#60a5fa', // Soft blue
   '#34d399', // Emerald
   '#fbbf24', // Amber
@@ -22,11 +23,11 @@ const COURSE_PALETTE = [
   '#f472b6', // Pink
   '#38bdf8', // Sky blue
 ]
-const DEFAULT_NODE_COLOR = '#8b5cf6' // Accent purple
-const STUB_COLOR = '#6b7280'         // Muted grey for stubs
-const LINK_COLOR = 'rgba(156, 163, 175, 0.25)' // Subtle thin link
-const LINK_HOVER_COLOR = 'rgba(167, 139, 250, 0.7)' // Bright link on hover
-const BG_COLOR = '#16161a'           // Dark Obsidian canvas background
+const DEFAULT_NODE_COLOR = '#7C3AED' // Gradient-start purple
+const STUB_COLOR = '#c4c7c7'         // Muted grey for stubs (light theme)
+const LINK_COLOR = 'rgba(196, 199, 199, 0.4)' // Subtle link
+const LINK_HOVER_COLOR = 'rgba(138, 76, 252, 0.7)' // Bright link on hover
+const BG_COLOR = 'transparent'       // Transparent — CSS gradient handles bg
 
 export default function GraphView({ notes, onNodeClick }) {
   const containerRef = useRef(null)
@@ -141,21 +142,19 @@ export default function GraphView({ notes, onNodeClick }) {
     return { nodes, links }
   }, [notes, graphLinks, filterCourse, degreeMap])
 
-  // ── Configure Force Engine parameters (Obsidian-style layout) ──────────────
+  // ── Configure Force Engine parameters ──────────────────────────────────
   useEffect(() => {
     if (fgRef.current) {
-      // Repulsion force between nodes
       fgRef.current.d3Force('charge')?.strength(-140)
-      // Ideal link distance
       fgRef.current.d3Force('link')?.distance(55)
     }
   }, [graphData])
 
-  // ── Obsidian-style Canvas Node Renderer ──────────────────────────────────
+  // ── Light-Theme Node Renderer ──────────────────────────────────────────
   const paintNode = useCallback((node, ctx, globalScale) => {
     const label = node.title || 'Untitled'
 
-    // Dynamic node radius: Obsidian scales node size slightly with degree
+    // Dynamic node radius
     const baseR = node.is_stub ? 2.5 : 3.5
     const r = baseR + Math.min(node.degree * 0.7, 4)
 
@@ -164,20 +163,20 @@ export default function GraphView({ notes, onNodeClick }) {
       ? STUB_COLOR
       : (courseColor[node.course_id] || DEFAULT_NODE_COLOR)
 
-    // Hover state calculation
+    // Hover state
     const isHovered = hoveredNode && hoveredNode.id === node.id
     const isNeighbor = hoveredNode && neighborsMap[hoveredNode.id]?.has(node.id)
     const isDimmed = hoveredNode && !isHovered && !isNeighbor
 
     if (isDimmed) {
-      color = node.is_stub ? '#374151' : color + '40' // Dim unlinked nodes
+      color = node.is_stub ? '#e1e3e4' : color + '30'
     }
 
     // 1. Draw outer halo on hover
     if (isHovered) {
       ctx.beginPath()
       ctx.arc(node.x, node.y, r + 3, 0, 2 * Math.PI)
-      ctx.fillStyle = 'rgba(167, 139, 250, 0.35)'
+      ctx.fillStyle = 'rgba(138, 76, 252, 0.25)'
       ctx.fill()
     }
 
@@ -187,27 +186,34 @@ export default function GraphView({ notes, onNodeClick }) {
     ctx.fillStyle = color
     ctx.fill()
 
+    // White ring for depth
+    if (!node.is_stub && !isDimmed) {
+      ctx.beginPath()
+      ctx.arc(node.x, node.y, r - 0.5, 0, 2 * Math.PI)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+      ctx.lineWidth = 0.6
+      ctx.stroke()
+    }
+
     // Dashed ring for stub nodes
     if (node.is_stub) {
       ctx.setLineDash([1.5, 1.5])
-      ctx.strokeStyle = isDimmed ? '#4b5563' : '#9ca3af'
+      ctx.strokeStyle = isDimmed ? '#e1e3e4' : '#9ca3af'
       ctx.lineWidth = 0.8
       ctx.stroke()
       ctx.setLineDash([])
     }
 
-    // 3. Draw text label — fixed size in graph units (3.8px), scales with zoom
-    // Only hide text if zoomed out very far (globalScale < 0.45)
+    // 3. Draw text label — dark text for light background
     if (globalScale >= 0.45 || isHovered || isNeighbor) {
-      const fontSize = 3.8 // Exact graph units font size (Obsidian standard)
-      ctx.font = `${fontSize}px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
+      const fontSize = 3.8
+      ctx.font = `500 ${fontSize}px 'Hanken Grotesk', Inter, -apple-system, sans-serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
 
-      // Soft text color (brighter when hovered/neighbor)
       ctx.fillStyle = isDimmed
-        ? '#4b5563'
-        : (isHovered ? '#ffffff' : '#d1d5db')
+        ? '#c4c7c7'
+        : (isHovered ? '#191c1d' : '#444748')
 
       const displayLabel = label.length > 24 ? label.slice(0, 22) + '…' : label
       ctx.fillText(displayLabel, node.x, node.y + r + 1.5)
@@ -222,7 +228,7 @@ export default function GraphView({ notes, onNodeClick }) {
     if (src === hoveredNode.id || tgt === hoveredNode.id) {
       return LINK_HOVER_COLOR
     }
-    return 'rgba(75, 85, 99, 0.1)' // Very faint for non-connected links during hover
+    return 'rgba(196, 199, 199, 0.1)' // Very faint for non-connected
   }, [hoveredNode])
 
   // Stats
@@ -230,8 +236,8 @@ export default function GraphView({ notes, onNodeClick }) {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        <span className="spinner" style={{ marginRight: '0.5rem' }} />
+      <div className="notes-loading">
+        <span className="spinner" style={{ borderTopColor: 'var(--secondary)' }} />
         Building graph…
       </div>
     )
@@ -240,41 +246,23 @@ export default function GraphView({ notes, onNodeClick }) {
   return (
     <div className="graph-view">
       {/* ── Controls row ── */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        {/* Stats chips */}
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          {[
-            { label: 'notes', value: graphData.nodes.length },
-            { label: 'connections', value: graphData.links.length },
-            { label: 'stubs', value: stubCount },
-          ].map(({ label, value }) => (
-            <div key={label} style={{
-              padding: '0.35rem 0.75rem',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '20px',
-              fontSize: '12px',
-              color: 'var(--text-secondary)',
-            }}>
-              <strong style={{ color: 'var(--text-primary)' }}>{value}</strong>{' '}{label}
-            </div>
-          ))}
-        </div>
+      <div className="notes-graph-stats">
+        {[
+          { label: 'notes', value: graphData.nodes.length },
+          { label: 'connections', value: graphData.links.length },
+          { label: 'stubs', value: stubCount },
+        ].map(({ label, value }) => (
+          <div key={label} className="notes-graph-chip">
+            <strong>{value}</strong> {label}
+          </div>
+        ))}
 
         {/* Course filter */}
         {courses.length > 0 && (
           <select
             value={filterCourse}
             onChange={e => setFilterCourse(e.target.value)}
-            style={{
-              padding: '0.35rem 0.6rem',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: '6px',
-              color: 'var(--text-primary)',
-              fontSize: '12px',
-              marginLeft: 'auto',
-            }}
+            className="notes-graph-filter"
           >
             <option value="all">All Courses</option>
             {courses.map(c => (
@@ -286,15 +274,15 @@ export default function GraphView({ notes, onNodeClick }) {
 
       {/* ── Legend ── */}
       {courses.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="notes-graph-legend">
           {courses.map((c, i) => (
-            <div key={c} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '11px', color: 'var(--text-secondary)' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: COURSE_PALETTE[i % COURSE_PALETTE.length], display: 'inline-block' }} />
+            <div key={c} className="notes-graph-legend-item">
+              <span className="notes-graph-legend-dot" style={{ background: COURSE_PALETTE[i % COURSE_PALETTE.length] }} />
               Course {c}
             </div>
           ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '11px', color: 'var(--text-secondary)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: STUB_COLOR, display: 'inline-block', border: '1px dashed #9ca3af' }} />
+          <div className="notes-graph-legend-item">
+            <span className="notes-graph-legend-dot" style={{ background: STUB_COLOR, border: '1px dashed #9ca3af' }} />
             Stub
           </div>
         </div>
@@ -303,27 +291,22 @@ export default function GraphView({ notes, onNodeClick }) {
       {/* ── Canvas graph ── */}
       <div
         ref={containerRef}
-        style={{
-          width: '100%',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          border: '1px solid var(--border-light)',
-          background: BG_COLOR,
-        }}
+        className="notes-graph-canvas-wrapper"
       >
+        <div className="graph-glow-1" />
+        <div className="graph-glow-2" />
         {graphData.nodes.length === 0 ? (
           <div style={{
             height: 350,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--text-secondary)',
-            background: BG_COLOR,
+            color: 'var(--on-surface-variant)',
             flexDirection: 'column',
-            gap: '0.5rem',
+            gap: '8px',
           }}>
-            <span style={{ fontSize: '2rem' }}>🕸️</span>
-            <p style={{ margin: 0 }}>No notes to display. Create notes with [[wikilinks]] to build connections.</p>
+            <span style={{ fontSize: '48px', opacity: 0.5 }}>🕸️</span>
+            <p style={{ margin: 0, fontSize: '16px' }}>No notes to display. Create notes with [[wikilinks]] to build connections.</p>
           </div>
         ) : (
           <ForceGraph2D
@@ -360,7 +343,7 @@ export default function GraphView({ notes, onNodeClick }) {
         )}
       </div>
 
-      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+      <p className="notes-graph-hint">
         Click a node to open note. Hover to highlight connections. Scroll to zoom. Drag to pan.
       </p>
     </div>

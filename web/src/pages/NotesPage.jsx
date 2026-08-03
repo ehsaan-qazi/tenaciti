@@ -1,11 +1,12 @@
 /**
- * NotesPage — Main notes management page.
+ * NotesPage — Main notes management page (Glassmorphic UI).
  *
  * Features:
- * - List view showing all notes
- * - Graph view showing note connections
- * - Search across notes
- * - Quick capture for mobile
+ * - List view: glass note cards in responsive grid
+ * - Graph view: light-themed knowledge graph with ambient glows
+ * - Editor view: glass editor with backlinks sidebar
+ * - Search with glass input + filter button
+ * - Quick capture modal with glass styling
  * - Stub note management
  */
 import { useState, useEffect, useCallback } from 'react'
@@ -159,119 +160,143 @@ export default function NotesPage() {
     }
   }
 
+  // Format relative time
+  const formatRelativeTime = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
   // ── List View ─────────────────────────────────────
   const renderListView = () => (
-    <div className="notes-list-view">
+    <div className="notes-page">
+      {/* Decorative blobs */}
+      <div className="notes-blob-1" />
+      <div className="notes-blob-2" />
+
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1.5rem',
-      }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>📝 Notes</h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div className="notes-header">
+        <h1>
+          <span style={{ fontSize: '40px' }}>📝</span> Notes
+        </h1>
+        <div className="notes-header-actions">
           <button
-            className="secondary-btn"
+            className="notes-action-btn"
             onClick={() => {
               setQuickCaptureNote('')
               setQuickCaptureOpen(true)
             }}
-            style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
           >
-            ⚡ Quick Capture
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--gradient-end)' }}>bolt</span>
+            Quick Capture
           </button>
           <button
-            className="secondary-btn"
+            className="notes-action-btn"
             onClick={() => setView('graph')}
-            style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
           >
-            📊 Graph
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--secondary)' }}>hub</span>
+            Graph View
           </button>
           <button
-            className="primary-btn"
+            className="notes-action-btn primary"
             onClick={handleCreateNote}
-            style={{ width: 'auto' }}
           >
-            ＋ New Note
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+            New Note
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="notes-search-wrapper">
+        <span className="material-symbols-outlined search-icon">search</span>
         <input
           type="text"
+          className="notes-search-input"
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value)
             handleSearch(e.target.value)
           }}
-          placeholder="Search notes..."
-          style={{
-            width: '100%',
-            padding: '0.5rem 0.75rem',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '6px',
-            color: 'var(--text-primary)',
-          }}
+          placeholder="Search notes, concepts, tags..."
         />
+        <button className="notes-search-filter-btn" title="Filter options">
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>tune</span>
+        </button>
       </div>
 
       {/* Notes list */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <span className="spinner" /> Loading notes...
+        <div className="notes-loading">
+          <span className="spinner" style={{ borderTopColor: 'var(--secondary)' }} />
+          Loading notes...
         </div>
       ) : notes.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+        <div className="notes-empty-state">
+          <div className="empty-icon">📝</div>
           <p>No notes yet. Create your first note to start linking knowledge.</p>
-          <button className="primary-btn" style={{ width: 'auto' }} onClick={handleCreateNote}>
-            ＋ Create Note
+          <button className="notes-action-btn primary" onClick={handleCreateNote}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+            Create Note
           </button>
         </div>
       ) : (
-        <div className="notes-grid">
+        <div className="notes-card-grid">
           {notes.map((note) => (
             <div
               key={note.id}
+              className="notes-card"
               onClick={() => navigate(`/notes/${note.id}`)}
-              style={{
-                padding: '1rem',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-light)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: note.is_stub ? 400 : 600 }}>
-                  {note.title}
-                  {note.is_stub && <span style={{ color: 'var(--amber)', marginLeft: '0.5rem', fontSize: '12px' }}>(stub)</span>}
-                </h3>
+              <div className="card-corner-glow" />
+              <div className="notes-card-header">
+                <div className="title-area">
+                  <h3>{note.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {note.course_id && (
+                      <span className="notes-card-badge">
+                        Course {note.course_id}
+                      </span>
+                    )}
+                    {note.is_stub && (
+                      <span className="notes-card-badge stub">
+                        Stub
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <button
+                  className="notes-card-delete"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleDeleteNote(note.id)
                   }}
-                  className="icon-btn danger"
-                  style={{ padding: 0, fontSize: '12px' }}
+                  title="Delete note"
                 >
-                  🗑️
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
                 </button>
               </div>
-              <p style={{
-                color: 'var(--text-secondary)',
-                fontSize: '12px',
-                marginTop: '0.5rem',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {(note.content || '').slice(0, 100)}...
-              </p>
+              <div className="notes-card-body">
+                <p className={note.is_stub ? 'stub-content' : ''}>
+                  {(note.content || '').slice(0, 200) || 'Empty note...'}
+                </p>
+              </div>
+              <div className="notes-card-footer">
+                <span>
+                  {note.updated_at ? `Updated ${formatRelativeTime(note.updated_at)}` : ''}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -281,80 +306,87 @@ export default function NotesPage() {
 
   // ── Editor View ───────────────────────────────────
   const renderEditorView = () => (
-    <div className="notes-editor-view">
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-      }}>
-        <button
-          onClick={() => navigate('/notes')}
-          className="secondary-btn"
-          style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
-        >
-          ← Back
+    <div className="notes-page" style={{ paddingBottom: '24px', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)' }}>
+      {/* Ambient blobs */}
+      <div className="notes-editor-blob-1" />
+      <div className="notes-editor-blob-2" />
+
+      {/* Editor Header */}
+      <div className="notes-editor-header">
+        <button className="notes-back-link" onClick={() => navigate('/notes')}>
+          <span className="material-symbols-outlined">arrow_back</span>
+          All Notes
         </button>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={() => setView('list')}
-            className="secondary-btn"
-            style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
-          >
-            📋 List
+
+        <div className="notes-view-toggle">
+          <button className="active">List</button>
+          <button onClick={() => setView('graph')}>Graph</button>
+        </div>
+
+        <div className="notes-editor-actions">
+          <button className="notes-more-btn" title="More options">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_vert</span>
           </button>
           <button
-            onClick={() => setView('graph')}
-            className="secondary-btn"
-            style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
+            className="notes-save-btn"
+            onClick={() => {
+              // Trigger save by finding the MarkdownEditor's save handler
+              // The editor auto-saves on blur, but this provides explicit save
+              const editorEl = document.querySelector('.notes-editor-textarea')
+              if (editorEl) editorEl.blur()
+            }}
           >
-            📊 Graph
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
+            Save
           </button>
         </div>
       </div>
 
-      {/* Backlinks panel */}
-      <BacklinksPanel
-        backlinks={backlinks}
-        onNavigate={(noteId) => navigate(`/notes/${noteId}`)}
-      />
+      {/* Editor + Backlinks layout */}
+      <div className="notes-editor-layout" style={{ flex: 1 }}>
+        {/* Editor — key ensures a full remount when switching between notes,
+             so MarkdownEditor's useState re-initialises from the new note prop. */}
+        <MarkdownEditor
+          key={activeNote?.id}
+          note={activeNote}
+          onSave={handleUpdateNote}
+          onCancel={() => navigate('/notes')}
+          availableNotes={notes.filter((n) => n.id !== activeNote?.id)}
+        />
 
-      {/* Editor — key ensures a full remount when switching between notes,
-           so MarkdownEditor's useState re-initialises from the new note prop. */}
-      <MarkdownEditor
-        key={activeNote?.id}
-        note={activeNote}
-        onSave={handleUpdateNote}
-        onCancel={() => navigate('/notes')}
-        availableNotes={notes.filter((n) => n.id !== activeNote?.id)}
-      />
+        {/* Backlinks sidebar */}
+        <BacklinksPanel
+          backlinks={backlinks}
+          onNavigate={(noteId) => navigate(`/notes/${noteId}`)}
+        />
+      </div>
     </div>
   )
 
   // ── Graph View ───────────────────────────────────
   const renderGraph = () => (
-    <div className="notes-graph-view">
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-      }}>
-        <button
-          onClick={() => navigate('/notes')}
-          className="secondary-btn"
-          style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
-        >
-          ← Back
-        </button>
-        <button
-          onClick={() => setView('list')}
-          className="secondary-btn"
-          style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '12px' }}
-        >
-          📋 List
-        </button>
+    <div className="notes-page">
+      {/* Graph Header */}
+      <div className="notes-graph-header">
+        <div className="notes-graph-title-area">
+          <button
+            className="notes-graph-back-btn"
+            onClick={() => navigate('/notes')}
+            title="Back to notes"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_back</span>
+          </button>
+          <div className="notes-graph-label">
+            <span className="label-text">Knowledge Graph</span>
+            <span className="live-dot" />
+            <span className="live-text">Live Sync</span>
+          </div>
+        </div>
+
+        <div className="notes-view-toggle">
+          <button className="active">Graph</button>
+          <button onClick={() => setView('list')}>List</button>
+        </div>
       </div>
 
       <GraphView
@@ -364,65 +396,33 @@ export default function NotesPage() {
     </div>
   )
 
-  // ── Quick Capture for mobile ─────────────────────────
+  // ── Quick Capture Modal ─────────────────────────
   const renderQuickCapture = () => (
     <div
-      className="quick-capture-overlay"
+      className="notes-qc-overlay"
       onClick={() => setQuickCaptureOpen(false)}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '1rem',
-      }}
     >
       <div
-        className="quick-capture-modal"
+        className="notes-qc-modal"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-light)',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          width: '100%',
-          maxWidth: '480px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-        }}
       >
-        <h3 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--text-primary)' }}>⚡ Quick Capture</h3>
+        <h3>
+          <span className="material-symbols-outlined" style={{ color: 'var(--gradient-end)' }}>bolt</span>
+          Quick Capture
+        </h3>
         <textarea
           autoFocus
           value={quickCaptureNote || ''}
           onChange={(e) => setQuickCaptureNote(e.target.value)}
           placeholder="Type your quick note or idea... Use [[wikilink]] to link topic"
-          style={{
-            width: '100%',
-            minHeight: '150px',
-            padding: '0.75rem',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '6px',
-            color: 'var(--text-primary)',
-            marginBottom: '1rem',
-            resize: 'vertical',
-            fontFamily: 'inherit',
-          }}
         />
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <button onClick={() => setQuickCaptureOpen(false)} className="secondary-btn" style={{ width: 'auto' }}>
+        <div className="notes-qc-actions">
+          <button className="cancel-btn" onClick={() => setQuickCaptureOpen(false)}>
             Cancel
           </button>
           <button
+            className="save-btn"
             onClick={() => handleQuickCapture(quickCaptureNote || '')}
-            className="primary-btn"
-            style={{ width: 'auto' }}
             disabled={!quickCaptureNote || !quickCaptureNote.trim()}
           >
             Save Note
@@ -438,8 +438,11 @@ export default function NotesPage() {
     // Still loading the note
     if (!activeNote && loading) {
       return (
-        <div className="page active">
-          <div className="loading-screen">Loading note...</div>
+        <div className="notes-page">
+          <div className="notes-loading">
+            <span className="spinner" style={{ borderTopColor: 'var(--secondary)' }} />
+            Loading note...
+          </div>
         </div>
       )
     }
@@ -447,10 +450,7 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="page active">
-      <div className="page-header">
-        <h1>Notes</h1>
-      </div>
+    <>
       {view === 'list' && renderListView()}
       {view === 'graph' && renderGraph()}
 
@@ -461,33 +461,15 @@ export default function NotesPage() {
             setQuickCaptureNote('')
             setQuickCaptureOpen(true)
           }}
-          className="quick-capture-fab"
-          style={{
-            position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            background: 'var(--primary, #8a2be2)',
-            color: '#ffffff',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            fontSize: '24px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 90,
-          }}
+          className="notes-fab"
           title="Quick Capture"
         >
-          ⚡
+          <span className="material-symbols-outlined">bolt</span>
         </button>
       )}
 
       {/* Render modal when open */}
       {quickCaptureOpen && renderQuickCapture()}
-    </div>
+    </>
   )
 }
