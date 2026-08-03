@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '../api/client';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function SelfAssessmentPage() {
   const [gaps, setGaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all'); // all, positive, negative, overdue
-  const [sortBy, setSortBy] = useState('submitted_at'); // submitted_at
+  
+  // Controls state
+  const [filter, setFilter] = useState('all'); // all, exceeded, underperformed, overdue
+  const [sortBy, setSortBy] = useState('submitted_at'); // submitted_at, quality_gap, hours_gap
   const [sortOrder, setSortOrder] = useState('desc');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchGaps();
@@ -26,273 +33,384 @@ export default function SelfAssessmentPage() {
     }
   };
 
-  const filteredGaps = gaps
-    .filter(gap => {
-      if (filter === 'positive') return (gap.confidence_gap || 0) > 0 || (gap.hours_gap || 0) < 0;
-      if (filter === 'negative') return (gap.confidence_gap || 0) < 0 || (gap.hours_gap || 0) > 0;
-      if (filter === 'overdue') return gap.hours_before_deadline !== null && gap.hours_before_deadline < 0;
-      return true;
-    })
-    .sort((a, b) => {
-      const aVal = a[sortBy];
-      const bVal = b[sortBy];
+  // ─── COMPUTED STATS ─────────────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const total = gaps.length;
+    const exceeded = gaps.filter(g => (g.confidence_gap || 0) > 0).length;
+    const underperformed = gaps.filter(g => (g.confidence_gap || 0) < 0).length;
+    
+    // Average hours saved (efficient) or extra (overran)
+    const efficientGaps = gaps.filter(g => (g.hours_gap || 0) < 0);
+    const efficientCount = efficientGaps.length;
+    const avgHoursSaved = efficientCount > 0 
+      ? Math.abs(efficientGaps.reduce((acc, g) => acc + (g.hours_gap || 0), 0) / efficientCount).toFixed(1)
+      : 0;
+
+    const overranGaps = gaps.filter(g => (g.hours_gap || 0) > 0);
+    const overranCount = overranGaps.length;
+    const avgHoursExtra = overranCount > 0
+      ? (overranGaps.reduce((acc, g) => acc + (g.hours_gap || 0), 0) / overranCount).toFixed(1)
+      : 0;
+
+    const onTimeOrEarly = gaps.filter(g => (g.hours_before_deadline || 0) >= 0).length;
+
+    return {
+      total,
+      exceeded,
+      exceededPct: total ? Math.round((exceeded / total) * 100) : 0,
+      underperformed,
+      underperformedPct: total ? Math.round((underperformed / total) * 100) : 0,
+      efficientCount,
+      avgHoursSaved,
+      overranCount,
+      avgHoursExtra,
+      onTimeOrEarly,
+      onTimePct: total ? Math.round((onTimeOrEarly / total) * 100) : 0,
+    };
+  }, [gaps]);
+
+  // ─── FILTER & SORT ─────────────────────────────────────────────────────────────
+  const filteredAndSortedGaps = useMemo(() => {
+    let result = [...gaps];
+
+    // Filter
+    if (filter === 'exceeded') {
+      result = result.filter(g => (g.confidence_gap || 0) > 0);
+    } else if (filter === 'underperformed') {
+      result = result.filter(g => (g.confidence_gap || 0) < 0);
+    } else if (filter === 'overdue') {
+      result = result.filter(g => g.hours_before_deadline !== null && g.hours_before_deadline < 0);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let aVal = a[sortBy];
+      let bVal = b[sortBy];
+      
+      // Map logical sort keys to actual fields if needed
+      if (sortBy === 'quality_gap') { aVal = a.confidence_gap; bVal = b.confidence_gap; }
+      
       if (aVal === null || aVal === undefined) return 1;
       if (bVal === null || bVal === undefined) return -1;
+      
       const dir = sortOrder === 'asc' ? 1 : -1;
-      return aVal > bVal ? dir : -dir;
+      return aVal > bVal ? dir : (aVal < bVal ? -dir : 0);
     });
 
-  const getConfidenceGapColor = (gap) => {
-    if (gap === null || gap === undefined) return 'var(--text-muted)';
-    if (gap > 0) return 'var(--green)'; // quality > confidence = exceeded expectations
-    if (gap < 0) return 'var(--red)';   // quality < confidence = underperformed
-    return 'var(--amber)';
+    return result;
+  }, [gaps, filter, sortBy, sortOrder]);
+
+  // ─── PAGINATION ─────────────────────────────────────────────────────────────
+  const totalPages = Math.ceil(filteredAndSortedGaps.length / itemsPerPage) || 1;
+  const currentData = filteredAndSortedGaps.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
-  const getHoursGapColor = (gap) => {
-    if (gap === null || gap === undefined) return 'var(--text-muted)';
-    if (gap < 0) return 'var(--green)'; // actual < estimated = efficient
-    if (gap > 0) return 'var(--amber)'; // actual > estimated = overran
-    return 'var(--blue)';
+  // ─── HELPERS ─────────────────────────────────────────────────────────────
+  const formatTimeliness = (hours) => {
+    if (hours === null || hours === undefined) return { label: '—', style: {} };
+    if (hours >= 24) return { label: `${Math.round(hours / 24)} days early`, style: { bg: 'var(--surface-container-high)', text: 'var(--on-surface)' } };
+    if (hours > 0) return { label: 'On Time', style: { bg: 'var(--surface-container-high)', text: 'var(--on-surface)' } };
+    if (hours === 0) return { label: 'Deadline Day', style: { bg: 'var(--surface-container-high)', text: 'var(--on-surface)' } };
+    return { label: `${Math.abs(Math.round(hours))} hr late`, style: { bg: 'var(--error-container)', text: 'var(--on-error-container)' } };
   };
 
-  const getTimelinessColor = (hours) => {
-    if (hours === null || hours === undefined) return 'var(--text-muted)';
-    if (hours > 24) return 'var(--green)';      // submitted > 1 day early
-    if (hours > 0) return 'var(--blue)';        // submitted on day of deadline
-    if (hours > -24) return 'var(--amber)';     // submitted within 24h after deadline
-    return 'var(--red)';                        // submitted > 24h late
+  const getConfGapStyle = (gap) => {
+    if (gap > 0) return { bg: 'rgba(34, 197, 94, 0.1)', text: 'var(--success)', icon: 'arrow_upward', sign: '+' };
+    if (gap < 0) return { bg: 'rgba(239, 68, 68, 0.1)', text: 'var(--error)', icon: 'arrow_downward', sign: '' };
+    return { bg: 'rgba(245, 158, 11, 0.1)', text: 'var(--gradient-end)', icon: 'horizontal_rule', sign: '' };
   };
 
-  const formatHours = (hours) => {
-    if (hours === null || hours === undefined) return '—';
-    if (hours >= 24) return `${(hours / 24).toFixed(1)} days`;
-    return `${hours.toFixed(1)} hrs`;
+  const getHrsGapStyle = (gap) => {
+    if (gap < 0) return { bg: 'rgba(124, 58, 237, 0.1)', text: 'var(--gradient-start)', icon: 'timer', sign: '' };
+    if (gap > 0) return { bg: 'rgba(245, 158, 11, 0.1)', text: 'var(--gradient-end)', icon: 'timer', sign: '+' };
+    return { bg: 'var(--surface-container-high)', text: 'var(--on-surface-variant)', icon: 'timer', sign: '' };
   };
 
-  if (loading) {
-    return (
-      <div className="page active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <div className="loading-spinner" style={{ width: '32px', height: '32px' }} />
-      </div>
-    );
-  }
+  const renderStars = (rating) => {
+    const stars = [];
+    const full = Math.floor(rating || 0);
+    const half = (rating || 0) % 1 >= 0.5;
+    for (let i = 0; i < 5; i++) {
+      if (i < full) stars.push(<span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>);
+      else if (i === full && half) stars.push(<span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star_half</span>);
+      else stars.push(<span key={i} className="material-symbols-outlined text-outline-variant">star</span>);
+    }
+    return stars;
+  };
+
+  // Mock mood generator based on quality gap
+  const getMockMood = (gap) => {
+    if (gap === null || gap === undefined) return '😐';
+    if (gap >= 10) return '🤩';
+    if (gap > 0) return '😀';
+    if (gap === 0) return '😊';
+    if (gap >= -10) return '😐';
+    if (gap >= -20) return '😭';
+    return '🤯';
+  };
+
+  // ─── RENDER ─────────────────────────────────────────────────────────────
+  if (loading) return <LoadingScreen message="Loading Self-Assessment Data..." />;
 
   if (error) {
     return (
-      <div className="page active" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', gap: '1rem' }}>
-        <div style={{ fontSize: '3rem' }}>⚠️</div>
-        <h2 style={{ margin: 0 }}>Failed to load data</h2>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>{error}</p>
-        <button className="btn btn-primary" onClick={fetchGaps}>Retry</button>
+      <div className="sa-page" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--error)' }}>error</span>
+        <h2 style={{ margin: '16px 0 8px' }}>Failed to load data</h2>
+        <p style={{ color: 'var(--on-surface-variant)', maxWidth: '400px' }}>{error}</p>
+        <button className="notes-action-btn primary" style={{ background: 'var(--primary)', color: 'var(--on-primary)', marginTop: '16px', padding: '12px 24px' }} onClick={fetchGaps}>Retry</button>
       </div>
     );
   }
 
-  const stats = {
-    total: gaps.length,
-    positiveConfidence: gaps.filter(g => (g.confidence_gap || 0) > 0).length,
-    negativeConfidence: gaps.filter(g => (g.confidence_gap || 0) < 0).length,
-    efficient: gaps.filter(g => (g.hours_gap || 0) < 0).length,
-    overran: gaps.filter(g => (g.hours_gap || 0) > 0).length,
-    early: gaps.filter(g => (g.hours_before_deadline || 0) > 0).length,
-    late: gaps.filter(g => (g.hours_before_deadline || 0) < 0).length,
-  };
-
   return (
-    <div className="page active">
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
-        <div>
-          <h1 className="page-title">📝 Self-Assessment</h1>
-          <p className="page-subtitle">Review your submission quality, time estimation accuracy, and deadline habits</p>
-        </div>
+    <div className="sa-page">
+      {/* Ambient Background Elements */}
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-start/10 rounded-full blur-[120px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3" style={{ background: 'rgba(124, 58, 237, 0.1)' }}></div>
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-end/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/4 translate-y-1/4" style={{ background: 'rgba(245, 158, 11, 0.1)' }}></div>
+      
+      {/* Header Section */}
+      <div className="sa-header">
+        <h1>📝 Self-Assessment</h1>
+        <p>Review your submission quality, time estimation accuracy, and deadline habits to refine your study strategies.</p>
       </div>
 
-      {/* Summary Stats */}
-      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">Total Submissions</span>
-            <span className="stat-card-icon">📃</span>
+      {/* Summary Stats Grid */}
+      <div className="sa-stats-grid">
+        
+        {/* Stat 1: Total */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'var(--primary-fixed)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">📃</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Total Submissions</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--blue)' }}>{stats.total}</div>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.total}</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">Exceeded Expectations</span>
-            <span className="stat-card-icon">📈</span>
+
+        {/* Stat 2: Exceeded */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'rgba(34, 197, 94, 0.1)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">📈</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Exceeded Expectations</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--green)' }}>{stats.positiveConfidence}</div>
-          <div className="stat-card-sub" style={{ color: 'var(--green)' }}>Quality &gt; Confidence</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">Underperformed</span>
-            <span className="stat-card-icon">📉</span>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.exceeded}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto', position: 'relative', zIndex: 10 }}>
+            <div style={{ flex: 1, height: '8px', background: 'var(--surface-container)', borderRadius: '999px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${stats.exceededPct}%`, background: 'var(--success)', borderRadius: '999px' }}></div>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>{stats.exceededPct}%</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--red)' }}>{stats.negativeConfidence}</div>
-          <div className="stat-card-sub" style={{ color: 'var(--red)' }}>Quality &lt; Confidence</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">Efficient (Under Time)</span>
-            <span className="stat-card-icon">⚡</span>
+
+        {/* Stat 3: Underperformed */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'rgba(239, 68, 68, 0.1)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">📉</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Underperformed</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--green)' }}>{stats.efficient}</div>
-          <div className="stat-card-sub" style={{ color: 'var(--green)' }}>Actual &lt; Estimated</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">Overran Estimates</span>
-            <span className="stat-card-icon">⏱️</span>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.underperformed}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto', position: 'relative', zIndex: 10 }}>
+            <div style={{ flex: 1, height: '8px', background: 'var(--surface-container)', borderRadius: '999px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${stats.underperformedPct}%`, background: 'var(--error)', borderRadius: '999px' }}></div>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>{stats.underperformedPct}%</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--amber)' }}>{stats.overran}</div>
-          <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>Actual &gt; Estimated</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-top">
-            <span className="stat-card-label">On-Time / Early</span>
-            <span className="stat-card-icon">⏰</span>
+
+        {/* Stat 4: Efficient */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'rgba(124, 58, 237, 0.1)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">⚡</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Efficient (Beat Est.)</span>
           </div>
-          <div className="stat-card-value" style={{ fontSize: '2rem', color: 'var(--green)' }}>{stats.early}</div>
-          <div className="stat-card-sub" style={{ color: 'var(--text-muted)' }}>{stats.late} late</div>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.efficientCount}</div>
+          <div style={{ marginTop: 'auto', position: 'relative', zIndex: 10 }}>
+            <span style={{ fontSize: '12px', color: 'var(--gradient-start)', fontWeight: 600 }}>Avg. {stats.avgHoursSaved} hrs saved</span>
+          </div>
         </div>
+
+        {/* Stat 5: Overran */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'rgba(245, 158, 11, 0.1)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">⏱️</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>Overran Estimates</span>
+          </div>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.overranCount}</div>
+          <div style={{ marginTop: 'auto', position: 'relative', zIndex: 10 }}>
+            <span style={{ fontSize: '12px', color: 'var(--gradient-end)', fontWeight: 600 }}>Avg. {stats.avgHoursExtra} hrs extra</span>
+          </div>
+        </div>
+
+        {/* Stat 6: On Time */}
+        <div className="sa-stat-card group">
+          <div className="glow-blob" style={{ background: 'rgba(113, 42, 226, 0.1)' }}></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 10 }}>
+            <div className="sa-stat-card-icon">⏰</div>
+            <span style={{ fontSize: '14px', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 500 }}>On-Time / Early</span>
+          </div>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: 'var(--primary)', lineHeight: 1.1, marginTop: '8px', position: 'relative', zIndex: 10 }}>{stats.onTimeOrEarly}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto', position: 'relative', zIndex: 10 }}>
+            <div style={{ flex: 1, height: '8px', background: 'var(--surface-container)', borderRadius: '999px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${stats.onTimePct}%`, background: 'var(--secondary)', borderRadius: '999px' }}></div>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>{stats.onTimePct}%</span>
+          </div>
+        </div>
+
       </div>
 
-      {/* Filters & Controls */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {['all', 'positive', 'negative', 'overdue'].map(f => (
-            <button
-              key={f}
-              className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '12px', padding: '0.4rem 0.75rem' }}
-              onClick={() => setFilter(f)}
+      {/* Filters & Controls Bar */}
+      <div className="sa-filters-bar">
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', width: '100%' }}>
+          <button 
+            onClick={() => { setFilter('all'); setCurrentPage(1); }}
+            style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: '0.2s', background: filter === 'all' ? 'var(--primary)' : 'var(--surface-container)', color: filter === 'all' ? 'var(--on-primary)' : 'var(--on-surface)' }}
+          >All</button>
+          <button 
+            onClick={() => { setFilter('exceeded'); setCurrentPage(1); }}
+            style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '8px', background: filter === 'exceeded' ? 'var(--primary)' : 'var(--surface-container)', color: filter === 'exceeded' ? 'var(--on-primary)' : 'var(--on-surface)' }}
+          ><span style={{ color: filter === 'exceeded' ? 'var(--success)' : 'var(--success)' }}>✅</span> Exceeded</button>
+          <button 
+            onClick={() => { setFilter('underperformed'); setCurrentPage(1); }}
+            style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '8px', background: filter === 'underperformed' ? 'var(--primary)' : 'var(--surface-container)', color: filter === 'underperformed' ? 'var(--on-primary)' : 'var(--on-surface)' }}
+          ><span style={{ color: filter === 'underperformed' ? 'var(--error)' : 'var(--error)' }}>❌</span> Underperformed</button>
+          <button 
+            onClick={() => { setFilter('overdue'); setCurrentPage(1); }}
+            style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', border: 'none', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '8px', background: filter === 'overdue' ? 'var(--primary)' : 'var(--surface-container)', color: filter === 'overdue' ? 'var(--on-primary)' : 'var(--on-surface)' }}
+          ><span style={{ color: filter === 'overdue' ? 'var(--gradient-end)' : 'var(--gradient-end)' }}>⏰</span> Overdue</button>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 'max-content' }}>
+          <div style={{ position: 'relative' }}>
+            <select 
+              value={sortBy} 
+              onChange={e => setSortBy(e.target.value)}
+              style={{ appearance: 'none', background: 'var(--surface-container)', border: 'none', borderRadius: '12px', padding: '8px 40px 8px 16px', fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)', outline: 'none', cursor: 'pointer' }}
             >
-              {f === 'all' ? 'All' : f === 'positive' ? '✅ Exceeded' : f === 'negative' ? '❌ Underperformed' : '⏰ Overdue'}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <label style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Sort by:</label>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="form-select" style={{ width: 'auto', padding: '0.4rem 0.75rem' }}>
-            <option value="submitted_at">Submission Date</option>
-            <option value="confidence_gap">Confidence Gap</option>
-            <option value="hours_gap">Hours Gap</option>
-            <option value="hours_before_deadline">Timeliness</option>
-            <option value="node_title">Assessment Name</option>
-          </select>
-          <button className="btn btn-ghost btn-sm" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.4rem 0.5rem' }}>
-            {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+              <option value="submitted_at">Sort by Date</option>
+              <option value="quality_gap">Sort by Quality Gap</option>
+              <option value="hours_gap">Sort by Hrs Gap</option>
+            </select>
+            <span className="material-symbols-outlined" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--on-surface-variant)', pointerEvents: 'none', fontSize: '18px' }}>unfold_more</span>
+          </div>
+          <button 
+            onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+            style={{ padding: '8px', borderRadius: '12px', background: 'var(--surface-container)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--on-surface)' }}
+            title="Toggle Sort Order"
+          >
+            <span className="material-symbols-outlined" style={{ transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}>swap_vert</span>
           </button>
         </div>
       </div>
 
-      {/* Gaps Table */}
-      {filteredGaps.length === 0 ? (
-        <div className="empty-state" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
-          <h3 style={{ marginBottom: '0.5rem' }}>{filter === 'all' ? 'No submissions yet' : 'No matching submissions'}</h3>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
-            {filter === 'all'
-              ? 'Submit assessments from your course roadmap to see your self-assessment analytics here.'
-              : 'Try adjusting the filter to see more results.'}
-          </p>
-          {filter !== 'all' && <button className="btn btn-secondary" onClick={() => setFilter('all')}>Show All</button>}
-        </div>
-      ) : (
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: 'var(--bg-tertiary)', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => { setSortBy('node_title'); setSortOrder(sortBy === 'node_title' && sortOrder === 'asc' ? 'desc' : 'asc'); }}>
-                    Assessment {sortBy === 'node_title' ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : ''}
-                  </th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, cursor: 'pointer', userSelect: 'none', textAlign: 'center' }}
-                    onClick={() => { setSortBy('confidence_gap'); setSortOrder(sortBy === 'confidence_gap' && sortOrder === 'asc' ? 'desc' : 'asc'); }}>
-                    Confidence Gap {sortBy === 'confidence_gap' ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : ''}
-                  </th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, cursor: 'pointer', userSelect: 'none', textAlign: 'center' }}
-                    onClick={() => { setSortBy('hours_gap'); setSortOrder(sortBy === 'hours_gap' && sortOrder === 'asc' ? 'desc' : 'asc'); }}>
-                    Hours Gap {sortBy === 'hours_gap' ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : ''}
-                  </th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, cursor: 'pointer', userSelect: 'none', textAlign: 'center' }}
-                    onClick={() => { setSortBy('hours_before_deadline'); setSortOrder(sortBy === 'hours_before_deadline' && sortOrder === 'asc' ? 'desc' : 'asc'); }}>
-                    Timeliness {sortBy === 'hours_before_deadline' ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : ''}
-                  </th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, textAlign: 'center' }}>Quality</th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, textAlign: 'center' }}>Mood</th>
-                  <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontWeight: 600, textAlign: 'center' }}>Submitted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredGaps.map(gap => (
-                  <tr key={gap.node_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 500 }}>{gap.node_title}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Confidence at creation: {gap.confidence_at_creation ? `${gap.confidence_at_creation}/5` : 'N/A'}
-                        {gap.estimated_hours && ` | Est: ${gap.estimated_hours} hrs`}
+      {/* Main Data Table */}
+      <div className="sa-table-container">
+        <div className="sa-table-wrapper">
+          <table className="sa-table">
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Conf. Gap</th>
+                <th>Hrs Gap</th>
+                <th>Timeliness</th>
+                <th>Quality</th>
+                <th>Mood</th>
+                <th>Submitted</th>
+                <th style={{ width: '40px' }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentData.length > 0 ? currentData.map((gap) => {
+                const confStyle = getConfGapStyle(gap.confidence_gap);
+                const hrsStyle = getHrsGapStyle(gap.hours_gap);
+                const timeliness = formatTimeliness(gap.hours_before_deadline);
+
+                return (
+                  <tr key={gap.id || Math.random()} className="sa-table-row group">
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--primary)', transition: 'color 0.2s' }}>{gap.assessment_title || 'Unnamed Assessment'}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Est. Conf: {gap.estimated_confidence || 0}% • Est. Hrs: {gap.estimated_hours || 0}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                      {gap.confidence_gap !== null && gap.confidence_gap !== undefined ? (
-                        <span style={{ fontWeight: 600, color: getConfidenceGapColor(gap.confidence_gap) }}>
-                          {gap.confidence_gap > 0 ? '+' : ''}{gap.confidence_gap.toFixed(1)}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                    <td>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: confStyle.bg, color: confStyle.text, padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 500 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{confStyle.icon}</span> 
+                        {confStyle.sign}{gap.confidence_gap !== null ? `${gap.confidence_gap}%` : '—'}
+                      </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                      {gap.hours_gap !== null && gap.hours_gap !== undefined ? (
-                        <span style={{ fontWeight: 600, color: getHoursGapColor(gap.hours_gap) }}>
-                          {gap.hours_gap > 0 ? '+' : ''}{gap.hours_gap.toFixed(1)} hrs
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                    <td>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: hrsStyle.bg, color: hrsStyle.text, padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 500 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{hrsStyle.icon}</span> 
+                        {hrsStyle.sign}{gap.hours_gap !== null ? `${gap.hours_gap}h` : '—'}
+                      </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                      {gap.hours_before_deadline !== null && gap.hours_before_deadline !== undefined ? (
-                        <span style={{ fontWeight: 600, color: getTimelinessColor(gap.hours_before_deadline) }}>
-                          {gap.hours_before_deadline > 0 ? '✓ ' : ''}{formatHours(gap.hours_before_deadline)}
-                          {gap.hours_before_deadline > 0 ? ' early' : gap.hours_before_deadline < 0 ? ' late' : ' on time'}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                    <td>
+                      <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '999px', background: timeliness.style.bg, color: timeliness.style.text, fontSize: '12px', fontWeight: 500 }}>
+                        {timeliness.label}
+                      </span>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                      {gap.quality_self_rating ? (
-                        <span style={{ fontSize: '1.2rem' }}>
-                          {'★'.repeat(gap.quality_self_rating)} {'☆'.repeat(5 - gap.quality_self_rating)}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                    <td>
+                      <div style={{ display: 'flex', color: 'var(--gradient-end)', fontSize: '18px' }}>
+                        {renderStars(gap.actual_quality)}
+                      </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                      {gap.mood_energy ? (
-                        <span style={{ fontSize: '1.2rem' }}>
-                          {['😱', '😭', '😐', '😊', '😀'][gap.mood_energy - 1]}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
-                      )}
+                    <td style={{ fontSize: '24px' }}>
+                      {getMockMood(gap.confidence_gap)}
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                      {gap.submitted_at ? new Date(gap.submitted_at).toLocaleDateString() : '—'}
+                    <td>
+                      <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>
+                        {gap.submitted_at ? new Date(gap.submitted_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                      </span>
+                    </td>
+                    <td>
+                      <button style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', opacity: 0.5, transition: '0.2s' }} className="group-hover:opacity-100 hover:text-primary">
+                        <span className="material-symbols-outlined">more_vert</span>
+                      </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                );
+              }) : (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: 'var(--on-surface-variant)' }}>No self-assessment records found for these filters.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+        
+        {/* Pagination Footer */}
+        {filteredAndSortedGaps.length > 0 && (
+          <div style={{ padding: '16px', borderTop: '1px solid rgba(196, 199, 199, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.3)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500 }}>
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredAndSortedGaps.length)}-{Math.min(currentPage * itemsPerPage, filteredAndSortedGaps.length)} of {filteredAndSortedGaps.length} assessments
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{ padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: currentPage === 1 ? 'default' : 'pointer', color: currentPage === 1 ? 'var(--surface-variant)' : 'var(--on-surface-variant)' }}
+              ><span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span></button>
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={{ padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: currentPage === totalPages ? 'default' : 'pointer', color: currentPage === totalPages ? 'var(--surface-variant)' : 'var(--on-surface-variant)' }}
+              ><span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span></button>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
