@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState([]);
@@ -155,221 +156,223 @@ export default function GoalsPage() {
     }));
   };
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      Active: { bg: 'var(--green-dim)', color: 'var(--green)', text: 'Active' },
-      Complete: { bg: 'var(--blue-dim)', color: 'var(--blue)', text: 'Complete' },
-      Abandoned: { bg: 'var(--red-dim)', color: 'var(--red)', text: 'Abandoned' },
-    };
-    const s = styles[status] || styles.Active;
-    return <span style={{ background: s.bg, color: s.color, padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '11px', fontWeight: 600 }}>{s.text}</span>;
-  };
-
-  const getProgressBar = (goal) => {
-    if (!goal.is_gpa_goal) {
-      const total = goal.total_nodes || 0;
-      const completed = goal.completed_nodes || 0;
-      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-      return (
-        <div style={{ marginTop: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '0.25rem' }}>
-            <span>Progress: {completed}/{total} tasks</span>
-            <span>{pct}%</span>
-          </div>
-          <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, var(--green), var(--blue))', transition: 'width 0.3s' }} />
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const getGpaStatus = (goal) => {
-    if (!goal.is_gpa_goal || goal.current_gpa === null) return null;
-    const gap = goal.gap;
-    const isMet = goal.is_met;
-    return (
-      <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Current GPA</span>
-          <span style={{ fontSize: '1.25rem', fontWeight: 700, color: isMet ? 'var(--green)' : 'var(--amber)' }}>{goal.current_gpa.toFixed(2)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '13px' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Target: {goal.gpa_target?.toFixed(2)}</span>
-          <span style={{ color: isMet ? 'var(--green)' : 'var(--amber)', fontWeight: 600 }}>
-            {isMet ? '✓ Target Met' : `${gap > 0 ? '+' : ''}${gap?.toFixed(2)} to target`}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="page active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <div className="loading-spinner" style={{ width: '32px', height: '32px' }} />
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen message="Loading Goals..." />;
 
   return (
-    <div className="page active">
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+    <div className="goals-page">
+      <div className="goals-header">
         <div>
-          <h1 className="page-title">🎯 Goals</h1>
-          <p className="page-subtitle">Track your semester goals and GPA targets</p>
+          <h1>🎯 Goals</h1>
+          <p>Track your semester goals and GPA targets</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreateModal}>
-          + New Goal
+        <button 
+          style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '12px 24px', borderRadius: '12px', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+          onClick={openCreateModal}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span> New Goal
         </button>
       </div>
 
       {error && (
-        <div style={{ padding: '0.75rem 1rem', background: 'var(--red-dim)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-md)', color: 'var(--red)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '12px 16px', background: 'var(--error-container)', border: '1px solid var(--error)', borderRadius: '12px', color: 'var(--on-error-container)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{error}</span>
-          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--on-error-container)', cursor: 'pointer' }}><span className="material-symbols-outlined">close</span></button>
         </div>
       )}
 
       {goals.length === 0 ? (
-        <div className="empty-state" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
-          <h3 style={{ marginBottom: '0.5rem' }}>No goals yet</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+        <div style={{ textAlign: 'center', padding: '64px 24px', background: 'rgba(255, 255, 255, 0.5)', borderRadius: '24px', border: '1px dashed var(--outline-variant)' }}>
+          <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🎯</span>
+          <h3 style={{ fontSize: '24px', margin: '0 0 8px', color: 'var(--on-surface)' }}>No goals yet</h3>
+          <p style={{ color: 'var(--on-surface-variant)', maxWidth: '400px', margin: '0 auto 24px' }}>
             Create your first goal to start tracking your semester progress. Set GPA targets or task-based goals.
           </p>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            + Create Your First Goal
+          <button 
+            style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '12px 24px', borderRadius: '12px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+            onClick={openCreateModal}
+          >
+            Create Your First Goal
           </button>
         </div>
       ) : (
-        <div className="goals-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1rem' }}>
-          {goals.map(goal => (
-            <div key={goal.id} className="goal-card" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', transition: 'transform 0.2s, box-shadow 0.2s' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.25rem' }}>{goal.title}</h3>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {getStatusBadge(goal.status)}
-                    {goal.is_gpa_goal && <span style={{ background: 'var(--purple-dim)', color: 'var(--purple)', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '10px', fontWeight: 600 }}>GPA Goal</span>}
-                    {goal.category && <span style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '10px' }}>{goal.category}</span>}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '0.25rem' }}>
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(goal)} style={{ padding: '0.35rem 0.6rem' }}>✏️</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(goal.id)} style={{ padding: '0.35rem 0.6rem', color: 'var(--red)' }}>🗑️</button>
-                </div>
-              </div>
+        <div className="goals-grid">
+          {goals.map(goal => {
+            const isCompleted = goal.status === 'Complete' || (!goal.is_gpa_goal && goal.total_nodes > 0 && goal.completed_nodes === goal.total_nodes) || (goal.is_gpa_goal && goal.is_met);
+            const cardClasses = `goal-card-glass ${isCompleted ? 'goal-card-completed' : ''} group`;
+            const bgGradientClass = goal.is_gpa_goal ? 'linear-gradient(to bottom right, rgba(113, 42, 226, 0.05), transparent)' : 'linear-gradient(to bottom right, rgba(236, 72, 153, 0.05), transparent)';
 
-              {goal.description && (
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5, marginBottom: '0.75rem' }}>{goal.description}</p>
-              )}
+            return (
+              <div key={goal.id} className={cardClasses}>
+                <div className="goal-ambient-bg" style={{ background: bgGradientClass }}></div>
+                <div className="goal-card-content">
+                  <div>
+                    {/* Header: Title and Actions */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                      <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--on-surface)', textDecoration: isCompleted ? 'line-through' : 'none', textDecorationColor: 'var(--on-surface-variant)' }}>{goal.title}</h3>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={() => openEditModal(goal)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}><span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span></button>
+                        <button onClick={() => handleDelete(goal.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)' }}><span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span></button>
+                      </div>
+                    </div>
 
-              <div style={{ display: 'flex', gap: '1rem', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                <span>📅 {goal.semester || 'All semesters'}</span>
-                {goal.target_date && <span>🎯 Due: {new Date(goal.target_date).toLocaleDateString()}</span>}
-                {goal.linked_courses_count > 0 && <span>📚 {goal.linked_courses_count} course{goal.linked_courses_count > 1 ? 's' : ''}</span>}
-              </div>
+                    {/* Badges */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                      {isCompleted ? (
+                        <span style={{ padding: '4px 8px', background: 'var(--secondary-container)', color: 'var(--on-secondary-container)', borderRadius: '999px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Complete</span>
+                      ) : (
+                        <span style={{ padding: '4px 8px', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', borderRadius: '999px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{goal.status || 'Active'}</span>
+                      )}
+                      
+                      {goal.is_gpa_goal ? (
+                        <span style={{ padding: '4px 8px', background: 'rgba(113, 42, 226, 0.1)', color: 'var(--secondary)', borderRadius: '999px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>GPA Goal</span>
+                      ) : null}
+                      
+                      {goal.category && (
+                        <span style={{ padding: '4px 8px', background: 'var(--surface-variant)', color: 'var(--on-surface-variant)', borderRadius: '999px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{goal.category}</span>
+                      )}
+                    </div>
 
-              {getProgressBar(goal)}
-              {getGpaStatus(goal)}
+                    {/* Description */}
+                    {goal.description && (
+                      <p style={{ margin: '0 0 16px', fontSize: '14px', color: 'var(--on-surface-variant)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{goal.description}</p>
+                    )}
 
-              {goal.linked_courses_count > 0 && (
-                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                    {goal.completed_nodes}/{goal.total_nodes} tasks completed
+                    {/* GPA Progress Section */}
                     {goal.is_gpa_goal && goal.current_gpa !== null && (
-                      <> · GPA: {goal.current_gpa.toFixed(2)} / {goal.gpa_target?.toFixed(2)} target</>
+                      <div style={{ background: 'var(--surface-container)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                          <div>
+                            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '4px' }}>Current vs Target</span>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                              <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--on-surface)' }}>{goal.current_gpa.toFixed(2)}</span>
+                              <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>/ {goal.gpa_target?.toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <span style={{ padding: '4px 8px', background: goal.is_met ? 'rgba(34, 197, 94, 0.1)' : 'var(--error-container)', color: goal.is_met ? 'var(--success)' : 'var(--on-error-container)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>
+                              {goal.is_met ? 'Target Met' : 'Falling Short'}
+                            </span>
+                            {!goal.is_met && (
+                              <span style={{ fontSize: '11px', color: 'var(--error)' }}>
+                                {goal.gap > 0 ? `+${goal.gap.toFixed(2)}` : goal.gap?.toFixed(2)} to target
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', background: 'var(--surface-variant)', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${Math.min((goal.current_gpa / goal.gpa_target) * 100, 100)}%`, background: goal.is_met ? 'var(--success)' : 'linear-gradient(to right, var(--error), var(--gradient-end))', borderRadius: '999px' }}></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Task Progress Section */}
+                    {!goal.is_gpa_goal && (
+                      <div style={{ marginTop: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Progress</span>
+                          <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>{goal.completed_nodes || 0}/{goal.total_nodes || 0} tasks</span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', background: 'var(--surface-variant)', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${goal.total_nodes > 0 ? ((goal.completed_nodes || 0) / goal.total_nodes) * 100 : 0}%`, background: 'linear-gradient(to right, var(--gradient-end), var(--success))', borderRadius: '999px' }}></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Bar: Metadata */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingTop: '16px', borderTop: '1px solid rgba(196, 199, 199, 0.3)', color: 'var(--on-surface-variant)', fontSize: '12px', marginTop: '24px' }}>
+                    {goal.semester && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_month</span> {goal.semester}
+                      </div>
+                    )}
+                    {goal.target_date && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>event</span> {new Date(goal.target_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                    )}
+                    {(goal.course_ids && goal.course_ids.length > 0) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>school</span> {goal.course_ids.length} course{goal.course_ids.length > 1 ? 's' : ''}
+                      </div>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
+      {/* Add / Edit Goal Modal */}
       {showModal && (
-        <div className="modal-overlay open" onClick={closeModal}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">{editingGoal ? 'Edit Goal' : 'Create Goal'}</h2>
-              <button className="modal-close" onClick={closeModal}>✕</button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Title *</label>
-                <input name="title" value={formData.title} onChange={handleChange} placeholder="e.g., Maintain 3.5 GPA" required autoFocus />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={closeModal}>
+          <div className="glass-modal-content" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ margin: '0 0 24px', fontSize: '24px', fontWeight: 600 }}>{editingGoal ? 'Edit Goal' : 'New Goal'}</h2>
+            
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Title</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} required placeholder="E.g., Dean's List Fall 2026" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none' }} />
               </div>
 
-              <div className="form-group">
-                <label>Description</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} rows={3} placeholder="Optional details about this goal..." />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Description</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} rows="3" placeholder="Optional details..." style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none', resize: 'vertical' }}></textarea>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Category</label>
-                  <input name="category" value={formData.category} onChange={handleChange} placeholder="e.g., Academic, Personal, Career" />
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Category</label>
+                  <input type="text" name="category" value={formData.category} onChange={handleChange} placeholder="Academic, Personal..." style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none' }} />
                 </div>
-                <div className="form-group">
-                  <label>Semester</label>
-                  <select name="semester" value={formData.semester} onChange={handleChange}>
-                    <option value="Spring">Spring</option>
-                    <option value="Summer">Summer</option>
-                    <option value="Fall">Fall</option>
-                  </select>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Semester</label>
+                  <input type="text" name="semester" value={formData.semester} onChange={handleChange} placeholder="Fall 2026" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none' }} />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Target Date</label>
-                  <input type="date" name="target_date" value={formData.target_date} onChange={handleChange} />
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Target Date</label>
+                <input type="date" name="target_date" value={formData.target_date} onChange={handleChange} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none', color: 'var(--on-surface)' }} />
               </div>
 
-              <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
-                  <input type="checkbox" name="is_gpa_goal" checked={formData.is_gpa_goal} onChange={handleChange} />
-                  <span>🎓 GPA Target Goal</span>
-                </label>
-                {formData.is_gpa_goal && (
-                  <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                    <label>Target GPA (4.0 scale)</label>
-                    <input type="number" step="0.01" min="0" max="4.0" name="gpa_target" value={formData.gpa_target} onChange={handleChange} placeholder="e.g., 3.5" />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px', background: 'var(--surface-container-low)', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)' }}>
+                <input type="checkbox" name="is_gpa_goal" checked={formData.is_gpa_goal} onChange={handleChange} style={{ width: '18px', height: '18px' }} />
+                <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>This is a GPA Goal</span>
+              </label>
+
+              {formData.is_gpa_goal && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>GPA Target (e.g. 3.8)</label>
+                  <input type="number" step="0.01" min="0" max="4.0" name="gpa_target" value={formData.gpa_target} onChange={handleChange} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)', background: 'var(--surface)', fontSize: '16px', outline: 'none' }} />
+                </div>
+              )}
+
+              {courses.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                  <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--on-surface)' }}>Linked Courses (Optional)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', maxHeight: '150px', overflowY: 'auto', padding: '8px', background: 'var(--surface-container-low)', borderRadius: '12px', border: '1px solid rgba(196, 199, 199, 0.5)' }}>
+                    {courses.map(course => (
+                      <label key={course.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={formData.course_ids.includes(course.id)} onChange={() => handleCourseToggle(course.id)} />
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={course.name}>{course.code}</span>
+                      </label>
+                    ))}
                   </div>
-                )}
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '0.5rem' }}>Link Courses (Optional)</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', maxHeight: '120px', overflow: 'auto' }}>
-                  {courses.map(course => (
-                    <label key={course.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.75rem', background: formData.course_ids.includes(course.id) ? 'var(--green-dim)' : 'var(--bg-tertiary)', border: formData.course_ids.includes(course.id) ? '1px solid var(--green)' : '1px solid var(--border)', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}>
-                      <input type="checkbox" checked={formData.course_ids.includes(course.id)} onChange={() => handleCourseToggle(course.id)} style={{ width: '14px', height: '14px', accentColor: 'var(--green)' }} />
-                      <span style={{ color: formData.course_ids.includes(course.id) ? 'var(--green)' : 'var(--text-primary)' }}>
-                        {course.code} {course.name}
-                      </span>
-                    </label>
-                  ))}
-                  {courses.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No courses yet — create one first</span>}
                 </div>
-              </div>
+              )}
 
-              {error && <div className="error-message" style={{ color: 'var(--red)', fontSize: '13px', marginBottom: '0.5rem' }}>{error}</div>}
-
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? 'Saving...' : (editingGoal ? 'Save Changes' : 'Create Goal')}
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button type="button" onClick={closeModal} style={{ padding: '12px 24px', borderRadius: '12px', background: 'transparent', border: 'none', fontWeight: 500, cursor: 'pointer', color: 'var(--on-surface-variant)' }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ padding: '12px 24px', borderRadius: '12px', background: 'var(--primary)', color: 'var(--on-primary)', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'Saving...' : 'Save Goal'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }

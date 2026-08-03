@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../api/client';
 
+import LoadingScreen from '../components/LoadingScreen';
+
 /* =========================================================================
    HEC 4.0 Grading Scale (COMSATS Standard — Fall 2021+)
    ========================================================================= */
@@ -787,14 +789,7 @@ export default function GPAPage() {
     .filter(e => e.entry_type === 'course' && !e.grade_letter)
     .reduce((sum, e) => sum + e.credit_hours, 0);
 
-  if (loading) return (
-    <div className="gpa-page">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', flexDirection: 'column', gap: '16px' }}>
-        <span className="spinner" style={{ borderTopColor: 'var(--primary)', width: '32px', height: '32px' }} />
-        <p style={{ color: 'var(--on-surface-variant)' }}>Loading GPA Calculator...</p>
-      </div>
-    </div>
-  );
+  if (loading) return <LoadingScreen message="Loading GPA Calculator..." />;
 
   return (
     <div className="gpa-page">
