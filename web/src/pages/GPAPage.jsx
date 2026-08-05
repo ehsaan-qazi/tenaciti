@@ -1002,47 +1002,50 @@ export default function GPAPage() {
       {/* Legacy Add / Edit Modals (Styling adapted minimally to maintain functionality) */}
       {(showAddModal || showEditModal) && (
         <div className="modal-overlay open" onClick={() => { setShowAddModal(false); setShowEditModal(false); }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(24px)', borderRadius: '24px', padding: '32px' }}>
-            <h2 style={{ margin: '0 0 24px', fontSize: '24px' }}>{showEditModal ? 'Edit Entry' : 'Add Grade Entry'}</h2>
-            <form onSubmit={showEditModal ? handleUpdate : handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '14px' }}>Entry Type</label>
-                <select className="gpa-select" value={formData.entry_type} onChange={e => setFormData({ ...formData, entry_type: e.target.value })}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">{showEditModal ? 'Edit Entry' : 'Add Grade Entry'}</h2>
+              <button className="modal-close" onClick={() => { setShowAddModal(false); setShowEditModal(false); }}>✕</button>
+            </div>
+            <form onSubmit={showEditModal ? handleUpdate : handleSubmit}>
+              <div className="form-group">
+                <label>Entry Type</label>
+                <select value={formData.entry_type} onChange={e => setFormData({ ...formData, entry_type: e.target.value })}>
                   <option value="course">Course</option>
                   <option value="semester">Semester (Batch)</option>
                 </select>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '14px' }}>Semester</label>
-                  <select className="gpa-select" required value={formData.semester} onChange={e => setFormData({ ...formData, semester: e.target.value })}>
+                <div className="form-group">
+                  <label>Semester</label>
+                  <select required value={formData.semester} onChange={e => setFormData({ ...formData, semester: e.target.value })}>
                     <option value="">Select...</option>
                     <option value="Fall">Fall</option>
                     <option value="Spring">Spring</option>
                     <option value="Summer">Summer</option>
                   </select>
                 </div>
-                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '14px' }}>Year</label>
-                  <input className="gpa-input-box" required type="text" placeholder="e.g. 2023" value={formData.academic_year} onChange={e => setFormData({ ...formData, academic_year: e.target.value })} />
+                <div className="form-group">
+                  <label>Year</label>
+                  <input required type="text" placeholder="e.g. 2023" value={formData.academic_year} onChange={e => setFormData({ ...formData, academic_year: e.target.value })} />
                 </div>
               </div>
 
               {formData.entry_type === 'course' && (
                 <>
-                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '14px' }}>Course</label>
-                    <input className="gpa-input-box" type="text" required placeholder="Course Name" value={formData.course_label} onChange={e => setFormData({ ...formData, course_label: e.target.value })} />
+                  <div className="form-group">
+                    <label>Course</label>
+                    <input type="text" required placeholder="Course Name" value={formData.course_label} onChange={e => setFormData({ ...formData, course_label: e.target.value })} />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '14px' }}>Credit Hours</label>
-                      <input className="gpa-input-box" type="number" required min="1" max="6" value={formData.credit_hours} onChange={e => setFormData({ ...formData, credit_hours: Number(e.target.value) })} />
+                    <div className="form-group">
+                      <label>Credit Hours</label>
+                      <input type="number" required min="1" max="6" value={formData.credit_hours} onChange={e => setFormData({ ...formData, credit_hours: Number(e.target.value) })} />
                     </div>
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '14px' }}>Grade</label>
-                      <select className="gpa-select" value={formData.grade_letter || ''} onChange={e => setFormData({ ...formData, grade_letter: e.target.value || null })}>
+                    <div className="form-group">
+                      <label>Grade</label>
+                      <select value={formData.grade_letter || ''} onChange={e => setFormData({ ...formData, grade_letter: e.target.value || null })}>
                         <option value="">-- Not Graded Yet --</option>
                         {LETTER_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
@@ -1051,9 +1054,9 @@ export default function GPAPage() {
                 </>
               )}
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <button type="button" className="notes-action-btn" onClick={() => { setShowAddModal(false); setShowEditModal(false); }}>Cancel</button>
-                <button type="submit" className="notes-action-btn primary" style={{ background: 'var(--primary)', color: 'var(--on-primary)' }}>Save</button>
+              <div className="modal-actions">
+                <button type="button" className="secondary-btn" onClick={() => { setShowAddModal(false); setShowEditModal(false); }} style={{ width: 'auto' }}>Cancel</button>
+                <button type="submit" className="primary-btn" style={{ width: 'auto' }}>Save</button>
               </div>
             </form>
           </div>

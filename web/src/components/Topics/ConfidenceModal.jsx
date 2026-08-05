@@ -16,7 +16,7 @@ export default function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
         </div>
 
         <div style={{ margin: '1rem 0' }}>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '14px' }}>
+          <p style={{ color: 'var(--on-surface-variant)', marginBottom: '1rem', fontSize: '14px', fontFamily: 'Hanken Grotesk, sans-serif' }}>
             How confident do you feel after reviewing <strong>"{topicTitle}"</strong>?
           </p>
 
@@ -28,7 +28,7 @@ export default function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
                 onMouseLeave={() => setHoverRating(0)}
                 onClick={() => setRating(star)}
                 style={{
-                  color: (hoverRating || rating) >= star ? 'var(--amber, #f59e0b)' : 'var(--border, #374151)',
+                  color: (hoverRating || rating) >= star ? 'var(--amber, #f59e0b)' : 'var(--outline-variant)',
                   transition: 'transform 0.1s, color 0.1s',
                   transform: (hoverRating || rating) >= star ? 'scale(1.15)' : 'scale(1)',
                 }}
@@ -38,7 +38,7 @@ export default function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
             ))}
           </div>
 
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)', height: '20px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--on-surface-variant)', height: '20px', fontFamily: 'Hanken Grotesk, sans-serif', fontWeight: '500' }}>
             {rating === 1 && 'Need to revisit'}
             {rating === 2 && 'Getting there'}
             {rating === 3 && 'Moderate understanding'}
@@ -51,7 +51,7 @@ export default function ConfidenceModal({ topicTitle, onConfirm, onSkip }) {
           <button className="secondary-btn" onClick={onSkip} style={{ width: 'auto' }}>
             Skip Rating
           </button>
-          <button className="primary-btn" onClick={handleConfirm} style={{ width: 'auto', background: 'var(--green)', borderColor: 'var(--green)' }}>
+          <button className="primary-btn" onClick={handleConfirm} style={{ width: 'auto', background: 'var(--success)', borderColor: 'var(--success)' }}>
             ✓ Save & Complete
           </button>
         </div>

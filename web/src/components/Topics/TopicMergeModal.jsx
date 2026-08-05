@@ -63,7 +63,7 @@ export default function TopicMergeModal({ isOpen, onClose, topics, selectedIds, 
         <form onSubmit={handleSubmit}>
           {/* Target selection */}
           <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
+            <label>
               Target topic (will be kept):
             </label>
             <select
@@ -73,7 +73,6 @@ export default function TopicMergeModal({ isOpen, onClose, topics, selectedIds, 
                 const t = topics.find((x) => x.id === parseInt(e.target.value, 10))
                 if (t) setNewTitle(t.title)
               }}
-              style={{ width: '100%', padding: '0.5rem 0.75rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px' }}
             >
               {topics.map((t) => (
                 <option key={t.id} value={String(t.id)}>
@@ -85,7 +84,7 @@ export default function TopicMergeModal({ isOpen, onClose, topics, selectedIds, 
 
           {/* New title */}
           <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
+            <label>
               Merged title:
             </label>
             <input
@@ -93,7 +92,6 @@ export default function TopicMergeModal({ isOpen, onClose, topics, selectedIds, 
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter merged topic title"
-              style={{ width: '100%', padding: '0.5rem 0.75rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif' }}
             />
           </div>
 

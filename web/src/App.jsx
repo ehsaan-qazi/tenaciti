@@ -15,18 +15,14 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import VerifyEmailConfirmPage from './pages/VerifyEmailConfirmPage'
 import Layout from './components/Layout'
+import LoadingScreen from './components/LoadingScreen'
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <span>Loading Tenaciti...</span>
-      </div>
-    )
+    return <LoadingScreen message="Loading Tenaciti..." />
   }
 
   if (!user) {
@@ -44,12 +40,7 @@ function AppRoutes() {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <span>Loading Tenaciti...</span>
-      </div>
-    )
+    return <LoadingScreen message="Loading Tenaciti..." />
   }
 
   return (

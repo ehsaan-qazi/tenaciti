@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext'
 import { apiFetch, supabase } from '../api/client'
 import TopicList from '../components/Topics/TopicList'
 import ConfidenceModal from '../components/Topics/ConfidenceModal'
+import LoadingScreen from '../components/LoadingScreen'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -91,12 +92,11 @@ function SelfAssessmentModal({ node, onSubmit, onClose }) {
                 value={form.actual_hours}
                 onChange={handleChange}
                 placeholder="e.g. 3.5"
-                style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}
               />
             </div>
             <div className="form-group">
               <label>Quality Self-Rating (1-5) *</label>
-              <select name="quality_self_rating" value={form.quality_self_rating} onChange={handleChange} required style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}>
+              <select name="quality_self_rating" value={form.quality_self_rating} onChange={handleChange} required>
                 <option value={5}>5 - Excellent</option>
                 <option value={4}>4 - Good</option>
                 <option value={3}>3 - Average</option>
@@ -108,7 +108,7 @@ function SelfAssessmentModal({ node, onSubmit, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="form-group">
               <label>Mood/Energy (1-5)</label>
-              <select name="mood_energy" value={form.mood_energy} onChange={handleChange} style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)' }}>
+              <select name="mood_energy" value={form.mood_energy} onChange={handleChange}>
                 <option value={5}>5 - Energized</option>
                 <option value={4}>4 - Good</option>
                 <option value={3}>3 - Neutral</option>
@@ -124,7 +124,6 @@ function SelfAssessmentModal({ node, onSubmit, onClose }) {
                 onChange={handleChange}
                 rows={3}
                 placeholder="What went well? What would you do differently? Any insights..."
-                style={{ width: '100%', padding: '0.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-light)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', resize: 'vertical' }}
               />
             </div>
           </div>
@@ -733,8 +732,8 @@ export default function CoursePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  if (loading) return <div className="loading-screen">Loading course…</div>
-  if (!course) return <div className="loading-screen">Course not found</div>
+  if (loading) return <LoadingScreen message="Loading course…" />
+  if (!course) return <LoadingScreen message="Course not found" />
 
   const confirmedCount = roadmap.filter((n) => n.is_confirmed).length
   const roadmapProgress = roadmap.length > 0 ? Math.round((confirmedCount / roadmap.length) * 100) : 0

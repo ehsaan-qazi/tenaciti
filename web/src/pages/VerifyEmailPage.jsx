@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import LoadingScreen from '../components/LoadingScreen'
 
 export default function VerifyEmailPage() {
   const { user, resendVerification, refreshUser, logout, loading: authLoading } = useAuth()
@@ -22,12 +23,7 @@ export default function VerifyEmailPage() {
   }, [user, refreshUser])
 
   if (authLoading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <span>Loading Tenaciti...</span>
-      </div>
-    )
+    return <LoadingScreen message="Loading Tenaciti..." />
   }
 
   // If not logged in at all, go to login
