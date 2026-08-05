@@ -458,7 +458,11 @@ export default function CoursePage() {
       await pollExtraction(documentId)
       await fetchRoadmap()
       await fetchDocuments()
-      setActiveTab('roadmap')
+      if (document.startViewTransition) {
+        document.startViewTransition(() => setActiveTab('roadmap'))
+      } else {
+        setActiveTab('roadmap')
+      }
     } catch (err) {
       setUploadError(err.message || 'Roadmap extraction failed')
     } finally {
@@ -494,7 +498,11 @@ export default function CoursePage() {
       await pollTopicExtraction(documentId)
       await fetchTopics()
       await fetchDocuments()
-      setActiveTab('topics')
+      if (document.startViewTransition) {
+        document.startViewTransition(() => setActiveTab('topics'))
+      } else {
+        setActiveTab('topics')
+      }
     } catch (err) {
       setUploadError(err.message || 'Topic extraction failed')
     } finally {
@@ -1061,7 +1069,7 @@ export default function CoursePage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         {isProcessing ? (
                           <div style={{ padding: '4px 10px', borderRadius: '9999px', backgroundColor: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--gradient-end)' }}>progress_activity</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--gradient-end)', animation: 'spin 1s linear infinite' }}>progress_activity</span>
                             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--gradient-end)' }}>Processing...</span>
                           </div>
                         ) : (
@@ -1078,7 +1086,7 @@ export default function CoursePage() {
                             style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                           >
                             {extracting === doc.id || polling ? (
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>progress_activity</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
                             ) : (
                               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>account_tree</span>
                             )}
@@ -1091,7 +1099,7 @@ export default function CoursePage() {
                             style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                           >
                             {topicExtracting === doc.id ? (
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>progress_activity</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
                             ) : (
                               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>auto_awesome</span>
                             )}
