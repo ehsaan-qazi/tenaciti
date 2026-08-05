@@ -19,6 +19,8 @@ class DocumentResponse(BaseModel):
     processing_status: str
     processed_at: Optional[datetime] = None
     error_message: Optional[str] = None
+    has_assessments: Optional[bool] = None
+    has_topics: Optional[bool] = None
     uploaded_at: datetime
     created_at: datetime
     updated_at: datetime
@@ -35,6 +37,8 @@ class DocumentListItem(BaseModel):
     size_bytes: Optional[int] = None
     mime_type: Optional[str] = None
     processing_status: str
+    has_assessments: Optional[bool] = None
+    has_topics: Optional[bool] = None
     uploaded_at: datetime
 
     class Config:

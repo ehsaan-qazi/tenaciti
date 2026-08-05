@@ -1081,27 +1081,33 @@ export default function CoursePage() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <button
+                            title={doc.has_assessments === false ? "AI check suggests no assessments found. Extraction may fail." : "Extract Roadmap"}
                             onClick={() => handleExtractRoadmap(doc.id)}
                             disabled={extracting === doc.id || polling || topicPolling}
-                            style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                            style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: doc.has_assessments === false ? '#f59e0b' : 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: doc.has_assessments === false ? '1px solid #f59e0b' : '1px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                           >
                             {extracting === doc.id || polling ? (
                               <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
                             ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>account_tree</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                {doc.has_assessments === false ? 'warning' : 'account_tree'}
+                              </span>
                             )}
                             Roadmap
                           </button>
                           
                           <button
+                            title={doc.has_topics === false ? "AI check suggests no topics found. Extraction may fail." : "Extract Topics"}
                             onClick={() => handleExtractTopics(doc.id)}
                             disabled={topicExtracting === doc.id || topicPolling || polling}
-                            style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                            style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container)', color: doc.has_topics === false ? '#f59e0b' : 'var(--on-surface-variant)', fontSize: '14px', fontWeight: '500', border: doc.has_topics === false ? '1px solid #f59e0b' : '1px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                           >
                             {topicExtracting === doc.id ? (
                               <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
                             ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>auto_awesome</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                                {doc.has_topics === false ? 'warning' : 'auto_awesome'}
+                              </span>
                             )}
                             Topics
                           </button>

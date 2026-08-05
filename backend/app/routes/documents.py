@@ -33,6 +33,7 @@ ALLOWED_MIME_TYPES = {
 @router.post("/courses/{course_id}/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     course_id: int,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     doc_type: str = Form(default="syllabus"),
     current_user: User = Depends(get_verified_user),
@@ -123,7 +124,45 @@ async def upload_document(
 
     await db.flush()
     await db.refresh(document)
+    
+    background_tasks.add_task(_run_document_classification, document.id, file_data, document.mime_type)
+    
     return document
+
+async def _run_document_classification(document_id: int, file_bytes: bytes, mime_type: str) -> None:
+    """Background task: extract text and classify document."""
+    from app.services.document_classifier import classify_document_text
+    from app.services.extraction_service import extract_text_from_pdf, extract_text_from_pptx
+    from fastapi.concurrency import run_in_threadpool
+    
+    # Text extraction is CPU bound
+    text = ""
+    try:
+        mime = (mime_type or "").lower()
+        if mime == "application/pdf":
+            text = await run_in_threadpool(extract_text_from_pdf, file_bytes)
+        elif mime in ("application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/vnd.ms-powerpoint"):
+            text = await run_in_threadpool(extract_text_from_pptx, file_bytes)
+    except Exception as e:
+        logger.warning(f"Failed to extract text for classification of document {document_id}: {e}")
+        return
+        
+    if not text.strip():
+        return
+        
+    # Classify
+    classification = await run_in_threadpool(classify_document_text, text)
+    
+    # Save back to DB
+    async with async_session() as db:
+        try:
+            doc = await db.get(Document, document_id)
+            if doc:
+                doc.has_assessments = classification["has_assessments"]
+                doc.has_topics = classification["has_topics"]
+                await db.commit()
+        except Exception as e:
+            logger.error(f"Failed to save classification for document {document_id}: {e}")
 
 
 @router.get("/courses/{course_id}", response_model=List[DocumentListItem])

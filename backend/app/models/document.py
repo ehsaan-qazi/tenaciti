@@ -10,7 +10,7 @@ Enriched metadata schema for Cloudflare R2 object storage:
 
 from datetime import datetime
 from sqlalchemy import (
-    String, Integer, Text, DateTime, ForeignKey, Index, func,
+    String, Integer, Text, DateTime, ForeignKey, Index, func, Boolean,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,6 +38,10 @@ class Document(Base):
     )  # pending|processing|processed|failed
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_message: Mapped[str | None] = mapped_column(Text)
+    
+    # Pre-flight classification flags (None means not yet classified)
+    has_assessments: Mapped[bool | None] = mapped_column(Boolean)
+    has_topics: Mapped[bool | None] = mapped_column(Boolean)
 
     # Timestamps
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
