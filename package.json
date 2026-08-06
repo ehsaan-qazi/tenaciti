@@ -1,0 +1,25 @@
+{
+  "name": "tenaciti",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "dev:app": "turbo dev --filter=@tenaciti/app",
+    "dev:website": "turbo dev --filter=@tenaciti/website",
+    "build:app": "turbo build --filter=@tenaciti/app",
+    "build:website": "turbo build --filter=@tenaciti/website"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": ">=20"
+  }
+}
