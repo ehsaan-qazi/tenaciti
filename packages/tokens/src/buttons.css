@@ -1,0 +1,36 @@
+.notes-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: rgba(248, 249, 250, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--on-surface);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 8px;
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.notes-action-btn:hover {
+  background: var(--surface-container-highest);
+  transform: translateY(-1px);
+}
+.notes-action-btn.primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.notes-action-btn.primary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
