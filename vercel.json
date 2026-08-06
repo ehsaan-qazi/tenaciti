@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npx turbo build --filter=@tenaciti/app",
+  "outputDirectory": "apps/app/dist",
+  "installCommand": "npm install",
+  "framework": "vite"
+}

@@ -16,10 +16,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    defaults:
-      run:
-        working-directory: ./apps/app
-
     steps:
     - uses: actions/checkout@v4
     
@@ -31,9 +27,7 @@ jobs:
         cache-dependency-path: './package-lock.json'
         
     - name: Install dependencies
-      working-directory: .
       run: npm ci
         
     - name: Build
-      working-directory: .
       run: npx turbo build --filter=@tenaciti/app
