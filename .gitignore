@@ -87,5 +87,5 @@ audit.md
 implementation_plan.md
 missing_backend_features.md
 tenaciti_srs_v2.md
-assets/
+/assets/
 architectural_update_plan.md
