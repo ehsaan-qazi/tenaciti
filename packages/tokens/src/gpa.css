@@ -29,15 +29,15 @@
       background: rgba(255, 255, 255, 0.6);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border-radius: 24px;
-      padding: 24px;
+      border-radius: 16px;
+      padding: 20px;
       box-shadow: 0 4px 40px rgba(0,0,0,0.03);
       border: 1px solid var(--surface-container);
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     /* Tables */
@@ -52,13 +52,13 @@
       width: 100%;
       text-align: left;
       border-collapse: collapse;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .gpa-table th {
       padding: 0 8px 12px 8px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--on-surface-variant);
       border-bottom: 1px solid var(--surface-container-highest);
@@ -83,7 +83,7 @@
       border: none;
       outline: none;
       font-family: 'Hanken Grotesk', sans-serif;
-      font-size: 16px;
+      font-size: 14px;
       color: var(--on-surface);
       padding: 4px 8px;
       border-radius: 4px;
@@ -99,7 +99,7 @@
       border: 1px solid var(--outline-variant);
       outline: none;
       font-family: 'Hanken Grotesk', sans-serif;
-      font-size: 16px;
+      font-size: 14px;
       color: var(--on-surface);
       padding: 4px 8px;
       border-radius: 4px;
@@ -152,8 +152,8 @@
       background: rgba(255, 255, 255, 0.6);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border-radius: 24px;
-      padding: 24px;
+      border-radius: 16px;
+      padding: 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid rgba(196, 199, 199, 0.3);
       position: relative;
@@ -189,8 +189,8 @@
       background: var(--surface);
       border: 1px solid rgba(196, 199, 199, 0.5);
       border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 16px;
+      padding: 6px 10px;
+      font-size: 14px;
       min-width: 0;
       color: var(--on-surface);
       outline: none;

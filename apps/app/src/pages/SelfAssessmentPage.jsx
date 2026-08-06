@@ -171,8 +171,8 @@ export default function SelfAssessmentPage() {
   return (
     <div className="sa-page">
       {/* Ambient Background Elements */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-start/10 rounded-full blur-[120px] -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3" style={{ background: 'rgba(124, 58, 237, 0.1)' }}></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-end/10 rounded-full blur-[100px] -z-10 pointer-events-none -translate-x-1/4 translate-y-1/4" style={{ background: 'rgba(245, 158, 11, 0.1)' }}></div>
+      <div className="blob-1"></div>
+      <div className="blob-2"></div>
       
       {/* Header Section */}
       <div className="sa-header">

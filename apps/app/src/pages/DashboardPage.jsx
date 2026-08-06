@@ -86,7 +86,7 @@ export default function DashboardPage() {
             <div style={{ position: 'absolute', bottom: 0, right: 0, width: '16px', height: '16px', background: 'var(--success)', borderRadius: '50%', border: '2px solid var(--surface-container-lowest)' }}></div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ margin: 0, padding: 0, fontSize: '32px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            <h1 style={{ margin: 0, padding: 0, fontSize: '24px', fontWeight: '600', color: 'var(--primary)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
               {getGreeting()}, {firstName} <span style={{ display: 'inline-block', transformOrigin: '70% 70%' }}>👋</span>
             </h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '16px', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -153,32 +153,29 @@ export default function DashboardPage() {
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)' }}>Your Plan</h2>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--on-primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{user?.plan === 'pro' ? 'Pro' : 'Free'}</div>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.9)' }}>Your Plan</h2>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--on-primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{user?.plan === 'pro' ? 'Pro' : 'Free'}</div>
           </div>
         </div>
       </div>
 
       {/* Main Dashboard Grid */}
-      <div style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', width: '100%' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <UpcomingDeadlinesWidget />
+      {/* 2-Column Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <WeeklyWorkloadWidget />
           <TopicCoverageWidget />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <StreakSummaryCards />
-          <WeeklyWorkloadWidget />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <UpcomingDeadlinesWidget />
+          <StreakHeatmap />
         </div>
-      </div>
-
-      {/* Full-width Streak Heatmap */}
-      <div style={{ position: 'relative', zIndex: 10, marginTop: '24px' }}>
-        <StreakHeatmap />
       </div>
 
       {/* Courses Section */}
       <div style={{ position: 'relative', zIndex: 10, marginTop: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--surface-container-high)', paddingBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '32px', marginBottom: '16px' }}>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             📚 {showAll ? 'All' : `${currentSemester} ${currentYear}`} Courses
             <span style={{ fontSize: '14px', fontFamily: 'JetBrains Mono', background: 'var(--secondary-fixed)', color: 'var(--on-secondary-fixed-variant)', padding: '4px 8px', borderRadius: '6px' }}>
               {displayedCourses.length} Active

@@ -766,8 +766,8 @@ export default function GPAPage() {
   return (
     <div className="gpa-page">
       {/* Decorative blobs */}
-      <div className="notes-blob-1" />
-      <div className="notes-blob-2" />
+      <div className="blob-1" />
+      <div className="blob-2" />
 
       {/* Header */}
       <div className="gpa-header">

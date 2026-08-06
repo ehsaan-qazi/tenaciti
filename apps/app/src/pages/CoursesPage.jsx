@@ -44,7 +44,8 @@ export default function CoursesPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
         <div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '700', letterSpacing: '-0.02em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>auto_stories</span>
             My Courses
           </h1>
           <p style={{ margin: 0, fontSize: '16px', color: 'var(--on-surface-variant)' }}>

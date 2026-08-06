@@ -55,7 +55,7 @@
 
     .glass-card {
       background: var(--surface-container-lowest);
-      border-radius: var(--radius-3xl);
+      border-radius: var(--radius-lg);
       padding: 16px;
       box-shadow: 0 10px 30px -15px rgba(0,0,0,0.04);
       transition: all 0.3s ease;
