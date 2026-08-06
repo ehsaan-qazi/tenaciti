@@ -1,43 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../api/client';
+import {
+  GRADE_SCALE,
+  LETTER_GRADES,
+  PERCENTAGE_THRESHOLDS,
+  percentageToLetter,
+  gradeColor,
+} from '@tenaciti/shared';
 
 import LoadingScreen from '../components/LoadingScreen';
 
-/* =========================================================================
-   HEC 4.0 Grading Scale (COMSATS Standard — Fall 2021+)
-   ========================================================================= */
-
-const GRADE_SCALE = {
-  'A':  4.00, 'A-': 3.70,
-  'B+': 3.30, 'B':  3.00, 'B-': 2.70,
-  'C+': 2.30, 'C':  2.00, 'C-': 1.70,
-  'D':  1.00, 'F':  0.00,
-};
-
-const LETTER_GRADES = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'];
-
-// (min_percentage, letter_grade) — percentage is rounded before lookup
-const PERCENTAGE_THRESHOLDS = [
-  [85, 'A'], [80, 'A-'], [75, 'B+'], [70, 'B'], [65, 'B-'],
-  [61, 'C+'], [58, 'C'], [55, 'C-'], [50, 'D'], [0, 'F'],
-];
-
-function percentageToLetter(pct) {
-  const rounded = Math.round(pct);
-  for (const [min, letter] of PERCENTAGE_THRESHOLDS) {
-    if (rounded >= min) return letter;
-  }
-  return 'F';
-}
-
-function gradeColor(letter) {
-  const pts = GRADE_SCALE[letter] ?? 0;
-  if (pts >= 3.7) return 'var(--success)';
-  if (pts >= 3.0) return 'var(--primary)';
-  if (pts >= 2.0) return 'var(--gradient-end)'; // Amber
-  if (pts >= 1.0) return 'var(--gradient-end)'; // Amber/Orange
-  return 'var(--error)';
-}
 
 /* =========================================================================
    SGPA Calculator Tab  (client-side only — quick calculator)

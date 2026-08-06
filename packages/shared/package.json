@@ -1,0 +1,13 @@
+{
+  "name": "@tenaciti/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./gpa": "./src/gpa-calculator.js",
+    "./grade-scales": "./src/grade-scales.js"
+  },
+  "files": ["src"]
+}

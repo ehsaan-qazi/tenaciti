@@ -1,0 +1,13 @@
+/* =========================================================================
+   Tenaciti Design Tokens — Index
+   Import this file to get all design tokens.
+   
+   Usage:
+     @import '@tenaciti/tokens';
+     // or
+     @import '@tenaciti/tokens/src/index.css';
+   ========================================================================= */
+
+@import './colors.css';
+@import './typography.css';
+@import './spacing.css';
