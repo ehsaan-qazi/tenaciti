@@ -1,0 +1,24 @@
+@import "@tenaciti/tokens/src/colors.css";
+@import "@tenaciti/tokens/src/typography.css";
+@import "@tenaciti/tokens/src/spacing.css";
+@import "@tenaciti/tokens/src/gpa.css";
+@import "@tenaciti/tokens/src/buttons.css";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  background-color: var(--surface-default);
+  color: var(--on-surface);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
