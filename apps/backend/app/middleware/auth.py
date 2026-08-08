@@ -94,6 +94,10 @@ async def get_current_user(
     # Strategy 2a: Local Supabase JWT verification via JWKS (ES256)
     if jwks_client:
         try:
+            # DEBUG LOG
+            unverified_header = pyjwt.get_unverified_header(token)
+            print(f"DEBUG - Incoming Supabase JWT Header: {unverified_header}")
+
             signing_key = jwks_client.get_signing_key_from_jwt(token)
             payload = pyjwt.decode(
                 token,
