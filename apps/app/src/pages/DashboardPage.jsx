@@ -153,7 +153,6 @@ export default function DashboardPage() {
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)' }}>Your Plan</h2>
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.9)' }}>Your Plan</h2>
             <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--on-primary)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>{user?.plan === 'pro' ? 'Pro' : 'Free'}</div>
           </div>
         </div>

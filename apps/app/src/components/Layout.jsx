@@ -9,7 +9,7 @@ export default function Layout() {
   const { user } = useAuth();
 
   // Determine if we should use the new glassmorphic UI layout
-  const isGlassmorphic = location.pathname === '/' || location.pathname.startsWith('/courses') || location.pathname.startsWith('/notes') || location.pathname.startsWith('/gpa') || location.pathname.startsWith('/self-assessment') || location.pathname.startsWith('/goals');
+  const isGlassmorphic = location.pathname === '/' || location.pathname.startsWith('/courses') || location.pathname.startsWith('/notes') || location.pathname.startsWith('/gpa') || location.pathname.startsWith('/self-assessment') || location.pathname.startsWith('/goals') || location.pathname.startsWith('/settings');
 
   const streakCount = user?.streak_count ?? null;
 

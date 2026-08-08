@@ -22,14 +22,15 @@ export default function Sidebar() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '8px 12px',
-          borderRadius: '8px',
+          padding: '12px 16px',
+          borderRadius: '12px',
           cursor: 'pointer',
           transition: 'all 0.2s',
           backgroundColor: active ? 'var(--primary)' : 'transparent',
           color: active ? 'var(--on-primary)' : 'var(--on-surface-variant)',
           fontWeight: active ? '600' : '400',
-          marginBottom: '4px'
+          marginBottom: '2px',
+          boxShadow: active ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
         }}
         onMouseEnter={(e) => {
           if (!active) {
@@ -44,8 +45,8 @@ export default function Sidebar() {
           }
         }}
       >
-        <span className="material-symbols-outlined" style={{ marginRight: '10px', fontSize: '20px' }}>{icon}</span>
-        <span style={{ fontSize: '14px' }}>{label}</span>
+        <span className="material-symbols-outlined" style={{ marginRight: '12px', fontSize: '22px' }}>{icon}</span>
+        <span style={{ fontSize: '15px' }}>{label}</span>
       </div>
     );
   };
@@ -67,7 +68,7 @@ export default function Sidebar() {
           height: '64px', 
           display: 'flex', 
           alignItems: 'center', 
-          padding: '0 24px', 
+          padding: '0 20px', 
           cursor: 'pointer',
           gap: '12px'
         }}
@@ -76,7 +77,7 @@ export default function Sidebar() {
         <span style={{ fontSize: '18px', fontWeight: '600', color: 'var(--primary)', letterSpacing: '-0.02em', fontFamily: 'Hanken Grotesk' }}>Tenaciti</span>
       </div>
 
-      <nav style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column' }}>
+      <nav style={{ flex: 1, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {navItem('/', 'dashboard', 'Dashboard')}
         {navItem('/courses', 'auto_stories', 'Courses')}
         {navItem('/notes', 'note_alt', 'Notes')}
@@ -91,8 +92,8 @@ export default function Sidebar() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '8px 12px',
-              borderRadius: '8px',
+              padding: '12px 16px',
+              borderRadius: '12px',
               cursor: 'pointer',
               transition: 'all 0.2s',
               color: 'var(--error)'
@@ -104,8 +105,8 @@ export default function Sidebar() {
               e.currentTarget.style.backgroundColor = 'transparent';
             }}
           >
-            <span className="material-symbols-outlined" style={{ marginRight: '10px', fontSize: '20px' }}>logout</span>
-            <span style={{ fontSize: '14px' }}>Sign Out</span>
+            <span className="material-symbols-outlined" style={{ marginRight: '12px', fontSize: '22px' }}>logout</span>
+            <span style={{ fontSize: '15px' }}>Sign Out</span>
           </div>
         </div>
       </nav>
