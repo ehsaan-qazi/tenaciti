@@ -8,13 +8,22 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt, JWTError
 import httpx
+import jwt as pyjwt
+from jwt import PyJWKClient
 
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
 
-# Supabase uses HS256 JWTs signed with the JWT secret
-SUPABASE_ALGORITHM = "HS256"
+# Supabase uses ES256 JWTs signed with a keyed JWKS
+SUPABASE_ALGORITHM = "ES256"
+
+# Create PyJWKClient once at startup for Supabase JWT verification
+if settings.supabase_url:
+    JWKS_URL = f"{settings.supabase_url}/auth/v1/.well-known/jwks.json"
+    jwks_client = PyJWKClient(JWKS_URL)
+else:
+    jwks_client = None
 
 # Local JWT settings
 LOCAL_JWT_ALGORITHM = "HS256"
@@ -82,14 +91,16 @@ async def get_current_user(
     full_name: str | None = None
     avatar_url: str | None = None
 
-    # Strategy 2a: Local Supabase JWT verification (fast, preferred)
-    if settings.supabase_jwt_secret:
+    # Strategy 2a: Local Supabase JWT verification via JWKS (ES256)
+    if jwks_client:
         try:
-            payload = jwt.decode(
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            payload = pyjwt.decode(
                 token,
-                settings.supabase_jwt_secret,
+                signing_key.key,
                 algorithms=[SUPABASE_ALGORITHM],
                 audience="authenticated",
+                issuer=f"{settings.supabase_url}/auth/v1",
             )
             supabase_uid = payload.get("sub")
             email = payload.get("email")
@@ -97,7 +108,7 @@ async def get_current_user(
             user_metadata = payload.get("user_metadata", {})
             full_name = user_metadata.get("full_name") or user_metadata.get("name")
             avatar_url = user_metadata.get("avatar_url") or user_metadata.get("picture")
-        except JWTError as e:
+        except pyjwt.PyJWTError as e:
             print(f"Supabase JWT Verification Failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
