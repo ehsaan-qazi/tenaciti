@@ -26,6 +26,12 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    // ─── Helper: detect if the current URL looks like an OAuth callback ───
+    const isOAuthCallback = () =>
+      window.location.hash.includes('access_token')
+      || window.location.hash.includes('error')
+      || window.location.search.includes('code=')
+
     // ─── Step 1: Set up the auth state change listener FIRST ───
     // This must be registered before getSession() so we don't miss
     // the SIGNED_IN event that fires when Supabase processes the
@@ -39,8 +45,17 @@ export function AuthProvider({ children }) {
           // If no Supabase session, check if we have a local token
           const localToken = getLocalToken()
           if (!localToken) {
-            setUser(null)
-            setLoading(false)
+            // CRITICAL: Don't set loading=false if we're in the middle of
+            // a PKCE OAuth callback. The INITIAL_SESSION event fires with
+            // session=null BEFORE the code exchange completes. If we stop
+            // loading now, ProtectedRoute will redirect to /login and strip
+            // the ?code= from the URL, killing the exchange.
+            if (!isOAuthCallback()) {
+              setUser(null)
+              setLoading(false)
+            }
+            // Otherwise, keep loading=true and let getSession() or a
+            // subsequent onAuthStateChange(SIGNED_IN) handle it.
           }
         }
       }
@@ -53,8 +68,8 @@ export function AuthProvider({ children }) {
       fetchUserProfile(localToken)
     } else {
       // Check for an existing Supabase session (returning Google user)
-      // Also handles the OAuth callback: Supabase processes hash fragments
-      // in the URL during getSession() and fires onAuthStateChange above.
+      // Also handles the OAuth callback: Supabase processes the PKCE code
+      // exchange during getSession() and fires onAuthStateChange above.
       supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session)
         if (session) {
@@ -62,11 +77,7 @@ export function AuthProvider({ children }) {
         } else {
           // Only stop loading if there are NO hash/query fragments indicating
           // an OAuth callback is still being processed (Supabase v2 uses ?code= by default).
-          const hasOAuthCallback = window.location.hash.includes('access_token')
-            || window.location.hash.includes('error')
-            || window.location.search.includes('code=')
-            
-          if (!hasOAuthCallback) {
+          if (!isOAuthCallback()) {
             setLoading(false)
           } else {
             // Safety timeout: if onAuthStateChange hasn't fired within 5s,
@@ -86,6 +97,7 @@ export function AuthProvider({ children }) {
       subscription.unsubscribe()
     }
   }, [])
+
 
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
