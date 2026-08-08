@@ -60,10 +60,12 @@ export function AuthProvider({ children }) {
         if (session) {
           fetchUserProfile()
         } else {
-          // Only stop loading if there are NO hash fragments indicating
-          // an OAuth callback is still being processed.
+          // Only stop loading if there are NO hash/query fragments indicating
+          // an OAuth callback is still being processed (Supabase v2 uses ?code= by default).
           const hasOAuthCallback = window.location.hash.includes('access_token')
             || window.location.hash.includes('error')
+            || window.location.search.includes('code=')
+            
           if (!hasOAuthCallback) {
             setLoading(false)
           } else {
