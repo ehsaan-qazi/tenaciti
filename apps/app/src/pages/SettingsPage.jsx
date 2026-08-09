@@ -59,7 +59,7 @@ export default function SettingsPage() {
           <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '20px' }}>person</span>
           <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Account</h3>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="dashboard-2col-grid" style={{ gap: '16px' }}>
           <div style={{ padding: '16px', background: 'var(--surface-container-low)', borderRadius: '16px' }}>
             <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>
             <p style={{ margin: '4px 0 0', fontSize: '15px', fontWeight: 500, color: 'var(--on-surface)' }}>{user?.email || '—'}</p>

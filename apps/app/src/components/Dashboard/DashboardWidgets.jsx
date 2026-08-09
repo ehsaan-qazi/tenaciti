@@ -233,7 +233,7 @@ export function WeeklyWorkload() {
   return (
     <div className="glass-card">
       <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', color: 'var(--primary)' }}>Weekly Workload</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="dashboard-2col-grid" style={{ gap: '16px' }}>
         <div style={{ background: 'var(--surface-container)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>This Week</span>
           <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--primary)', marginBottom: '4px' }}>{data.this_week_hours.toFixed(1)}<span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>h</span></div>
@@ -278,7 +278,7 @@ export function StreakSummaryCards() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+    <div className="dashboard-2col-grid" style={{ gap: '24px' }}>
       <div className="glass-card" style={{ background: 'var(--surface-container-lowest)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', background: 'radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <span style={{ fontSize: '24px', marginBottom: '8px' }}>🔥</span>
