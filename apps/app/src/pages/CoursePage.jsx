@@ -81,7 +81,7 @@ function SelfAssessmentModal({ node, onSubmit, onClose }) {
           <div className="form-group">
             <label>Type: {node.node_type}</label>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="modal-2col-grid" style={{ gap: '1rem' }}>
             <div className="form-group">
               <label>Actual Hours Spent</label>
               <input
@@ -105,7 +105,7 @@ function SelfAssessmentModal({ node, onSubmit, onClose }) {
               </select>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="modal-2col-grid" style={{ gap: '1rem' }}>
             <div className="form-group">
               <label>Mood/Energy (1-5)</label>
               <select name="mood_energy" value={form.mood_energy} onChange={handleChange}>
@@ -796,7 +796,7 @@ export default function CoursePage() {
             </div>
 
             {/* Progress Section */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px', minWidth: '200px' }}>
+            <div className="course-header-progress" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px', minWidth: '200px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', width: '100%' }}>
                 <button style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--surface-container)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)', cursor: 'pointer', transition: 'all 0.2s' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
@@ -864,11 +864,11 @@ export default function CoursePage() {
 
       {/* ═══════════════ OVERVIEW ═══════════════ */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', position: 'relative', zIndex: 10 }}>
+        <div className="course-overview-grid" style={{ gap: '24px', position: 'relative', zIndex: 10 }}>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', gridColumn: '1 / span 2' }}>
             {/* Progress Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+            <div className="course-overview-grid" style={{ gap: '24px' }}>
               
               {/* Roadmap Card */}
               <div style={{ backgroundColor: 'var(--surface-container-lowest)', borderRadius: '24px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setActiveTab('roadmap')}>
@@ -1342,7 +1342,7 @@ export default function CoursePage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            <div className="course-overview-grid" style={{ gap: '16px' }}>
               {notes.map((note) => (
                 <div
                   key={note.id}

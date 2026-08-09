@@ -23,6 +23,144 @@
       font-family: 'Hanken Grotesk', sans-serif;
       color: var(--on-surface);
       z-index: 50;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* ═══════════════ RESPONSIVE FOUNDATION ═══════════════ */
+
+    /* Utility classes */
+    .mobile-only  { display: none !important; }
+    .desktop-only { display: flex !important; }
+
+    /* Sidebar drawer + backdrop (mobile / tablet) */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sidebar-backdrop.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Hamburger button */
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--on-surface-variant);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover { background: var(--surface-container); }
+    .hamburger-btn:active { background: var(--surface-container-high); }
+
+    /* Dashboard grids */
+    .dashboard-2col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .dashboard-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .dashboard-courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    
+    /* CoursePage grids */
+    .course-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .modal-2col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Mobile & Tablet: max-width 1023px ── */
+    @media (max-width: 1023px) {
+      .mobile-only  { display: flex !important; }
+      .desktop-only { display: none !important; }
+
+      .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+
+      .glass-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+      }
+      .glass-sidebar.sidebar-open {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Topbar: show hamburger, hide search */
+      .glass-topbar { padding: 0 16px; gap: 12px; }
+      .glass-topbar .topbar-search { display: none; }
+
+      /* Responsive page padding */
+      .responsive-page { padding: 20px 16px 48px !important; }
+    }
+
+    /* ── Small mobile: max-width 639px ── */
+    @media (max-width: 639px) {
+      .glass-topbar .topbar-actions-group { gap: 8px; }
+      .glass-topbar .topbar-actions-group .topbar-action-help { display: none; }
+      
+      .dashboard-2col-grid { grid-template-columns: 1fr; }
+      .dashboard-widget-grid { grid-template-columns: 1fr; }
+      .dashboard-courses-grid { grid-template-columns: 1fr; }
+      
+      .course-overview-grid { grid-template-columns: 1fr; }
+      .modal-2col-grid { grid-template-columns: 1fr; }
+      
+      .course-header-progress {
+        align-items: flex-start !important;
+        margin-top: 16px;
+      }
+      
+      .notes-editor-toolbar, .note-editor-toolbar {
+        flex-wrap: wrap;
+      }
+      
+      /* Modals & Forms (Milestone 8) */
+      .glass-modal-content {
+        padding: 24px !important;
+      }
+      .modal {
+        padding: 24px !important;
+      }
+      .modal-overlay {
+        padding: 16px;
+      }
+      
+      /* Prevent iOS zoom on inputs */
+      input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, textarea {
+        font-size: 16px !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .glass-sidebar { transition: none; }
+      .sidebar-backdrop { transition: none; }
     }
 
     .glass-topbar {

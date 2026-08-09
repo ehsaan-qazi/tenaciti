@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import tenacitiLogo from '../assets/tenaciti_flipped.svg';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
@@ -13,12 +13,22 @@ export default function Sidebar() {
     return location.pathname.startsWith(path);
   };
 
+  const handleNav = (path) => {
+    navigate(path);
+    // onClose triggers auto-close on mobile (Layout watches route change too,
+    // but calling onClose here ensures immediate visual feedback)
+    if (onClose) onClose();
+  };
+
   const navItem = (path, icon, label) => {
     const active = isActive(path);
     return (
       <div
         className="nav-item-glass"
-        onClick={() => navigate(path)}
+        onClick={() => handleNav(path)}
+        role="link"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter') handleNav(path); }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -31,6 +41,7 @@ export default function Sidebar() {
           fontWeight: active ? '600' : '400',
           marginBottom: '2px',
           boxShadow: active ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+          WebkitTapHighlightColor: 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!active) {
@@ -61,9 +72,9 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="glass-sidebar">
+    <aside className={`glass-sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div 
-        onClick={() => navigate('/')} 
+        onClick={() => handleNav('/')} 
         style={{ 
           height: '64px', 
           display: 'flex', 
@@ -89,6 +100,9 @@ export default function Sidebar() {
           {navItem('/settings', 'settings', 'Settings')}
           <div
             onClick={handleLogout}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleLogout(); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -96,7 +110,8 @@ export default function Sidebar() {
               borderRadius: '12px',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              color: 'var(--error)'
+              color: 'var(--error)',
+              WebkitTapHighlightColor: 'transparent',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--error-container)';

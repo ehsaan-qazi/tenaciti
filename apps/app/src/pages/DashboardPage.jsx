@@ -160,7 +160,7 @@ export default function DashboardPage() {
 
       {/* Main Dashboard Grid */}
       {/* 2-Column Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+      <div className="dashboard-widget-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <WeeklyWorkloadWidget />
           <TopicCoverageWidget />
@@ -194,13 +194,13 @@ export default function DashboardPage() {
         </div>
 
         {loadingCourses ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+          <div className="dashboard-courses-grid">
             {[1, 2, 3].map((i) => (
               <div key={i} className="glass-card" style={{ height: '240px', animation: 'pulse 2s infinite' }} />
             ))}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+          <div className="dashboard-courses-grid">
             {displayedCourses.map((course) => (
               <CourseCard
                 key={course.id}

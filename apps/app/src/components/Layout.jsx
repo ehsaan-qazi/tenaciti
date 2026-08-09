@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
@@ -7,21 +7,69 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Determine if we should use the new glassmorphic UI layout
   const isGlassmorphic = location.pathname === '/' || location.pathname.startsWith('/courses') || location.pathname.startsWith('/notes') || location.pathname.startsWith('/gpa') || location.pathname.startsWith('/self-assessment') || location.pathname.startsWith('/goals') || location.pathname.startsWith('/settings');
 
   const streakCount = user?.streak_count ?? null;
 
+  // Auto-close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarOpen]);
+
+  // Prevent body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
+
   return (
     <>
-      <Sidebar />
+      {/* Sidebar backdrop (mobile only — visible class controlled by state) */}
+      <div 
+        className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
+
       <div className={isGlassmorphic ? "glass-main-bg" : "main"}>
         {isGlassmorphic ? (
           <header className="glass-topbar">
-            <div style={{ flex: 1, maxWidth: '600px', display: 'flex', alignItems: 'center', position: 'relative' }}>
+            {/* Hamburger — visible only on mobile/tablet via CSS */}
+            <button
+              className="hamburger-btn"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={sidebarOpen}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>menu</span>
+            </button>
+
+            {/* Search — hidden on mobile via .topbar-search class */}
+            <div className="topbar-search" style={{ flex: 1, maxWidth: '600px', display: 'flex', alignItems: 'center', position: 'relative' }}>
               <span className="material-symbols-outlined" style={{ position: 'absolute', left: '16px', color: 'var(--on-surface-variant)', fontSize: '20px' }}>search</span>
-              {/* Requires functionality comment added per instructions */}
               <input 
                 type="text" 
                 className="glass-input-search" 
@@ -30,8 +78,9 @@ export default function Layout() {
                 title="Search requires backend implementation"
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <button style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
+
+            <div className="topbar-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <button className="topbar-action-help" style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>help</span>
               </button>
               <button style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', position: 'relative' }}>
@@ -45,7 +94,7 @@ export default function Layout() {
                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'var(--on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold' }}>
                   {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
                 </div>
-                <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>expand_more</span>
+                <span className="material-symbols-outlined desktop-only" style={{ color: 'var(--on-surface-variant)' }}>expand_more</span>
               </div>
             </div>
           </header>
