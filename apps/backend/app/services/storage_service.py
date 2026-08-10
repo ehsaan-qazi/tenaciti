@@ -7,6 +7,12 @@ R2 is configured as an S3-compatible endpoint using the account ID.
 
 import hashlib
 
+import os
+
+# Disable new boto3 checksums that break Cloudflare R2 signature calculation (boto3 >= 1.36)
+os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
+
 import boto3
 from botocore.config import Config as BotoConfig
 
@@ -23,8 +29,8 @@ def _get_r2_client():
         config=BotoConfig(
             region_name="auto",
             signature_version="s3v4",
-            # R2 requires virtual-hosted-style addressing
-            s3={"addressing_style": "virtual"},
+            # R2 requires path-style addressing, NOT virtual-hosted
+            s3={"addressing_style": "path"},
         ),
     )
 
