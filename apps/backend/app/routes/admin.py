@@ -36,3 +36,37 @@ async def get_llm_status(current_user: User = Depends(get_verified_user)) -> dic
         },
         "models": router_instance.status(),
     }
+
+
+import os
+import boto3
+from botocore.config import Config
+
+@router.get("/debug/test-r2")
+def test_r2(secret: str):
+    if secret != os.environ.get("DEBUG_SECRET"):
+        raise HTTPException(status_code=404)
+
+    try:
+        client = boto3.client(
+            's3',
+            endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
+            aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+            region_name='auto',
+            config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
+        )
+        resp = client.put_object(
+            Bucket=os.environ['R2_BUCKET_NAME'],
+            Key='debug-test.txt',
+            Body=b'hello from render'
+        )
+        return {"success": True, "etag": resp.get("ETag")}
+    except Exception as e:
+        return {
+            "success": False,
+            "error_type": type(e).__name__,
+            "error": str(e),
+            "boto3_version": boto3.__version__,
+            "response_meta": getattr(e, "response", {}).get("ResponseMetadata", {}) if hasattr(e, "response") else None,
+        }
