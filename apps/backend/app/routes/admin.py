@@ -64,6 +64,7 @@ def test_r2(secret: str):
         return {"success": True, "etag": resp.get("ETag")}
     except Exception as e:
         error_dict = getattr(e, "response", {}).get("Error", {}) if hasattr(e, "response") else {}
+        secret = os.environ.get('R2_SECRET_ACCESS_KEY', '')
         return {
             "success": False,
             "error_type": type(e).__name__,
@@ -71,5 +72,8 @@ def test_r2(secret: str):
             "boto3_version": boto3.__version__,
             "full_error_details": error_dict,
             "access_key_being_used": os.environ.get('R2_ACCESS_KEY_ID', '')[:4] + '...' + os.environ.get('R2_ACCESS_KEY_ID', '')[-4:],
+            "secret_key_length": len(secret),
+            "secret_key_first_4": secret[:4],
+            "secret_key_last_4": secret[-4:],
             "response_meta": getattr(e, "response", {}).get("ResponseMetadata", {}) if hasattr(e, "response") else None,
         }
