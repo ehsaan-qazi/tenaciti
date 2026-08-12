@@ -17,6 +17,26 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Tenaciti | The AI Workspace for Students',
   description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
+  openGraph: {
+    title: 'Tenaciti | The AI Workspace for Students',
+    description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
+    url: 'https://www.tenaciti.app',
+    siteName: 'Tenaciti',
+    images: [
+      {
+        url: '/tenaciti-og.jpeg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tenaciti | The AI Workspace for Students',
+    description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
+    images: ['/tenaciti-og.jpeg'],
+  },
 };
 
 export default function RootLayout({
