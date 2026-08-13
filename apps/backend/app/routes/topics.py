@@ -271,62 +271,101 @@ async def merge_topics(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Merge multiple source topics into a target topic."""
-    if len(merge_in.source_ids) < 2:
-        raise HTTPException(status_code=400, detail="Need at least 2 source topics to merge")
+    """
+    Merge multiple source topics into a target topic safely.
+    Consolidates completions and reassigns notes to prevent constraint errors.
+    """
+    # Deduplicate source_ids in request
+    source_ids = list(dict.fromkeys(merge_in.source_ids))
+    if len(source_ids) < 2:
+        raise HTTPException(status_code=400, detail="Need at least 2 unique source topics to merge")
 
     # Verify all source topics belong to user
     result = await db.execute(
         select(Topic).where(
-            Topic.id.in_(merge_in.source_ids),
+            Topic.id.in_(source_ids),
             Topic.user_id == current_user.id
         )
     )
     source_topics = {t.id: t for t in result.scalars().all()}
 
-    if len(source_topics) != len(merge_in.source_ids):
+    if len(source_topics) != len(source_ids):
         raise HTTPException(status_code=404, detail="One or more source topics not found")
+
+    # Ensure all topics belong to the same course
+    course_ids = {t.course_id for t in source_topics.values()}
+    if len(course_ids) > 1:
+        raise HTTPException(status_code=400, detail="Cannot merge topics from different courses")
 
     # Verify target topic belongs to user (if provided) or create new
     if merge_in.target_id:
-        target_result = await db.execute(
-            select(Topic).where(Topic.id == merge_in.target_id, Topic.user_id == current_user.id)
-        )
-        target_topic = target_result.scalar_one_or_none()
-        if not target_topic:
-            raise HTTPException(status_code=404, detail="Target topic not found")
+        if merge_in.target_id in source_topics:
+            target_topic = source_topics[merge_in.target_id]
+        else:
+            target_result = await db.execute(
+                select(Topic).where(Topic.id == merge_in.target_id, Topic.user_id == current_user.id)
+            )
+            target_topic = target_result.scalar_one_or_none()
+            if not target_topic:
+                raise HTTPException(status_code=404, detail="Target topic not found")
     else:
         # Create new merged topic
         target_topic = Topic(
-            course_id=source_topics[merge_in.source_ids[0]].course_id,
+            course_id=source_topics[source_ids[0]].course_id,
             user_id=current_user.id,
             title=merge_in.new_title or "Merged Topic",
             order_index=min(t.order_index for t in source_topics.values()),
-            is_confirmed=False,
+            is_confirmed=any(t.is_confirmed for t in source_topics.values()),
         )
         db.add(target_topic)
         await db.flush()
 
-    # Update completion records to point to target
-    for source_id in merge_in.source_ids:
-        if source_id == merge_in.target_id:
-            continue
-        comp_result = await db.execute(
-            select(TopicCompletion).where(
-                TopicCompletion.topic_id == source_id,
-                TopicCompletion.user_id == current_user.id
+    # ── Handle TopicCompletions without UniqueConstraint violation ──
+    all_merge_topic_ids = list(set(source_ids) | {target_topic.id})
+    completions_result = await db.execute(
+        select(TopicCompletion).where(
+            TopicCompletion.topic_id.in_(all_merge_topic_ids),
+            TopicCompletion.user_id == current_user.id
+        )
+    )
+    all_completions = completions_result.scalars().all()
+
+    if all_completions:
+        # Pick the best completion: prioritize is_completed=True, highest confidence_rating, latest completed_at
+        best_comp = max(
+            all_completions,
+            key=lambda c: (
+                1 if c.is_completed else 0,
+                c.confidence_rating or 0,
+                c.completed_at.timestamp() if c.completed_at else 0
             )
         )
-        completion = comp_result.scalar_one_or_none()
-        if completion:
-            completion.topic_id = target_topic.id
 
-    # Delete source topics (except target)
-    for source_id in merge_in.source_ids:
-        if source_id != merge_in.target_id:
-            source_topic = source_topics.get(source_id)
-            if source_topic:
-                await db.delete(source_topic)
+        # Consolidate target completion: keep best_comp on target_topic.id, delete others
+        for comp in all_completions:
+            if comp.id == best_comp.id:
+                comp.topic_id = target_topic.id
+            else:
+                await db.delete(comp)
+
+    # ── Reassign Notes attached to source topics to target_topic ──
+    non_target_source_ids = [sid for sid in source_ids if sid != target_topic.id]
+    if non_target_source_ids:
+        from app.models.note import Note
+        notes_result = await db.execute(
+            select(Note).where(
+                Note.topic_id.in_(non_target_source_ids),
+                Note.user_id == current_user.id
+            )
+        )
+        for note in notes_result.scalars().all():
+            note.topic_id = target_topic.id
+
+    # ── Delete source topics (except target) ──
+    for source_id in non_target_source_ids:
+        source_topic = source_topics.get(source_id)
+        if source_topic:
+            await db.delete(source_topic)
 
     # Update target title if provided
     if merge_in.new_title:

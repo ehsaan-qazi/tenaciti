@@ -50,8 +50,15 @@ class NoteWithBacklinks(NoteResponse):
 
 
 class NoteSearchResponse(BaseModel):
-    """Search result with relevance score."""
+    """Search result with relevance score and metadata."""
     id: int
     title: str
     content: str
     snippet: Optional[str] = None  # Highlighted snippet of the match
+    course_id: Optional[int] = None
+    roadmap_node_id: Optional[int] = None
+    topic_id: Optional[int] = None
+    is_stub: bool = False
+    is_quick_capture: bool = False
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
