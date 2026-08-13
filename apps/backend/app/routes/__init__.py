@@ -12,6 +12,8 @@ from app.routes import (
     streaks,
     billing,
     admin,
+    search,
+    notifications,
 )
 
 __all__ = [
@@ -27,4 +29,6 @@ __all__ = [
     "streaks",
     "billing",
     "admin",
+    "search",
+    "notifications",
 ]
