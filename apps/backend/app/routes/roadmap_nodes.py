@@ -11,6 +11,7 @@ from app.middleware.auth import get_verified_user
 from app.models.user import User
 from app.models.course import Course
 from app.models.roadmap_node import RoadmapNode
+from app.models.self_assessment_log import SelfAssessmentLog
 from app.schemas.roadmap_node import (
     RoadmapNodeCreate,
     RoadmapNodeUpdate,
@@ -36,13 +37,29 @@ def _recompute_placeholder(node: RoadmapNode) -> None:
     node.is_placeholder = node.deadline is None or node.weight_percent is None
 
 
+def _to_node_response(node: RoadmapNode, assessment: SelfAssessmentLog | None = None) -> RoadmapNodeResponse:
+    resp = RoadmapNodeResponse.model_validate(node)
+    if assessment:
+        resp.quality_self_rating = assessment.quality_self_rating
+        resp.mood_energy = assessment.mood_energy
+        resp.reflection_note = assessment.reflection_note
+        resp.hours_before_deadline = float(assessment.hours_before_deadline) if assessment.hours_before_deadline is not None else None
+        
+        if node.confidence_at_creation is not None and assessment.quality_self_rating is not None:
+            resp.confidence_gap = round(float(assessment.quality_self_rating - node.confidence_at_creation), 2)
+            
+        if node.estimated_hours is not None and node.actual_hours is not None:
+            resp.hours_gap = round(float(node.actual_hours - node.estimated_hours), 2)
+    return resp
+
+
 @router.get("/courses/{course_id}", response_model=List[RoadmapNodeResponse])
 async def list_course_roadmap_nodes(
     course_id: int,
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all roadmap nodes for a course (newest first)."""
+    """List all roadmap nodes for a course (newest first), with self-assessment gap metrics."""
     result = await db.execute(
         select(Course).where(Course.id == course_id, Course.user_id == current_user.id)
     )
@@ -50,11 +67,14 @@ async def list_course_roadmap_nodes(
         raise HTTPException(status_code=404, detail="Course not found")
 
     nodes_result = await db.execute(
-        select(RoadmapNode)
+        select(RoadmapNode, SelfAssessmentLog)
+        .outerjoin(SelfAssessmentLog, SelfAssessmentLog.roadmap_node_id == RoadmapNode.id)
         .where(RoadmapNode.course_id == course_id, RoadmapNode.user_id == current_user.id)
         .order_by(RoadmapNode.created_at.asc())
     )
-    return nodes_result.scalars().all()
+    
+    return [_to_node_response(node, assessment) for node, assessment in nodes_result.all()]
+
 
 
 @router.post("/courses/{course_id}", response_model=RoadmapNodeResponse, status_code=status.HTTP_201_CREATED)
@@ -97,12 +117,15 @@ async def get_roadmap_node(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(RoadmapNode).where(RoadmapNode.id == node_id, RoadmapNode.user_id == current_user.id)
+        select(RoadmapNode, SelfAssessmentLog)
+        .outerjoin(SelfAssessmentLog, SelfAssessmentLog.roadmap_node_id == RoadmapNode.id)
+        .where(RoadmapNode.id == node_id, RoadmapNode.user_id == current_user.id)
     )
-    node = result.scalar_one_or_none()
-    if not node:
+    row = result.first()
+    if not row:
         raise HTTPException(status_code=404, detail="Roadmap node not found")
-    return node
+    node, assessment = row
+    return _to_node_response(node, assessment)
 
 
 @router.put("/{node_id}", response_model=RoadmapNodeResponse)
