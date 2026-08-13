@@ -1,7 +1,7 @@
 """Note routes — CRUD for markdown notes with wikilinks and backlinks."""
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +15,8 @@ from app.models.note_link import NoteLink
 from app.models.course import Course
 from app.models.roadmap_node import RoadmapNode
 from app.models.topic import Topic
-from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse, NoteWithBacklinks, NoteSearchResponse
+from app.schemas.note import NoteCreate, NoteUpdate, NotePinToggle, NoteResponse, NoteWithBacklinks, NoteSearchResponse
+from app.schemas.timeline import TimelineGroup, TimelineResponse
 from app.services.streak_service import StreakService
 
 router = APIRouter(prefix="/notes", tags=["Notes"])
@@ -26,13 +27,81 @@ async def list_notes(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all notes for the current user."""
+    """List all notes for the current user (pinned notes first)."""
     result = await db.execute(
         select(Note)
         .where(Note.user_id == current_user.id)
-        .order_by(Note.updated_at.desc())
+        .order_by(Note.is_pinned.desc(), Note.updated_at.desc())
     )
     return result.scalars().all()
+
+
+@router.get("/timeline", response_model=TimelineResponse)
+async def get_notes_timeline(
+    group_by: str = Query("day", pattern="^(day|week|month)$"),
+    course_id: Optional[int] = Query(None),
+    limit: int = Query(100, ge=1, le=200),
+    current_user: User = Depends(get_verified_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get user notes grouped temporally by creation/update date (day, week, or month).
+    Pinned notes are prioritized within each group.
+    """
+    stmt = select(Note).where(Note.user_id == current_user.id)
+    if course_id is not None:
+        stmt = stmt.where(Note.course_id == course_id)
+
+    stmt = stmt.order_by(Note.is_pinned.desc(), Note.updated_at.desc()).limit(limit)
+
+    result = await db.execute(stmt)
+    notes = result.scalars().all()
+
+    from collections import defaultdict
+    now = datetime.now(timezone.utc)
+
+    groups_map = defaultdict(list)
+    group_labels = {}
+
+    for note in notes:
+        dt = note.updated_at or note.created_at
+        if group_by == "month":
+            key = dt.strftime("%Y-%m")
+            label = dt.strftime("%B %Y")
+        elif group_by == "week":
+            iso_year, iso_week, _ = dt.isocalendar()
+            key = f"{iso_year}-W{iso_week:02d}"
+            label = f"Week of {dt.strftime('%b %d, %Y')}"
+        else:  # day
+            key = dt.strftime("%Y-%m-%d")
+            days_diff = (now.date() - dt.date()).days
+            if days_diff == 0:
+                label = "Today"
+            elif days_diff == 1:
+                label = "Yesterday"
+            elif days_diff < 7:
+                label = dt.strftime("%A (%b %d)")
+            else:
+                label = dt.strftime("%B %d, %Y")
+
+        groups_map[key].append(NoteResponse.model_validate(note))
+        group_labels[key] = label
+
+    timeline_groups = []
+    for key in sorted(groups_map.keys(), reverse=True):
+        notes_list = groups_map[key]
+        timeline_groups.append(TimelineGroup(
+            group_label=group_labels[key],
+            group_key=key,
+            note_count=len(notes_list),
+            notes=notes_list
+        ))
+
+    return TimelineResponse(
+        group_by=group_by,
+        total_notes=len(notes),
+        groups=timeline_groups,
+    )
 
 
 @router.get("/courses/{course_id}", response_model=List[NoteResponse])
@@ -41,7 +110,7 @@ async def list_course_notes(
     current_user: User = Depends(get_verified_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all notes for a specific course."""
+    """List all notes for a specific course (pinned notes first)."""
     # Verify course ownership
     result = await db.execute(
         select(Course).where(Course.id == course_id, Course.user_id == current_user.id)
@@ -52,7 +121,7 @@ async def list_course_notes(
     result = await db.execute(
         select(Note)
         .where(Note.course_id == course_id, Note.user_id == current_user.id)
-        .order_by(Note.updated_at.desc())
+        .order_by(Note.is_pinned.desc(), Note.updated_at.desc())
     )
     return result.scalars().all()
 
@@ -160,15 +229,15 @@ async def search_notes(
 
     # 4. Sorting
     if sort_by == "relevance" and rank_expr is not None:
-        query_stmt = query_stmt.order_by(rank_expr.desc(), Note.updated_at.desc())
+        query_stmt = query_stmt.order_by(rank_expr.desc(), Note.is_pinned.desc(), Note.updated_at.desc())
     elif sort_by == "date_asc":
-        query_stmt = query_stmt.order_by(Note.updated_at.asc())
+        query_stmt = query_stmt.order_by(Note.is_pinned.desc(), Note.updated_at.asc())
     elif sort_by == "title_asc":
         query_stmt = query_stmt.order_by(Note.title.asc())
     elif sort_by == "title_desc":
         query_stmt = query_stmt.order_by(Note.title.desc())
     else:  # date_desc or fallback
-        query_stmt = query_stmt.order_by(Note.updated_at.desc())
+        query_stmt = query_stmt.order_by(Note.is_pinned.desc(), Note.updated_at.desc())
 
     # 5. Pagination
     query_stmt = query_stmt.offset(offset).limit(limit)
@@ -188,7 +257,7 @@ async def search_notes(
             ilike_stmt = ilike_stmt.where(Note.updated_at >= date_from)
         if date_to is not None:
             ilike_stmt = ilike_stmt.where(Note.updated_at <= date_to)
-        ilike_stmt = ilike_stmt.order_by(Note.updated_at.desc()).offset(offset).limit(limit)
+        ilike_stmt = ilike_stmt.order_by(Note.is_pinned.desc(), Note.updated_at.desc()).offset(offset).limit(limit)
         ilike_res = await db.execute(ilike_stmt)
         notes = ilike_res.scalars().all()
 
@@ -207,6 +276,7 @@ async def search_notes(
 
         responses.append(NoteSearchResponse(
             id=note.id,
+            user_id=note.user_id,
             title=note.title,
             content=content,
             snippet=snippet,
@@ -215,6 +285,7 @@ async def search_notes(
             roadmap_node_id=note.roadmap_node_id,
             is_stub=note.is_stub,
             is_quick_capture=note.is_quick_capture,
+            is_pinned=note.is_pinned,
             created_at=note.created_at,
             updated_at=note.updated_at,
         ))
@@ -255,6 +326,7 @@ async def get_note(
         content=note.content,
         is_stub=note.is_stub,
         is_quick_capture=note.is_quick_capture,
+        is_pinned=note.is_pinned,
         created_at=note.created_at,
         updated_at=note.updated_at,
         backlinks=backlinks,
@@ -298,6 +370,27 @@ async def update_note(
         db=db,
     )
 
+    return note
+
+
+@router.patch("/{note_id}/pin", response_model=NoteResponse)
+async def toggle_pin_note(
+    note_id: int,
+    pin_in: NotePinToggle,
+    current_user: User = Depends(get_verified_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Pin or unpin a note."""
+    result = await db.execute(
+        select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+    )
+    note = result.scalar_one_or_none()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    note.is_pinned = pin_in.is_pinned
+    await db.flush()
+    await db.refresh(note)
     return note
 
 

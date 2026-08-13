@@ -46,9 +46,10 @@ export default function NotesPage() {
     setLoading(true)
     try {
       const data = await apiFetch('/notes')
-      setNotes(data)
+      setNotes(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Failed to fetch notes:', err)
+      setNotes([])
     } finally {
       setLoading(false)
     }
@@ -60,7 +61,7 @@ export default function NotesPage() {
     try {
       const data = await apiFetch(`/notes/${noteId}`)
       setActiveNote(data)
-      setBacklinks(data.backlinks || [])
+      setBacklinks(Array.isArray(data.backlinks) ? data.backlinks : [])
     } catch (err) {
       console.error('Failed to fetch note:', err)
     }
@@ -70,7 +71,7 @@ export default function NotesPage() {
   const fetchBacklinks = useCallback(async (noteId) => {
     try {
       const data = await apiFetch(`/notes/backlinks/${noteId}`)
-      setBacklinks(data)
+      setBacklinks(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Failed to fetch backlinks:', err)
     }
@@ -102,7 +103,7 @@ export default function NotesPage() {
         method: 'POST',
         body: JSON.stringify(newNote),
       })
-      setNotes([created, ...notes])
+      setNotes((prev) => [created, ...(Array.isArray(prev) ? prev : [])])
       navigate(`/notes/${created.id}`)
     } catch (err) {
       console.error('Failed to create note:', err)
@@ -120,7 +121,7 @@ export default function NotesPage() {
           is_quick_capture: true,
         }),
       })
-      setNotes([created, ...notes])
+      setNotes((prev) => [created, ...(Array.isArray(prev) ? prev : [])])
       setQuickCaptureOpen(false)
       setQuickCaptureNote(null)
     } catch (err) {
@@ -130,7 +131,7 @@ export default function NotesPage() {
 
   // Update note
   const handleUpdateNote = async (updatedNote) => {
-    setNotes(notes.map((n) => n.id === updatedNote.id ? updatedNote : n))
+    setNotes((prev) => (Array.isArray(prev) ? prev : []).map((n) => (n.id === updatedNote.id ? updatedNote : n)))
     setActiveNote(updatedNote)
   }
 
@@ -139,7 +140,7 @@ export default function NotesPage() {
     if (!confirm('Delete this note?')) return
     try {
       await apiFetch(`/notes/${noteId}`, { method: 'DELETE' })
-      setNotes(notes.filter((n) => n.id !== noteId))
+      setNotes((prev) => (Array.isArray(prev) ? prev : []).filter((n) => n.id !== noteId))
       navigate('/notes')
     } catch (err) {
       console.error('Delete failed:', err)
@@ -157,7 +158,7 @@ export default function NotesPage() {
     const fetchCoursesList = async () => {
       try {
         const data = await apiFetch('/courses')
-        setCourses(data || [])
+        setCourses(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Failed to fetch courses for filter:', err)
       }
@@ -177,7 +178,7 @@ export default function NotesPage() {
       const queryString = params.toString()
       const url = queryString ? `/notes/search?${queryString}` : '/notes'
       const data = await apiFetch(url)
-      setNotes(data)
+      setNotes(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Search failed:', err)
     } finally {
@@ -185,15 +186,63 @@ export default function NotesPage() {
     }
   }, [])
 
-  // Trigger search on filter/sort change
+  // Trigger search on filter/sort change (only when filter or query is present)
   useEffect(() => {
     if (!id && view === 'list') {
-      const timer = setTimeout(() => {
-        handleSearch(searchQuery, selectedCourseId, sortBy)
-      }, 250)
-      return () => clearTimeout(timer)
+      if (searchQuery.trim() || selectedCourseId || sortBy !== 'date_desc') {
+        const timer = setTimeout(() => {
+          handleSearch(searchQuery, selectedCourseId, sortBy)
+        }, 250)
+        return () => clearTimeout(timer)
+      }
     }
   }, [searchQuery, selectedCourseId, sortBy, id, view, handleSearch])
+
+  // Timeline state
+  const [timelineData, setTimelineData] = useState(null)
+  const [timelineGroupBy, setTimelineGroupBy] = useState('day')
+  const [timelineLoading, setTimelineLoading] = useState(false)
+
+  // Fetch timeline data
+  const fetchTimeline = useCallback(async () => {
+    setTimelineLoading(true)
+    try {
+      let url = `/notes/timeline?group_by=${timelineGroupBy}`
+      if (selectedCourseId) url += `&course_id=${selectedCourseId}`
+      const data = await apiFetch(url)
+      setTimelineData(data)
+    } catch (err) {
+      console.error('Failed to fetch timeline:', err)
+    } finally {
+      setTimelineLoading(false)
+    }
+  }, [timelineGroupBy, selectedCourseId])
+
+  useEffect(() => {
+    if (view === 'timeline') {
+      fetchTimeline()
+    }
+  }, [view, timelineGroupBy, selectedCourseId, fetchTimeline])
+
+  // Toggle pin status for a note
+  const handleTogglePin = async (e, noteId, currentPinned) => {
+    e.stopPropagation()
+    try {
+      const updated = await apiFetch(`/notes/${noteId}/pin`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_pinned: !currentPinned }),
+      })
+      setNotes((prev) => {
+        const list = (Array.isArray(prev) ? prev : []).map((n) => (n.id === noteId ? updated : n))
+        return list.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
+      })
+      if (view === 'timeline') {
+        fetchTimeline()
+      }
+    } catch (err) {
+      console.error('Pin toggle failed:', err)
+    }
+  }
 
   // Format relative time
   const formatRelativeTime = (dateStr) => {
@@ -235,6 +284,13 @@ export default function NotesPage() {
           >
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--gradient-end)' }}>bolt</span>
             Quick Capture
+          </button>
+          <button
+            className={`notes-action-btn ${view === 'timeline' ? 'primary' : ''}`}
+            onClick={() => setView('timeline')}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>timeline</span>
+            Timeline View
           </button>
           <button
             className="notes-action-btn"
@@ -364,7 +420,7 @@ export default function NotesPage() {
           <span className="spinner" style={{ borderTopColor: 'var(--secondary)' }} />
           Loading notes...
         </div>
-      ) : notes.length === 0 ? (
+      ) : (Array.isArray(notes) ? notes : []).length === 0 ? (
         <div className="notes-empty-state">
           <div className="empty-icon">📝</div>
           <p>No notes yet. Create your first note to start linking knowledge.</p>
@@ -375,7 +431,7 @@ export default function NotesPage() {
         </div>
       ) : (
         <div className="notes-card-grid">
-          {notes.map((note) => (
+          {(Array.isArray(notes) ? notes : []).map((note) => (
             <div
               key={note.id}
               className="notes-card"
@@ -384,7 +440,10 @@ export default function NotesPage() {
               <div className="card-corner-glow" />
               <div className="notes-card-header">
                 <div className="title-area">
-                  <h3>{note.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {note.is_pinned && <span style={{ fontSize: '14px', color: '#f59e0b' }} title="Pinned note">📌</span>}
+                    <h3>{note.title}</h3>
+                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {note.course_id && (
                       <span className="notes-card-badge">
@@ -398,16 +457,28 @@ export default function NotesPage() {
                     )}
                   </div>
                 </div>
-                <button
-                  className="notes-card-delete"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteNote(note.id)
-                  }}
-                  title="Delete note"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    className="notes-card-delete"
+                    onClick={(e) => handleTogglePin(e, note.id, note.is_pinned)}
+                    title={note.is_pinned ? "Unpin note" : "Pin note"}
+                    style={{ color: note.is_pinned ? '#f59e0b' : 'inherit' }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      {note.is_pinned ? 'push_pin' : 'keep'}
+                    </span>
+                  </button>
+                  <button
+                    className="notes-card-delete"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteNote(note.id)
+                    }}
+                    title="Delete note"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+                  </button>
+                </div>
               </div>
               <div className="notes-card-body">
                 <p className={note.is_stub ? 'stub-content' : ''}>
@@ -418,6 +489,146 @@ export default function NotesPage() {
                 <span>
                   {note.updated_at ? `Updated ${formatRelativeTime(note.updated_at)}` : ''}
                 </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+  // ── Timeline View ─────────────────────────────────
+  const renderTimelineView = () => (
+    <div className="notes-page">
+      <div className="notes-blob-1" />
+      <div className="notes-blob-2" />
+
+      <div className="notes-header">
+        <h1>
+          <span style={{ fontSize: '40px' }}>⏳</span> Notes Timeline
+        </h1>
+        <div className="notes-header-actions">
+          <div style={{ display: 'flex', backgroundColor: 'var(--surface-container-high)', borderRadius: '12px', padding: '4px', border: '1px solid var(--outline-variant)' }}>
+            <button
+              onClick={() => setView('list')}
+              style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>list</span> List
+            </button>
+            <button
+              style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'var(--on-primary)', fontWeight: '600', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>timeline</span> Timeline
+            </button>
+            <button
+              onClick={() => setView('graph')}
+              style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>hub</span> Graph
+            </button>
+          </div>
+
+          <button className="notes-action-btn primary" onClick={handleCreateNote}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span> New Note
+          </button>
+        </div>
+      </div>
+
+      {/* Timeline Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '14px', color: 'var(--on-surface-variant)', fontWeight: '500' }}>Group Timeline By:</span>
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--surface-container-high)', padding: '4px', borderRadius: '10px' }}>
+            {['day', 'week', 'month'].map((scale) => (
+              <button
+                key={scale}
+                onClick={() => setTimelineGroupBy(scale)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: timelineGroupBy === scale ? 'var(--surface-container-highest)' : 'transparent',
+                  color: timelineGroupBy === scale ? 'var(--primary)' : 'var(--on-surface-variant)',
+                  fontWeight: timelineGroupBy === scale ? '600' : '400',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {scale}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {courses.length > 0 && (
+          <select
+            value={selectedCourseId}
+            onChange={(e) => setSelectedCourseId(e.target.value)}
+            style={{ padding: '6px 12px', borderRadius: '8px', backgroundColor: 'var(--surface-container-high)', color: 'var(--on-surface)', border: '1px solid var(--outline-variant)', fontSize: '13px' }}
+          >
+            <option value="">All Courses</option>
+            {courses.map(c => (
+              <option key={c.id} value={c.id}>{c.code ? `${c.code} - ${c.name}` : c.name}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {timelineLoading ? (
+        <div className="notes-loading">
+          <span className="spinner" style={{ borderTopColor: 'var(--primary)' }} />
+          Building timeline...
+        </div>
+      ) : !timelineData || timelineData.groups.length === 0 ? (
+        <div className="notes-empty-state">
+          <div className="empty-icon">⏳</div>
+          <p>No notes found in timeline.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', position: 'relative' }}>
+          {/* Vertical timeline spine */}
+          <div style={{ position: 'absolute', left: '19px', top: '24px', bottom: '24px', width: '2px', backgroundColor: 'var(--outline-variant)', opacity: 0.4 }} />
+
+          {timelineData.groups.map((group) => (
+            <div key={group.group_key} style={{ position: 'relative', paddingLeft: '48px' }}>
+              {/* Group node dot */}
+              <div style={{ position: 'absolute', left: '10px', top: '4px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'var(--surface-container-lowest)', border: '3px solid var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--on-surface)' }}>{group.group_label}</h3>
+                <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)', backgroundColor: 'var(--surface-container-high)', padding: '2px 8px', borderRadius: '12px' }}>
+                  {group.note_count} {group.note_count === 1 ? 'note' : 'notes'}
+                </span>
+              </div>
+
+              <div className="notes-card-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {group.notes.map((note) => (
+                  <div key={note.id} className="notes-card" onClick={() => navigate(`/notes/${note.id}`)}>
+                    <div className="card-corner-glow" />
+                    <div className="notes-card-header">
+                      <div className="title-area">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {note.is_pinned && <span style={{ fontSize: '14px', color: '#f59e0b' }} title="Pinned note">📌</span>}
+                          <h3>{note.title}</h3>
+                        </div>
+                        {note.is_stub && <span className="notes-card-badge stub">Stub</span>}
+                      </div>
+                      <button
+                        onClick={(e) => handleTogglePin(e, note.id, note.is_pinned)}
+                        title={note.is_pinned ? "Unpin note" : "Pin note"}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: note.is_pinned ? '#f59e0b' : 'var(--on-surface-variant)' }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                          {note.is_pinned ? 'push_pin' : 'keep'}
+                        </span>
+                      </button>
+                    </div>
+                    <div className="notes-card-body">
+                      <p>{(note.content || '').slice(0, 150) || 'Empty note...'}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -473,7 +684,7 @@ export default function NotesPage() {
           note={activeNote}
           onSave={handleUpdateNote}
           onCancel={() => navigate('/notes')}
-          availableNotes={notes.filter((n) => n.id !== activeNote?.id)}
+          availableNotes={(Array.isArray(notes) ? notes : []).filter((n) => n.id !== activeNote?.id)}
         />
 
         {/* Backlinks sidebar */}
@@ -512,7 +723,7 @@ export default function NotesPage() {
       </div>
 
       <GraphView
-        notes={notes}
+        notes={Array.isArray(notes) ? notes : []}
         onNodeClick={(noteId) => navigate(`/notes/${noteId}`)}
       />
     </div>
@@ -574,6 +785,7 @@ export default function NotesPage() {
   return (
     <>
       {view === 'list' && renderListView()}
+      {view === 'timeline' && renderTimelineView()}
       {view === 'graph' && renderGraph()}
 
       {/* Floating Action Button on mobile */}

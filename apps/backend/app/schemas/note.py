@@ -12,12 +12,19 @@ class NoteCreate(BaseModel):
     course_id: Optional[int] = None
     roadmap_node_id: Optional[int] = None
     topic_id: Optional[int] = None
+    is_pinned: bool = False
 
 
 class NoteUpdate(BaseModel):
     """Update note fields."""
     title: Optional[str] = None
     content: Optional[str] = None
+    is_pinned: Optional[bool] = None
+
+
+class NotePinToggle(BaseModel):
+    """Toggle pin status of a note."""
+    is_pinned: bool
 
 
 class NoteLinkInfo(BaseModel):
@@ -37,6 +44,7 @@ class NoteResponse(BaseModel):
     content: str
     is_stub: bool
     is_quick_capture: bool = False
+    is_pinned: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -52,6 +60,7 @@ class NoteWithBacklinks(NoteResponse):
 class NoteSearchResponse(BaseModel):
     """Search result with relevance score and metadata."""
     id: int
+    user_id: Optional[int] = None
     title: str
     content: str
     snippet: Optional[str] = None  # Highlighted snippet of the match
@@ -60,5 +69,6 @@ class NoteSearchResponse(BaseModel):
     topic_id: Optional[int] = None
     is_stub: bool = False
     is_quick_capture: bool = False
+    is_pinned: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
