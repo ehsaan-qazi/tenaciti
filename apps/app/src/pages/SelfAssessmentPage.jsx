@@ -143,15 +143,18 @@ export default function SelfAssessmentPage() {
     return stars;
   };
 
-  // Mock mood generator based on quality gap
-  const getMockMood = (gap) => {
-    if (gap === null || gap === undefined) return '😐';
-    if (gap >= 10) return '🤩';
-    if (gap > 0) return '😀';
-    if (gap === 0) return '😊';
-    if (gap >= -10) return '😐';
-    if (gap >= -20) return '😭';
-    return '🤯';
+  // Mood emoji resolver based on real mood_energy or quality_self_rating
+  const getMoodEmoji = (moodEnergy, qualityRating, confidenceGap) => {
+    const val = moodEnergy || qualityRating;
+    if (val === 5) return '🤩';
+    if (val === 4) return '🙂';
+    if (val === 3) return '😐';
+    if (val === 2) return '😕';
+    if (val === 1) return '😞';
+    // Fallback if mood/quality is missing: calculate from confidence gap
+    if (confidenceGap > 0) return '🙂';
+    if (confidenceGap < 0) return '😕';
+    return '😐';
   };
 
   // ─── RENDER ─────────────────────────────────────────────────────────────
@@ -339,20 +342,22 @@ export default function SelfAssessmentPage() {
                   <tr key={gap.id || Math.random()} className="sa-table-row group">
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--primary)', transition: 'color 0.2s' }}>{gap.assessment_title || 'Unnamed Assessment'}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Est. Conf: {gap.estimated_confidence || 0}% • Est. Hrs: {gap.estimated_hours || 0}</span>
+                        <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--primary)', transition: 'color 0.2s' }}>{gap.node_title || gap.assessment_title || 'Self-Assessment'}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>
+                          Est. Conf: {gap.confidence_at_creation !== null && gap.confidence_at_creation !== undefined ? (gap.confidence_at_creation <= 5 ? gap.confidence_at_creation * 20 : gap.confidence_at_creation) : (gap.estimated_confidence || 0)}% • Est. Hrs: {gap.estimated_hours || 0}
+                        </span>
                       </div>
                     </td>
                     <td>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: confStyle.bg, color: confStyle.text, padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 500 }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{confStyle.icon}</span> 
-                        {confStyle.sign}{gap.confidence_gap !== null ? `${gap.confidence_gap}%` : '—'}
+                        {confStyle.sign}{gap.confidence_gap !== null && gap.confidence_gap !== undefined ? `${gap.confidence_gap}` : '—'}
                       </div>
                     </td>
                     <td>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: hrsStyle.bg, color: hrsStyle.text, padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 500 }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{hrsStyle.icon}</span> 
-                        {hrsStyle.sign}{gap.hours_gap !== null ? `${gap.hours_gap}h` : '—'}
+                        {hrsStyle.sign}{gap.hours_gap !== null && gap.hours_gap !== undefined ? `${gap.hours_gap}h` : '—'}
                       </div>
                     </td>
                     <td>
@@ -362,11 +367,11 @@ export default function SelfAssessmentPage() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', color: 'var(--gradient-end)', fontSize: '18px' }}>
-                        {renderStars(gap.actual_quality)}
+                        {renderStars(gap.quality_self_rating || gap.actual_quality)}
                       </div>
                     </td>
                     <td style={{ fontSize: '24px' }}>
-                      {getMockMood(gap.confidence_gap)}
+                      {getMoodEmoji(gap.mood_energy, gap.quality_self_rating, gap.confidence_gap)}
                     </td>
                     <td>
                       <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>
