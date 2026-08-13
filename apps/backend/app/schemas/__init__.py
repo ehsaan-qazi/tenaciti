@@ -119,6 +119,19 @@ from app.schemas.profile import (
     ProfileTrendsQuery,
 )
 
+# Search schemas
+from app.schemas.search import (
+    SearchResultItem,
+    SearchResponse,
+)
+
+# Notification schemas
+from app.schemas.notification import (
+    NotificationItem,
+    NotificationListResponse,
+    UnreadCountResponse,
+)
+
 __all__ = [
     # Auth
     "RegisterRequest",
@@ -206,4 +219,11 @@ __all__ = [
     "RetrospectiveCourseDetail",
     "RetrospectiveRequest",
     "ProfileTrendsQuery",
+    # Search
+    "SearchResultItem",
+    "SearchResponse",
+    # Notifications
+    "NotificationItem",
+    "NotificationListResponse",
+    "UnreadCountResponse",
 ]
