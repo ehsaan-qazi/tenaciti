@@ -1,7 +1,7 @@
 """Timeline schemas — response models for temporal notes grouping."""
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import List
 from app.schemas.note import NoteResponse
 
 
