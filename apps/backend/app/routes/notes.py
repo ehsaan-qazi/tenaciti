@@ -1,10 +1,11 @@
 """Note routes — CRUD for markdown notes with wikilinks and backlinks."""
 
 import re
+from datetime import datetime
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
-from typing import List
 
 from app.database import get_db
 from app.middleware.auth import get_verified_user
@@ -108,7 +109,117 @@ async def create_note(
         db=db,
     )
 
-    return note
+@router.get("/search", response_model=List[NoteSearchResponse])
+async def search_notes(
+    q: Optional[str] = Query(None, description="Search text query"),
+    course_id: Optional[int] = Query(None, description="Filter by course ID"),
+    date_from: Optional[datetime] = Query(None, description="Filter updated on or after date"),
+    date_to: Optional[datetime] = Query(None, description="Filter updated on or before date"),
+    sort_by: str = Query("relevance", pattern="^(relevance|date_desc|date_asc|title_asc|title_desc)$"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_verified_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Advanced search, filtering, and sorting across user notes.
+    Supports course filter, date range, sort order, and safe websearch_to_tsquery + ILIKE fallback.
+    """
+    query_stmt = select(Note).where(Note.user_id == current_user.id)
+
+    # 1. Course Filter
+    if course_id is not None:
+        query_stmt = query_stmt.where(Note.course_id == course_id)
+
+    # 2. Date Range Filters
+    if date_from is not None:
+        query_stmt = query_stmt.where(Note.updated_at >= date_from)
+    if date_to is not None:
+        query_stmt = query_stmt.where(Note.updated_at <= date_to)
+
+    # 3. Search Query Matching (tsvector / websearch_to_tsquery with ILIKE fallback)
+    search_term = q.strip() if q else ""
+    rank_expr = None
+
+    if search_term:
+        try:
+            # Use websearch_to_tsquery (safe parser for user input strings)
+            ts_query = func.websearch_to_tsquery('english', search_term)
+            ts_vector = func.to_tsvector('english', Note.title + ' ' + func.coalesce(Note.content, ''))
+            rank_expr = func.ts_rank(ts_vector, ts_query)
+
+            # Add tsvector match condition
+            search_where = ts_vector.op('@@')(ts_query)
+            query_stmt = query_stmt.where(search_where)
+        except Exception:
+            # Fallback to safe ILIKE
+            ilike_pattern = f"%{search_term}%"
+            query_stmt = query_stmt.where(
+                (Note.title.ilike(ilike_pattern)) | (Note.content.ilike(ilike_pattern))
+            )
+
+    # 4. Sorting
+    if sort_by == "relevance" and rank_expr is not None:
+        query_stmt = query_stmt.order_by(rank_expr.desc(), Note.updated_at.desc())
+    elif sort_by == "date_asc":
+        query_stmt = query_stmt.order_by(Note.updated_at.asc())
+    elif sort_by == "title_asc":
+        query_stmt = query_stmt.order_by(Note.title.asc())
+    elif sort_by == "title_desc":
+        query_stmt = query_stmt.order_by(Note.title.desc())
+    else:  # date_desc or fallback
+        query_stmt = query_stmt.order_by(Note.updated_at.desc())
+
+    # 5. Pagination
+    query_stmt = query_stmt.offset(offset).limit(limit)
+
+    result = await db.execute(query_stmt)
+    notes = result.scalars().all()
+
+    # Fallback search check: If tsvector returned zero results and query term is non-empty, try ILIKE
+    if not notes and search_term and rank_expr is not None:
+        ilike_stmt = select(Note).where(
+            Note.user_id == current_user.id,
+            (Note.title.ilike(f"%{search_term}%")) | (Note.content.ilike(f"%{search_term}%"))
+        )
+        if course_id is not None:
+            ilike_stmt = ilike_stmt.where(Note.course_id == course_id)
+        if date_from is not None:
+            ilike_stmt = ilike_stmt.where(Note.updated_at >= date_from)
+        if date_to is not None:
+            ilike_stmt = ilike_stmt.where(Note.updated_at <= date_to)
+        ilike_stmt = ilike_stmt.order_by(Note.updated_at.desc()).offset(offset).limit(limit)
+        ilike_res = await db.execute(ilike_stmt)
+        notes = ilike_res.scalars().all()
+
+    # Build response with snippets
+    responses = []
+    for note in notes:
+        content = note.content or ""
+        snippet = None
+        if search_term and search_term.lower() in content.lower():
+            idx = content.lower().find(search_term.lower())
+            start = max(0, idx - 40)
+            end = min(len(content), idx + len(search_term) + 60)
+            snippet = ("..." if start > 0 else "") + content[start:end] + ("..." if end < len(content) else "")
+        else:
+            snippet = content[:150] + "..." if len(content) > 150 else content
+
+        responses.append(NoteSearchResponse(
+            id=note.id,
+            title=note.title,
+            content=content,
+            snippet=snippet,
+            course_id=note.course_id,
+            topic_id=note.topic_id,
+            roadmap_node_id=note.roadmap_node_id,
+            is_stub=note.is_stub,
+            is_quick_capture=note.is_quick_capture,
+            created_at=note.created_at,
+            updated_at=note.updated_at,
+        ))
+
+    return responses
 
 
 @router.get("/{note_id}", response_model=NoteWithBacklinks)
@@ -269,47 +380,7 @@ async def _parse_wikilinks(note: Note, db: AsyncSession) -> None:
         )
 
 
-@router.get("/search", response_model=List[NoteSearchResponse])
-async def search_notes(
-    q: str = Query(..., min_length=1, description="Search query"),
-    limit: int = Query(20, ge=1, le=100),
-    current_user: User = Depends(get_verified_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Full-text search across user's notes using PostgreSQL GIN index."""
-    search_query = func.to_tsquery('english', q + ':*')  # Prefix search
 
-    result = await db.execute(
-        select(Note)
-        .where(Note.user_id == current_user.id)
-        .where(
-            func.to_tsvector('english', Note.title + ' ' + func.coalesce(Note.content, ''))
-            .op('@@')(search_query)
-        )
-        .order_by(
-            func.ts_rank(
-                func.to_tsvector('english', Note.title + ' ' + func.coalesce(Note.content, '')),
-                search_query
-            ).desc()
-        )
-        .limit(limit)
-    )
-
-    notes = result.scalars().all()
-
-    responses = []
-    for note in notes:
-        content = note.content or ""
-        snippet = content[:200] + "..." if len(content) > 200 else content
-
-        responses.append(NoteSearchResponse(
-            id=note.id,
-            title=note.title,
-            content=content,
-            snippet=snippet,
-        ))
-
-    return responses
 
 
 @router.get("/backlinks/{note_id}", response_model=List[NoteResponse])

@@ -146,19 +146,54 @@ export default function NotesPage() {
     }
   }
 
-  // Search notes
-  const handleSearch = async (query) => {
-    if (!query.trim()) {
-      fetchNotes()
-      return
+  // Filter & Sort state
+  const [courses, setCourses] = useState([])
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [sortBy, setSortBy] = useState('date_desc')
+  const [showFilters, setShowFilters] = useState(false)
+
+  // Fetch available courses for filter dropdown
+  useEffect(() => {
+    const fetchCoursesList = async () => {
+      try {
+        const data = await apiFetch('/courses')
+        setCourses(data || [])
+      } catch (err) {
+        console.error('Failed to fetch courses for filter:', err)
+      }
     }
+    fetchCoursesList()
+  }, [])
+
+  // Search notes with advanced filters
+  const handleSearch = useCallback(async (query, courseIdFilter, sortOrder) => {
+    setLoading(true)
     try {
-      const data = await apiFetch(`/notes/search?q=${encodeURIComponent(query)}`)
+      const params = new URLSearchParams()
+      if (query && query.trim()) params.append('q', query.trim())
+      if (courseIdFilter) params.append('course_id', courseIdFilter)
+      if (sortOrder) params.append('sort_by', sortOrder)
+
+      const queryString = params.toString()
+      const url = queryString ? `/notes/search?${queryString}` : '/notes'
+      const data = await apiFetch(url)
       setNotes(data)
     } catch (err) {
       console.error('Search failed:', err)
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [])
+
+  // Trigger search on filter/sort change
+  useEffect(() => {
+    if (!id && view === 'list') {
+      const timer = setTimeout(() => {
+        handleSearch(searchQuery, selectedCourseId, sortBy)
+      }, 250)
+      return () => clearTimeout(timer)
+    }
+  }, [searchQuery, selectedCourseId, sortBy, id, view, handleSearch])
 
   // Format relative time
   const formatRelativeTime = (dateStr) => {
@@ -218,22 +253,109 @@ export default function NotesPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="notes-search-wrapper">
-        <span className="material-symbols-outlined search-icon">search</span>
-        <input
-          type="text"
-          className="notes-search-input"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value)
-            handleSearch(e.target.value)
-          }}
-          placeholder="Search notes, concepts, tags..."
-        />
-        <button className="notes-search-filter-btn" title="Filter options">
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>tune</span>
-        </button>
+      {/* Search & Filter Controls */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+        <div className="notes-search-wrapper" style={{ margin: 0 }}>
+          <span className="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            className="notes-search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search notes by title, content, or concept..."
+          />
+          <button 
+            className="notes-search-filter-btn" 
+            title="Filter and Sort options"
+            onClick={() => setShowFilters(!showFilters)}
+            style={{ backgroundColor: (selectedCourseId || showFilters) ? 'var(--surface-container-high)' : 'transparent' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: (selectedCourseId || showFilters) ? 'var(--primary)' : 'inherit' }}>tune</span>
+          </button>
+        </div>
+
+        {/* Filter options toolbar */}
+        {showFilters && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            flexWrap: 'wrap',
+            padding: '16px',
+            backgroundColor: 'var(--surface-container-low, rgba(255,255,255,0.03))',
+            borderRadius: '12px',
+            border: '1px solid var(--outline-variant, rgba(255,255,255,0.08))',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--on-surface-variant)' }}>school</span>
+              <label style={{ fontSize: '13px', color: 'var(--on-surface-variant)', fontWeight: '500' }}>Course:</label>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--surface-container-high, #1e1e24)',
+                  color: 'var(--on-surface)',
+                  border: '1px solid var(--outline-variant, #444)',
+                  fontSize: '13px',
+                }}
+              >
+                <option value="">All Courses</option>
+                {courses.map(c => (
+                  <option key={c.id} value={c.id}>{c.code ? `${c.code} - ${c.name}` : c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--on-surface-variant)' }}>sort</span>
+              <label style={{ fontSize: '13px', color: 'var(--on-surface-variant)', fontWeight: '500' }}>Sort By:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--surface-container-high, #1e1e24)',
+                  color: 'var(--on-surface)',
+                  border: '1px solid var(--outline-variant, #444)',
+                  fontSize: '13px',
+                }}
+              >
+                {searchQuery.trim() && <option value="relevance">Relevance</option>}
+                <option value="date_desc">Newest First</option>
+                <option value="date_asc">Oldest First</option>
+                <option value="title_asc">Title (A-Z)</option>
+                <option value="title_desc">Title (Z-A)</option>
+              </select>
+            </div>
+
+            {(selectedCourseId || searchQuery) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCourseId('');
+                  setSortBy('date_desc');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--error, #ff5449)',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span> Clear Filters
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Notes list */}
