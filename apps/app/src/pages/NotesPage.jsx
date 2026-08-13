@@ -457,7 +457,7 @@ export default function NotesPage() {
                     )}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div className="notes-card-actions">
                   <button
                     className="notes-card-delete"
                     onClick={(e) => handleTogglePin(e, note.id, note.is_pinned)}
@@ -614,15 +614,28 @@ export default function NotesPage() {
                         </div>
                         {note.is_stub && <span className="notes-card-badge stub">Stub</span>}
                       </div>
-                      <button
-                        onClick={(e) => handleTogglePin(e, note.id, note.is_pinned)}
-                        title={note.is_pinned ? "Unpin note" : "Pin note"}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: note.is_pinned ? '#f59e0b' : 'var(--on-surface-variant)' }}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                          {note.is_pinned ? 'push_pin' : 'keep'}
-                        </span>
-                      </button>
+                      <div className="notes-card-actions">
+                        <button
+                          className="notes-card-delete"
+                          onClick={(e) => handleTogglePin(e, note.id, note.is_pinned)}
+                          title={note.is_pinned ? "Unpin note" : "Pin note"}
+                          style={{ color: note.is_pinned ? '#f59e0b' : 'inherit' }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                            {note.is_pinned ? 'push_pin' : 'keep'}
+                          </span>
+                        </button>
+                        <button
+                          className="notes-card-delete"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteNote(note.id)
+                          }}
+                          title="Delete note"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="notes-card-body">
                       <p>{(note.content || '').slice(0, 150) || 'Empty note...'}</p>
@@ -657,9 +670,6 @@ export default function NotesPage() {
         </div>
 
         <div className="notes-editor-actions">
-          <button className="notes-more-btn" title="More options">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_vert</span>
-          </button>
           <button
             className="notes-save-btn"
             onClick={() => {
