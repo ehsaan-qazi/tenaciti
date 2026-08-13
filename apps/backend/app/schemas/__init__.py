@@ -44,9 +44,16 @@ from app.schemas.topic import (
 from app.schemas.note import (
     NoteCreate,
     NoteUpdate,
+    NotePinToggle,
     NoteResponse,
     NoteWithBacklinks,
     NoteSearchResponse,
+)
+
+# Timeline schemas
+from app.schemas.timeline import (
+    TimelineGroup,
+    TimelineResponse,
 )
 
 # Roadmap Node schemas
@@ -235,4 +242,8 @@ __all__ = [
     # Activity Feed
     "ActivityItem",
     "CourseActivityResponse",
+    # Note Pin & Timeline
+    "NotePinToggle",
+    "TimelineGroup",
+    "TimelineResponse",
 ]
