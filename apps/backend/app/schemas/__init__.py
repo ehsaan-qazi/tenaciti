@@ -70,6 +70,10 @@ from app.schemas.self_assessment_log import (
     SelfAssessmentLogResponse,
     RoadmapNodeSubmitRequest,
     SubmissionGapResponse,
+    SelfAssessmentLogListItem,
+    PaginatedSelfAssessmentLogResponse,
+    SelfAssessmentBulkDeleteRequest,
+    SelfAssessmentBulkDeleteResponse,
 )
 
 # Goal schemas
@@ -190,6 +194,10 @@ __all__ = [
     "SelfAssessmentLogResponse",
     "RoadmapNodeSubmitRequest",
     "SubmissionGapResponse",
+    "SelfAssessmentLogListItem",
+    "PaginatedSelfAssessmentLogResponse",
+    "SelfAssessmentBulkDeleteRequest",
+    "SelfAssessmentBulkDeleteResponse",
     # Goal
     "GoalCreate",
     "GoalUpdate",

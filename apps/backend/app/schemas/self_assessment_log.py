@@ -60,6 +60,7 @@ class SubmissionGapResponse(BaseModel):
     hours_gap: Optional[float] = None
     hours_before_deadline: Optional[float] = None
     quality_self_rating: int
+    mood_energy: Optional[int] = None
     confidence_at_creation: Optional[int] = None
     estimated_hours: Optional[float] = None
     actual_hours: Optional[float] = None
@@ -68,3 +69,41 @@ class SubmissionGapResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SelfAssessmentLogListItem(BaseModel):
+    """Detailed log item with roadmap node and course context."""
+    id: int
+    roadmap_node_id: int
+    node_title: Optional[str] = None
+    course_id: Optional[int] = None
+    course_name: Optional[str] = None
+    quality_self_rating: int
+    mood_energy: Optional[int] = None
+    reflection_note: Optional[str] = None
+    hours_before_deadline: Optional[float] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PaginatedSelfAssessmentLogResponse(BaseModel):
+    """Paginated self-assessment log search response."""
+    total_items: int
+    total_pages: int
+    current_page: int
+    page_size: int
+    items: list[SelfAssessmentLogListItem] = []
+
+
+class SelfAssessmentBulkDeleteRequest(BaseModel):
+    """Request payload for bulk deleting self-assessment logs."""
+    log_ids: list[int] = Field(..., min_length=1, description="List of self-assessment log IDs to delete")
+
+
+class SelfAssessmentBulkDeleteResponse(BaseModel):
+    """Response payload for bulk log deletion."""
+    deleted_count: int
+    deleted_ids: list[int]
