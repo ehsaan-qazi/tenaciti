@@ -132,6 +132,12 @@ from app.schemas.notification import (
     UnreadCountResponse,
 )
 
+# Activity schemas
+from app.schemas.activity import (
+    ActivityItem,
+    CourseActivityResponse,
+)
+
 __all__ = [
     # Auth
     "RegisterRequest",
@@ -226,4 +232,7 @@ __all__ = [
     "NotificationItem",
     "NotificationListResponse",
     "UnreadCountResponse",
+    # Activity Feed
+    "ActivityItem",
+    "CourseActivityResponse",
 ]

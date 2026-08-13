@@ -46,6 +46,14 @@ class RoadmapNodeResponse(RoadmapNodeBase):
     created_at: datetime
     updated_at: datetime
 
+    # Self-Assessment & Gap Metrics
+    confidence_gap: Optional[float] = None
+    hours_gap: Optional[float] = None
+    hours_before_deadline: Optional[float] = None
+    quality_self_rating: Optional[int] = None
+    mood_energy: Optional[int] = None
+    reflection_note: Optional[str] = None
+
     class Config:
         from_attributes = True
 

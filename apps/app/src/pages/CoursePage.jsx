@@ -365,10 +365,33 @@ export default function CoursePage() {
     }
   }, [id])
 
+  const [activities, setActivities] = useState([])
+  const [activitiesLoading, setActivitiesLoading] = useState(false)
+
+  const fetchActivity = useCallback(async () => {
+    setActivitiesLoading(true)
+    try {
+      const data = await apiFetch(`/courses/${id}/activity`)
+      setActivities(data.items || [])
+    } catch (err) {
+      console.error('Failed to fetch activity:', err)
+    } finally {
+      setActivitiesLoading(false)
+    }
+  }, [id])
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true)
-      const [,, , roadmapData] = await Promise.all([fetchCourse(), fetchDocuments(), fetchTopics(), fetchRoadmap(), fetchLimits(), fetchNotes()])
+      const [,, , roadmapData] = await Promise.all([
+        fetchCourse(),
+        fetchDocuments(),
+        fetchTopics(),
+        fetchRoadmap(),
+        fetchLimits(),
+        fetchNotes(),
+        fetchActivity(),
+      ])
       setLoading(false)
     }
     loadAll()
@@ -910,28 +933,54 @@ export default function CoursePage() {
 
             </div>
 
-            {/* Recent Activity Mock */}
+            {/* Recent Activity Feed */}
             <div style={{ backgroundColor: 'var(--surface-container-lowest)', borderRadius: '24px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: 'var(--on-surface)' }}>Recent Activity</h3>
-                <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>View All</button>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--on-surface-variant)', backgroundColor: 'var(--surface-container-high)', padding: '4px 8px', borderRadius: '4px' }}>
+                  {activities.length} Events
+                </span>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '16px', backgroundColor: 'var(--surface-container-low)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--success)', flexShrink: 0, marginTop: '4px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check_circle</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--on-surface)' }}><span style={{ fontWeight: '500' }}>Syllabus.pdf</span> extracted successfully.</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Yesterday</span>
-                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'var(--surface-variant)' }}></span>
-                      <span style={{ fontSize: '12px', color: 'var(--success)', backgroundColor: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '6px' }}>{roadmap.length} Items Found</span>
-                    </div>
-                  </div>
+              {activitiesLoading ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--on-surface-variant)' }}>
+                  <span className="material-symbols-outlined spin" style={{ fontSize: '20px' }}>sync</span>
                 </div>
-              </div>
+              ) : activities.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--on-surface-variant)', fontSize: '14px' }}>
+                  No activity logged for this course yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {activities.slice(0, 6).map((act) => {
+                    const iconName = act.entity_type === 'document' ? 'file_present' : act.entity_type === 'roadmap_node' ? 'assignment' : act.entity_type === 'topic' ? 'school' : 'description';
+                    const color = act.badge_color === 'success' ? 'var(--success)' : act.badge_color === 'warning' ? '#f59e0b' : act.badge_color === 'error' ? 'var(--error)' : 'var(--primary)';
+                    const bg = act.badge_color === 'success' ? 'rgba(34,197,94,0.1)' : act.badge_color === 'warning' ? 'rgba(245,158,11,0.1)' : act.badge_color === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(124,58,237,0.1)';
+
+                    const timeStr = act.timestamp ? new Date(act.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+                    return (
+                      <div key={act.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '16px', backgroundColor: 'var(--surface-container-low)' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color, flexShrink: 0, marginTop: '4px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{iconName}</span>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: '0 0 4px 0', fontSize: '15px', color: 'var(--on-surface)', fontWeight: '500' }}>{act.title}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>{timeStr}</span>
+                            {act.description && (
+                              <>
+                                <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'var(--surface-variant)' }}></span>
+                                <span style={{ fontSize: '12px', color: color, backgroundColor: bg, padding: '2px 8px', borderRadius: '6px' }}>{act.description}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1232,36 +1281,41 @@ export default function CoursePage() {
                               )}
                             </div>
 
-                            {/* Gap Metrics UI (new) */}
-                            {(node.status === 'Submitted' || node.status === 'Graded') && gapData[node.id] && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'var(--surface-container-low)', padding: '12px', borderRadius: '12px', width: 'fit-content', border: '1px solid var(--outline-variant)' }}>
-                                {gapData[node.id].hours_gap != null && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>timer</span>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                      <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Time Gap</span>
-                                      <span style={{ fontSize: '14px', fontWeight: '500', color: gapData[node.id].hours_gap <= 0 ? 'var(--success)' : 'var(--error)' }}>
-                                        {gapData[node.id].hours_gap > 0 ? '+' : ''}{gapData[node.id].hours_gap}h
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-                                {gapData[node.id].confidence_gap != null && (
-                                  <>
-                                    <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--outline-variant)', opacity: 0.5 }}></div>
+                            {/* Gap Metrics UI */}
+                            {(node.status === 'Submitted' || node.status === 'Graded') && (() => {
+                              const hoursGap = node.hours_gap ?? gapData[node.id]?.hours_gap;
+                              const confidenceGap = node.confidence_gap ?? gapData[node.id]?.confidence_gap;
+                              if (hoursGap == null && confidenceGap == null) return null;
+                              return (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'var(--surface-container-low)', padding: '12px', borderRadius: '12px', width: 'fit-content', border: '1px solid var(--outline-variant)' }}>
+                                  {hoursGap != null && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>award_star</span>
+                                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>timer</span>
                                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Quality Gap</span>
-                                        <span style={{ fontSize: '14px', fontWeight: '500', color: gapData[node.id].confidence_gap >= 0 ? 'var(--success)' : 'var(--error)' }}>
-                                          {gapData[node.id].confidence_gap > 0 ? '+' : ''}{gapData[node.id].confidence_gap}
+                                        <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Time Gap</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', color: hoursGap <= 0 ? 'var(--success)' : 'var(--error)' }}>
+                                          {hoursGap > 0 ? '+' : ''}{hoursGap}h
                                         </span>
                                       </div>
                                     </div>
-                                  </>
-                                )}
-                              </div>
-                            )}
+                                  )}
+                                  {confidenceGap != null && (
+                                    <>
+                                      {hoursGap != null && <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--outline-variant)', opacity: 0.5 }}></div>}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>award_star</span>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                          <span style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>Quality Gap</span>
+                                          <span style={{ fontSize: '14px', fontWeight: '500', color: confidenceGap >= 0 ? 'var(--success)' : 'var(--error)' }}>
+                                            {confidenceGap > 0 ? '+' : ''}{confidenceGap}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
