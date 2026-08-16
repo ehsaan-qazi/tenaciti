@@ -7,6 +7,9 @@ export {
   GRADE_SCALE,
   LETTER_GRADES,
   PERCENTAGE_THRESHOLDS,
+  getMaxGPA,
+  validateCustomScale,
+  validateCustomThresholds,
 } from './grade-scales.js';
 
 export {
@@ -14,4 +17,8 @@ export {
   calculateSGPA,
   calculateCGPA,
   gradeColor,
+  clampGPA,
+  clampCredits,
+  clampScore,
+  safeParseFloat,
 } from './gpa-calculator.js';

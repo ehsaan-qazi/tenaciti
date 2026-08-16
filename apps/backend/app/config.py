@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     pro_max_file_size_mb: int = 25
 
     # ── CORS ─────────────────────────────────────────────────
-    cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,https://my.tenaciti.app"
 
     # ── Email (Resend) ─────────────────────────────────────────
     resend_api_key: str = ""

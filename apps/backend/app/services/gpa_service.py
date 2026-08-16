@@ -247,11 +247,15 @@ def build_semester_summaries(entries: List[CalcEntry], grade_scale: str = "4.0")
             gp = letter_to_points(e.grade_letter)
             entry_responses.append({
                 "id": e.id,
+                "entry_type": e.entry_type,
+                "course_id": e.course_id,
                 "course_label": e.course_label,
                 "credit_hours": e.credit_hours,
                 "grade_letter": e.grade_letter,
                 "percentage": e.percentage,
                 "grade_scale": e.grade_scale,
+                "semester": e.semester,
+                "academic_year": e.academic_year,
                 "grade_points": gp,
                 "quality_points": round(e.credit_hours * gp, 2) if gp is not None else None,
             })

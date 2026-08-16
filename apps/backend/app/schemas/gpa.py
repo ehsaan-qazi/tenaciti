@@ -34,7 +34,7 @@ class GpaEntryUpdate(BaseModel):
 class GpaEntryResponse(BaseModel):
     """Full GPA entry returned to client."""
     id: int
-    user_id: int
+    user_id: Optional[int] = None
     semester: str
     academic_year: Optional[str] = None
     entry_type: str
@@ -47,8 +47,8 @@ class GpaEntryResponse(BaseModel):
     # Computed
     grade_points: Optional[float] = None  # Numeric value on HEC 4.0 scale
     quality_points: Optional[float] = None  # credit_hours × grade_points
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

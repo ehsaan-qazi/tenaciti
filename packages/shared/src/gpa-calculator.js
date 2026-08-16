@@ -9,14 +9,15 @@ import { GRADE_SCALE, PERCENTAGE_THRESHOLDS } from './grade-scales.js';
 
 /**
  * Converts a numeric percentage to its corresponding letter grade.
- * Uses the HEC 4.0 grading thresholds. Percentage is rounded before lookup.
+ * Uses the given thresholds or defaults to HEC 4.0. Percentage is rounded before lookup.
  * 
  * @param {number} pct - The percentage score (0-100)
+ * @param {Array<[number, string]>} [thresholds] - Custom thresholds (optional)
  * @returns {string} The letter grade (e.g., 'A', 'B+', 'F')
  */
-export function percentageToLetter(pct) {
+export function percentageToLetter(pct, thresholds = PERCENTAGE_THRESHOLDS) {
   const rounded = Math.round(pct);
-  for (const [min, letter] of PERCENTAGE_THRESHOLDS) {
+  for (const [min, letter] of thresholds) {
     if (rounded >= min) return letter;
   }
   return 'F';
@@ -26,15 +27,16 @@ export function percentageToLetter(pct) {
  * Calculates SGPA from an array of course entries.
  * 
  * @param {Array<{creditHours: number, grade: string}>} courses - Course entries with credits and letter grades
+ * @param {Record<string, number>} [scale] - Custom grade scale (optional, defaults to HEC 4.0)
  * @returns {{ sgpa: number, totalCredits: number, totalQualityPoints: number, validCourses: number }}
  */
-export function calculateSGPA(courses) {
+export function calculateSGPA(courses, scale = GRADE_SCALE) {
   const validCourses = courses.filter(
-    c => c.grade && GRADE_SCALE[c.grade] !== undefined && c.creditHours > 0
+    c => c.grade && scale[c.grade] !== undefined && c.creditHours > 0
   );
   const totalCredits = validCourses.reduce((sum, c) => sum + c.creditHours, 0);
   const totalQualityPoints = validCourses.reduce(
-    (sum, c) => sum + c.creditHours * GRADE_SCALE[c.grade], 0
+    (sum, c) => sum + c.creditHours * scale[c.grade], 0
   );
   const sgpa = totalCredits > 0 ? totalQualityPoints / totalCredits : 0;
 
@@ -75,13 +77,69 @@ export function calculateCGPA(semesters) {
  * Uses the design token variable names from @tenaciti/tokens.
  * 
  * @param {string} letter - The letter grade
+ * @param {Record<string, number>} [scale] - Custom grade scale (optional)
  * @returns {string} CSS variable reference (e.g., 'var(--success)')
  */
-export function gradeColor(letter) {
-  const pts = GRADE_SCALE[letter] ?? 0;
-  if (pts >= 3.7) return 'var(--success)';
-  if (pts >= 3.0) return 'var(--primary)';
-  if (pts >= 2.0) return 'var(--gradient-end)';
-  if (pts >= 1.0) return 'var(--gradient-end)';
+export function gradeColor(letter, scale = GRADE_SCALE) {
+  const maxGPA = Math.max(...Object.values(scale));
+  const pts = scale[letter] ?? 0;
+  // Normalize to 0–1 range for color mapping
+  const ratio = maxGPA > 0 ? pts / maxGPA : 0;
+  if (ratio >= 0.925) return 'var(--success)';
+  if (ratio >= 0.75) return 'var(--primary)';
+  if (ratio >= 0.5) return 'var(--gradient-end)';
+  if (ratio >= 0.25) return 'var(--gradient-end)';
   return 'var(--error)';
+}
+
+// ---------------------------------------------------------------------------
+// Input clamping utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Clamp a GPA value to [0, maxGPA]. Returns 0 for NaN.
+ * @param {string|number} value
+ * @param {number} maxGPA
+ * @returns {number}
+ */
+export function clampGPA(value, maxGPA = 4.0) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return 0;
+  return Math.min(Math.max(num, 0), maxGPA);
+}
+
+/**
+ * Clamp a credit hours value to [min, max]. Returns min for NaN.
+ * @param {string|number} value
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
+ */
+export function clampCredits(value, min = 0.5, max = 30) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return min;
+  return Math.min(Math.max(num, min), max);
+}
+
+/**
+ * Clamp a score to [0, max]. Returns 0 for NaN.
+ * @param {string|number} value
+ * @param {number} max
+ * @returns {number}
+ */
+export function clampScore(value, max) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return 0;
+  return Math.min(Math.max(num, 0), max);
+}
+
+/**
+ * Safe parseFloat that returns a fallback for NaN.
+ * @param {string|number} value
+ * @param {number} fallback
+ * @returns {number}
+ */
+export function safeParseFloat(value, fallback = 0) {
+  const num = parseFloat(value);
+  return isNaN(num) ? fallback : num;
 }

@@ -140,5 +140,20 @@ async def get_weekly_workload(
     Sums estimated_hours from roadmap nodes with deadlines in each week.
     Only includes nodes with status Pending/In Progress.
     """
+    from datetime import datetime, timezone, timedelta
+
     workload = await StreakService.get_weekly_workload(current_user.id, db)
-    return WeeklyWorkloadResponse(**workload)
+
+    # Compute week start (Monday) for the response
+    now = datetime.now(timezone.utc)
+    days_since_monday = now.weekday()
+    week_start = now - timedelta(days=days_since_monday)
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    return WeeklyWorkloadResponse(
+        this_week_hours=workload["this_week"]["hours"],
+        this_week_items=workload["this_week"]["items"],
+        next_week_hours=workload["next_week"]["hours"],
+        next_week_items=workload["next_week"]["items"],
+        week_start=week_start.date().isoformat(),
+    )
