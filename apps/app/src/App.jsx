@@ -16,6 +16,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage'
 import VerifyEmailConfirmPage from './pages/VerifyEmailConfirmPage'
 import Layout from './components/Layout'
 import LoadingScreen from './components/LoadingScreen'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }) {
@@ -85,10 +86,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

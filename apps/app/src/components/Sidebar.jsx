@@ -96,6 +96,42 @@ export default function Sidebar({ isOpen, onClose }) {
         {navItem('/self-assessment', 'psychology_alt', 'Self-Assessment')}
         {navItem('/gpa', 'grade', 'GPA')}
 
+        {/* Future Assistant Trigger (Disabled / Coming Soon) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            marginTop: '8px',
+            marginBottom: '4px',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            border: '1px dashed var(--outline-variant, rgba(255, 255, 255, 0.1))',
+            color: 'var(--on-surface-variant)',
+            opacity: 0.65,
+            cursor: 'not-allowed',
+            userSelect: 'none',
+          }}
+          title="AI Assistant — Coming Soon"
+          aria-disabled="true"
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span className="material-symbols-outlined" style={{ marginRight: '12px', fontSize: '20px', color: 'var(--secondary)' }}>smart_toy</span>
+            <span style={{ fontSize: '14px', fontWeight: 500 }}>Ask Tenaciti</span>
+          </div>
+          <span style={{
+            fontSize: '10px',
+            fontFamily: "'IBM Plex Mono', monospace",
+            padding: '2px 6px',
+            borderRadius: '4px',
+            background: 'var(--surface-container-high)',
+            color: 'var(--on-surface-variant)',
+          }}>
+            ⌘K
+          </span>
+        </div>
+
         <div style={{ marginTop: 'auto', marginBottom: '8px' }}>
           {navItem('/settings', 'settings', 'Settings')}
           <div

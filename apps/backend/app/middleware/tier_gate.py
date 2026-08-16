@@ -22,9 +22,9 @@ def require_pro(user: User) -> None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
-                "error": "upgrade_required",
-                "message": "This feature requires a Pro subscription.",
-                "upgrade_url": "/settings",  # Frontend will show upgrade UI
+                "error": "premium_coming_soon",
+                "message": "Premium features are coming soon.",
+                "upgrade_url": "/settings",
             },
         )
 
@@ -34,7 +34,7 @@ def require_pro(user: User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "error": "plan_expired",
-                "message": "Your Pro subscription has expired. Please renew to continue using Pro features.",
+                "message": "Your Pro subscription has expired.",
                 "upgrade_url": "/settings",
             },
         )
@@ -55,7 +55,7 @@ def check_upload_limit(course: Course, user: User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "error": "upload_limit_reached",
-                "message": f"Upload limit reached ({course.doc_upload_count}/{limit} documents for this course).",
+                "message": f"Upload limit reached ({course.doc_upload_count}/{limit} documents for this course). Higher limits are coming soon with Premium.",
                 "current_count": course.doc_upload_count,
                 "limit": limit,
                 "upgrade_url": "/settings" if user.plan == "free" else None,

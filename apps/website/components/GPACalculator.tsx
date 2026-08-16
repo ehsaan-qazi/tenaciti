@@ -45,7 +45,7 @@ function useCustomScale() {
   });
 
   const activeScale: Record<string, number> = customScale || GRADE_SCALE;
-  const activeThresholds = customThresholds || PERCENTAGE_THRESHOLDS;
+  const activeThresholds: [number, string][] = customThresholds || (PERCENTAGE_THRESHOLDS as [number, string][]);
   const maxGPA = getMaxGPA(activeScale);
 
   const setCustomScale = (scale: Record<string, number> | null) => {
@@ -684,15 +684,19 @@ function CustomScaleEditor({ onClose }: { onClose: () => void }) {
     for (const grade of LETTER_GRADES) {
       cleanScale[grade] = typeof editScale[grade] === 'number' ? editScale[grade] as number : parseFloat(editScale[grade] as string) || 0;
     }
+    const cleanThresholds: [number, string][] = editThresholds.map(([min, grade]) => [
+      typeof min === 'number' ? min : parseInt(min as string, 10) || 0,
+      grade
+    ]);
     const scaleResult = validateCustomScale(cleanScale);
-    const thresholdResult = validateCustomThresholds(editThresholds);
+    const thresholdResult = validateCustomThresholds(cleanThresholds);
     const allErrors = [...scaleResult.errors, ...thresholdResult.errors];
     setErrors(allErrors);
     if (allErrors.length === 0) {
       const isDefault = LETTER_GRADES.every(g => cleanScale[g] === GRADE_SCALE[g as keyof typeof GRADE_SCALE]);
-      const isDefaultThresholds = editThresholds.every((t, i) => t[0] === PERCENTAGE_THRESHOLDS[i][0]);
+      const isDefaultThresholds = cleanThresholds.every((t, i) => t[0] === PERCENTAGE_THRESHOLDS[i][0]);
       if (isDefault) setCustomScale(null); else setCustomScale(cleanScale);
-      if (isDefaultThresholds) setCustomThresholds(null); else setCustomThresholds(editThresholds as unknown as [number, string][]);
+      if (isDefaultThresholds) setCustomThresholds(null); else setCustomThresholds(cleanThresholds);
       onClose();
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
 import {
   GRADE_SCALE,
@@ -9,9 +9,7 @@ import {
   getMaxGPA,
   validateCustomScale,
   validateCustomThresholds,
-  clampGPA,
   clampCredits,
-  clampScore,
   safeParseFloat,
 } from '@tenaciti/shared';
 
