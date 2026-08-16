@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import AssistantPanel from './AssistantPanel';
 import { useAuth } from '../context/AuthContext';
 import { searchGlobal } from '../api/searchApi';
 import { getNotifications, getUnreadNotificationCount } from '../api/notificationApi';
@@ -402,6 +403,9 @@ export default function Layout() {
           <Outlet />
         </div>
       </div>
+
+      {/* AI Assistant Panel Slot Reservation (M7) */}
+      <AssistantPanel isOpen={false} />
     </>
   );
 }

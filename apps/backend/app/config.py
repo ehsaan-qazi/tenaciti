@@ -21,7 +21,8 @@ class Settings(BaseSettings):
     app_secret_key: str = "tenaciti-dev-secret-change-in-prod"
     debug: bool = True
 
-    # ── LemonSqueezy (Billing) ────────────────────────────────
+    # ── Billing ───────────────────────────────────────────────
+    billing_provider: str = "null"  # "null", "lemonsqueezy", etc.
     lemonsqueezy_api_key: str = ""
     lemonsqueezy_webhook_secret: str = ""
     lemonsqueezy_store_id: str = ""

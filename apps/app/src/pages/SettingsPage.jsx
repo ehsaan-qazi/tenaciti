@@ -4,9 +4,7 @@ import { apiFetch } from '../api/client'
 import { Link } from 'react-router-dom'
 
 export default function SettingsPage() {
-  const { user, refreshUser } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const { user } = useAuth()
   const [limits, setLimits] = useState(null)
 
   useEffect(() => {
@@ -21,21 +19,6 @@ export default function SettingsPage() {
     fetchLimits()
   }, [])
 
-  const handleUpgrade = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const response = await apiFetch('/billing/checkout-url')
-      if (response.checkout_url) {
-        window.location.href = response.checkout_url
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to get checkout URL')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const uploadLimit = limits?.upload_limit_per_course || (user?.plan === 'pro' ? 20 : 3)
   const isPro = user?.plan === 'pro'
 
@@ -46,7 +29,7 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em', color: 'var(--on-surface)', margin: '0 0 8px' }}>⚙️ Settings</h1>
-          <p style={{ fontSize: '16px', color: 'var(--on-surface-variant)', margin: 0 }}>Manage your account and subscription</p>
+          <p style={{ fontSize: '16px', color: 'var(--on-surface-variant)', margin: 0 }}>Manage your account and workspace settings</p>
         </div>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', background: 'var(--surface-container)', color: 'var(--on-surface)', fontSize: '14px', fontWeight: 500, transition: 'all 0.2s' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span> Dashboard
@@ -96,43 +79,30 @@ export default function SettingsPage() {
             </span>
             <p style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--on-surface-variant)', lineHeight: 1.6, maxWidth: '500px' }}>
               {isPro
-                ? 'You have access to all premium features including AI topic extraction.'
-                : 'You are on the free tier. Upgrade to unlock AI topic extraction and higher upload limits.'}
+                ? 'You have access to all premium workspace features.'
+                : 'You are currently on the Free tier. Higher document quotas, advanced analytics, and AI topic extraction are coming soon with Premium plans.'}
             </p>
           </div>
 
           {!isPro && (
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              style={{ 
-                padding: '12px 24px', 
-                borderRadius: '12px', 
-                background: 'var(--primary)', 
-                color: 'var(--on-primary)', 
-                border: 'none', 
-                fontWeight: 600, 
-                fontSize: '14px',
-                cursor: loading ? 'not-allowed' : 'pointer', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                opacity: loading ? 0.7 : 1,
-                transition: 'all 0.2s'
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bolt</span>
-              {loading ? 'Processing...' : 'Upgrade to Pro'}
-            </button>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              borderRadius: '12px',
+              background: 'var(--surface-container-high)',
+              color: 'var(--on-surface-variant)',
+              border: '1px solid var(--outline-variant, rgba(0,0,0,0.08))',
+              fontSize: '13px',
+              fontWeight: 600,
+              userSelect: 'none',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--secondary)' }}>schedule</span>
+              <span>Premium — Coming Soon</span>
+            </div>
           )}
         </div>
-        
-        {error && (
-          <div style={{ marginTop: '12px', padding: '12px 16px', background: 'var(--error-container)', borderRadius: '12px', color: 'var(--on-error-container)', fontSize: '14px' }}>
-            {error}
-          </div>
-        )}
       </div>
 
       {/* Quota Card */}

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/login.css';
 
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://tenaciti.app';
+
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -70,9 +72,9 @@ export default function LoginPage() {
           </div>
 
           <div className="brand-copy">
-            <p className="eyebrow">For students who finish what they start</p>
-            <h1>Study smarter,<br/>not harder.</h1>
-            <p className="sub">Turn a syllabus into a roadmap, scattered notes into a connected graph, and every exam into proof of how far you've come.</p>
+            <p className="eyebrow">Authenticated Workspace</p>
+            <h1>Your AI Academic<br/>Workspace.</h1>
+            <p className="sub">Access your course roadmaps, connected notes, study goals, and academic progress in one unified workspace.</p>
           </div>
 
           <div className="graph-field" aria-hidden="true">
@@ -93,22 +95,36 @@ export default function LoginPage() {
 
             <div className="chip c1">
               <span className="pip"></span>
-              <span><strong>Midterm — confirm details</strong><span className="chip-sub">Roadmap · due in 6 days</span></span>
+              <span><strong>AI Study Roadmap</strong><span className="chip-sub">Syllabus extracted & scheduled</span></span>
             </div>
             <div className="chip c2">
               <span className="pip"></span>
-              <span><strong>Confidence 4/5</strong><span className="chip-sub">Thermodynamics · Ch. 4</span></span>
+              <span><strong>Knowledge Graph</strong><span className="chip-sub">Bi-directional notes linked</span></span>
             </div>
             <div className="chip c3">
               <span className="pip"></span>
-              <span><strong>12-day streak</strong><span className="chip-sub">keep it going →</span></span>
+              <span><strong>Progress & Streaks</strong><span className="chip-sub">Daily tracking active</span></span>
             </div>
+          </div>
+
+          <div className="brand-footer">
+            <a href={MARKETING_URL} className="brand-learn-more" target="_blank" rel="noopener noreferrer">
+              <span>Learn more about Tenaciti</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
+            </a>
           </div>
         </aside>
 
         {/* Auth Panel */}
         <main className="auth-panel">
           <div className="auth-card">
+
+            <div className="auth-card-top-nav">
+              <a href={MARKETING_URL} className="back-to-site-link">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>arrow_back</span>
+                <span>tenaciti.app</span>
+              </a>
+            </div>
 
             <div className="card-logo">
               <span className="logo-mark">
