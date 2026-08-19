@@ -4,7 +4,7 @@ Loads settings from environment variables / .env file.
 """
 
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, Field, AliasChoices
 
 
 class Settings(BaseSettings):
@@ -45,7 +45,10 @@ class Settings(BaseSettings):
     pro_max_file_size_mb: int = 25
 
     # ── CORS ─────────────────────────────────────────────────
-    cors_origins: str = "http://localhost:5173,http://localhost:3000,https://my.tenaciti.app"
+    cors_origins: str = Field(
+        default="https://my.tenaciti.app,https://tenaciti.app,https://www.tenaciti.app,http://localhost:5173,http://localhost:3000",
+        validation_alias=AliasChoices("cors_origins", "cors_origin", "CORS_ORIGINS", "CORS_ORIGIN"),
+    )
 
     # ── Email (Resend) ─────────────────────────────────────────
     resend_api_key: str = ""
