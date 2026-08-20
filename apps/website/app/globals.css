@@ -14,11 +14,10 @@
   --panel-square: #DFDFDC;
   --line: #DCDCD9;
   --white: #FFFFFF;
-  --page: #E7E7E4;
+  --page: #FFFFFF;
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-pill: 999px;
-  --radius-frame: 32px;
 
   --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-sora), 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -40,16 +39,22 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
 }
 
 body {
-  background: var(--page);
+  background: var(--white);
   font-family: var(--font-sans);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding: 28px 16px;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
 }
 
 a {
@@ -68,31 +73,3 @@ button {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
-
-/* Master Frame Container */
-.frame {
-  max-width: 1280px;
-  margin: 0 auto;
-  background: var(--white);
-  border-radius: var(--radius-frame);
-  box-shadow: 0 30px 60px -20px rgba(13, 13, 13, 0.18);
-  overflow: hidden;
-  position: relative;
-  min-height: calc(100vh - 56px);
-  display: flex;
-  flex-direction: column;
-}
-
-.frame > main {
-  flex: 1;
-}
-
-@media (max-width: 640px) {
-  body {
-    padding: 12px 8px;
-  }
-  .frame {
-    border-radius: 20px;
-  }
-}
-

@@ -1,6 +1,8 @@
 /* ---------- HERO SECTION ---------- */
 .heroShell {
-  padding: 0 22px 22px;
+  max-width: 1280px;
+  margin: 20px auto 0;
+  padding: 0 24px;
 }
 
 .heroPanel {
@@ -77,6 +79,7 @@
   letter-spacing: 0.08em;
   color: var(--ink);
   font-family: var(--font-heading), 'Sora', sans-serif;
+  text-transform: uppercase;
 }
 
 .heading {
@@ -295,8 +298,9 @@
 
 /* ---------- SECTION: SOCIAL PROOF / STATS ---------- */
 .statsSection {
-  padding: 56px 44px;
-  border-top: 1px solid var(--line);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 64px 24px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
@@ -325,8 +329,9 @@
 
 /* ---------- SECTION: FEATURES ---------- */
 .featuresSection {
-  padding: 72px 44px;
-  background: var(--white);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
 }
 
 .sectionHeader {
@@ -435,7 +440,9 @@
 
 /* ---------- SECTION: BANNER / WORKSPACE CTA ---------- */
 .bannerSection {
-  padding: 0 44px 72px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
 }
 
 .bannerCard {
@@ -540,7 +547,7 @@
   }
   .statsSection {
     grid-template-columns: repeat(2, 1fr);
-    padding: 44px 24px;
+    padding: 44px 20px;
     gap: 32px;
   }
   .featuresGrid {
@@ -548,10 +555,10 @@
     gap: 20px;
   }
   .featuresSection {
-    padding: 56px 24px;
+    padding: 48px 20px 60px;
   }
   .bannerSection {
-    padding: 0 24px 56px;
+    padding: 0 20px 60px;
   }
   .bannerCard {
     flex-direction: column;
@@ -562,7 +569,8 @@
 
 @media (max-width: 540px) {
   .heroShell {
-    padding: 0 12px 12px;
+    padding: 0 16px;
+    margin-top: 12px;
   }
   .heroPanel {
     padding: 36px 18px 28px;
@@ -586,6 +594,13 @@
   .statsSection {
     grid-template-columns: 1fr;
     gap: 24px;
+    padding: 36px 16px;
+  }
+  .featuresSection {
+    padding: 36px 16px 48px;
+  }
+  .bannerSection {
+    padding: 0 16px 48px;
   }
   .bannerActions {
     flex-direction: column;

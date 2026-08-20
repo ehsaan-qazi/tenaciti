@@ -1,16 +1,18 @@
 .footer {
-  padding: 56px 44px 40px;
+  width: 100%;
   background: var(--panel);
   border-top: 1px solid var(--line);
+  padding: 64px 0 48px;
   margin-top: auto;
 }
 
 .container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
   display: flex;
   justify-content: space-between;
   gap: 48px;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .brandCol {
@@ -25,6 +27,7 @@
   align-items: center;
   gap: 12px;
   color: var(--ink);
+  text-decoration: none;
 }
 
 .logoSvg {
@@ -89,9 +92,10 @@
 
 @media (max-width: 900px) {
   .footer {
-    padding: 40px 24px 32px;
+    padding: 48px 0 36px;
   }
   .container {
+    padding: 0 20px;
     flex-direction: column;
     gap: 36px;
   }

@@ -18,7 +18,7 @@ export function Navbar() {
   ];
 
   return (
-    <>
+    <header className={styles.headerWrapper}>
       <nav className={styles.nav} aria-label="Main Navigation">
         <Link href="/" className={styles.brand} aria-label="Tenaciti Home">
           <svg className={styles.logoSvg} viewBox="0 0 503 217" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -107,6 +107,6 @@ export function Navbar() {
           </div>
         </div>
       )}
-    </>
+    </header>
   );
 }
