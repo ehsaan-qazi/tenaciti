@@ -1,0 +1,109 @@
+.footer {
+  padding: 56px 44px 40px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  margin-top: auto;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.brandCol {
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.logoSvg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.brandName {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.tagline {
+  font-size: 13.5px;
+  color: var(--grey-500);
+  line-height: 1.5;
+}
+
+.copyright {
+  font-size: 12.5px;
+  color: var(--grey-500);
+  margin-top: 8px;
+}
+
+.linksGrid {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.linkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.groupHeading {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.linkGroup a {
+  font-size: 13.5px;
+  color: var(--grey-500);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.linkGroup a:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .footer {
+    padding: 40px 24px 32px;
+  }
+  .container {
+    flex-direction: column;
+    gap: 36px;
+  }
+  .linksGrid {
+    gap: 32px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .linksGrid {
+    grid-template-columns: 1fr;
+  }
+}

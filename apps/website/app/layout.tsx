@@ -1,21 +1,25 @@
 import type { Metadata } from 'next';
-import { Hanken_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Sora, Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 
-const hankenGrotesk = Hanken_Grotesk({
+const sora = Sora({
   subsets: ['latin'],
-  variable: '--font-sans',
+  variable: '--font-sora',
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
 });
 
-const jetBrainsMono = JetBrains_Mono({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-mono',
+  variable: '--font-inter',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Tenaciti | The AI Workspace for Students',
+  title: 'Tenaciti | Study smart not hard — The AI Workspace for Students',
   description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
   openGraph: {
     title: 'Tenaciti | The AI Workspace for Students',
@@ -45,15 +49,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${sora.variable} ${inter.variable}`}>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
       </head>
-      <body className={`${hankenGrotesk.variable} ${jetBrainsMono.variable}`}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+      <body>
+        <div className="frame">
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
 }
+

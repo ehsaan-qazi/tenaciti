@@ -4,21 +4,95 @@
 @import "@tenaciti/tokens/src/gpa.css";
 @import "@tenaciti/tokens/src/buttons.css";
 
+:root {
+  --ink: #0D0D0D;
+  --ink-soft: #2E2E2E;
+  --grey-700: #4B4B4B;
+  --grey-500: #6E6E6E;
+  --grey-300: #B9B9B7;
+  --panel: #ECECE9;
+  --panel-square: #DFDFDC;
+  --line: #DCDCD9;
+  --white: #FFFFFF;
+  --page: #E7E7E4;
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --radius-frame: 32px;
+
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: var(--font-sora), 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Backwards compatibility tokens */
+  --surface-default: var(--white);
+  --surface-sunken: var(--panel);
+  --surface-border: var(--line);
+  --on-surface: var(--ink);
+  --on-surface-variant: var(--grey-500);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  background-color: var(--surface-default);
-  color: var(--on-surface);
-  line-height: 1.5;
+  background: var(--page);
+  font-family: var(--font-sans);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding: 28px 16px;
+  min-height: 100vh;
 }
 
 a {
-  color: inherit;
   text-decoration: none;
+  color: inherit;
 }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Master Frame Container */
+.frame {
+  max-width: 1280px;
+  margin: 0 auto;
+  background: var(--white);
+  border-radius: var(--radius-frame);
+  box-shadow: 0 30px 60px -20px rgba(13, 13, 13, 0.18);
+  overflow: hidden;
+  position: relative;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+}
+
+.frame > main {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 12px 8px;
+  }
+  .frame {
+    border-radius: 20px;
+  }
+}
+
