@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import HeroDemo from '../components/HeroDemo/HeroDemo';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -81,20 +82,7 @@ export default function Home() {
             </div>
 
             <div className={styles.heroRight}>
-              <div className={styles.placeholderCard}>
-                <div className={styles.placeholderTopbar}></div>
-                <div className={styles.placeholderBody}>
-                  <div className={styles.placeholderInner}>
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="4" width="18" height="16" rx="2" />
-                      <circle cx="8.5" cy="9.5" r="1.75" />
-                      <path d="M21 16l-5.5-5.5L9 17" />
-                    </svg>
-                    <span className={styles.phLabel}>Image placeholder</span>
-                    <span className={styles.phSub}>1600 × 1400</span>
-                  </div>
-                </div>
-              </div>
+              <HeroDemo />
             </div>
           </div>
         </div>
