@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 import { noteCreationSteps } from '../dummyData';
 
@@ -9,28 +9,17 @@ import { noteCreationSteps } from '../dummyData';
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'idle' | 'user' | 'ai' | 'tools' | 'result';
 
-export default function SceneAINote({ isActive, onComplete }: Props) {
+export default function SceneAINote({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [visibleTools, setVisibleTools] = useState(0);
   const [doneTools, setDoneTools] = useState(0);
 
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
   useEffect(() => {
-    if (!isActive) {
-      setPhase('idle');
-      setVisibleTools(0);
-      setDoneTools(0);
-      return;
-    }
-
     const t: ReturnType<typeof setTimeout>[] = [];
 
     t.push(setTimeout(() => setPhase('user'), 200));
@@ -45,11 +34,11 @@ export default function SceneAINote({ isActive, onComplete }: Props) {
     const resultTime = 2000 + noteCreationSteps.length * 500 + 400;
     t.push(setTimeout(() => setPhase('result'), resultTime));
     t.push(setTimeout(() => {
-      onCompleteRef.current?.();
+      onComplete?.();
     }, resultTime + 1800));
 
     return () => t.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const showUser = ['user', 'ai', 'tools', 'result'].includes(phase);
   const showAI = ['ai', 'tools', 'result'].includes(phase);
@@ -59,7 +48,7 @@ export default function SceneAINote({ isActive, onComplete }: Props) {
   return (
     <>
       <div className={styles.sceneHeader}>
-        <div className={styles.sceneIcon} style={{ background: 'rgba(13, 13, 13, 0.06)' }}>
+        <div className={styles.sceneIcon}>
           <span className={styles.aiDot} />
         </div>
         <div className={styles.sceneTitle}>Tenaciti AI</div>

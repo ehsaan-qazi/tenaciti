@@ -1,44 +1,24 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 
 /**
  * Slide 2 — Extracted Suggested Topics & Rate Topic Mastery Modal
  * (Matches Image 3 & Image 4 from the app)
- *
- * Sequence:
- *  0.0s  - Suggested topics appear (1. FD Example, 2. B2C Business Models, 3. Three Level Architecture)
- *  1.2s  - Row 1 "1. FD Example" highlights
- *  1.8s  - "✓ Confirm" button activates/clicks
- *  2.4s  - "Rate Topic Mastery" modal opens over the topics
- *  3.2s  - Stars animate 1 -> 4
- *  4.2s  - "✓ Save & Complete" green button clicks
- *  5.0s  - Modal closes, topic is saved & confirmed
- *  6.0s  - Triggers next slide
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'topicsIn' | 'highlight' | 'confirmClick' | 'modalOpen' | 'stars' | 'saveClick' | 'confirmed';
 
-export default function SceneTopicsConfidence({ isActive, onComplete }: Props) {
+export default function SceneTopicsConfidence({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('topicsIn');
   const [activeStars, setActiveStars] = useState(0);
 
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
   useEffect(() => {
-    if (!isActive) {
-      setPhase('topicsIn');
-      setActiveStars(0);
-      return;
-    }
-
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     timers.push(setTimeout(() => setPhase('highlight'), 1000));
@@ -53,11 +33,11 @@ export default function SceneTopicsConfidence({ isActive, onComplete }: Props) {
     timers.push(setTimeout(() => setPhase('saveClick'), 4200));
     timers.push(setTimeout(() => setPhase('confirmed'), 4800));
     timers.push(setTimeout(() => {
-      onCompleteRef.current?.();
+      onComplete?.();
     }, 6000));
 
     return () => timers.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const isHighlighted = ['highlight', 'confirmClick'].includes(phase);
   const isConfirmClicked = phase === 'confirmClick';

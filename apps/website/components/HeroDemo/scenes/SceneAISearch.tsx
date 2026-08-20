@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 import { searchResults } from '../dummyData';
 
@@ -9,45 +9,32 @@ import { searchResults } from '../dummyData';
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'idle' | 'user' | 'ai' | 'searching' | 'results';
 
-export default function SceneAISearch({ isActive, onComplete }: Props) {
+export default function SceneAISearch({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [visibleCategories, setVisibleCategories] = useState(0);
 
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
   useEffect(() => {
-    if (!isActive) {
-      setPhase('idle');
-      setVisibleCategories(0);
-      return;
-    }
-
     const t: ReturnType<typeof setTimeout>[] = [];
 
     t.push(setTimeout(() => setPhase('user'), 200));
     t.push(setTimeout(() => setPhase('ai'), 1000));
     t.push(setTimeout(() => setPhase('searching'), 1700));
 
-    // Reveal categories sequentially
     searchResults.forEach((_, i) => {
       t.push(setTimeout(() => setVisibleCategories(i + 1), 1900 + i * 350));
     });
 
     const finishTime = 1900 + searchResults.length * 350 + 400;
     t.push(setTimeout(() => setPhase('results'), finishTime));
-    t.push(setTimeout(() => {
-      onCompleteRef.current?.();
-    }, finishTime + 2000));
+    t.push(setTimeout(() => onComplete?.(), finishTime + 2000));
 
     return () => t.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const showUser = ['user', 'ai', 'searching', 'results'].includes(phase);
   const showAI = ['ai', 'searching', 'results'].includes(phase);
@@ -56,7 +43,7 @@ export default function SceneAISearch({ isActive, onComplete }: Props) {
   return (
     <>
       <div className={styles.sceneHeader}>
-        <div className={styles.sceneIcon} style={{ background: 'rgba(13, 13, 13, 0.06)' }}>
+        <div className={styles.sceneIcon}>
           <span className={styles.aiDot} />
         </div>
         <div className={styles.sceneTitle}>Tenaciti AI</div>

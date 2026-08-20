@@ -55,10 +55,9 @@ export default function HeroDemo() {
                 className={`${styles.sceneWrapper} ${isActive ? styles.sceneActive : ''}`}
                 aria-hidden={!isActive}
               >
-                <Component
-                  isActive={isActive}
-                  onComplete={handleSceneComplete}
-                />
+                {isActive && (
+                  <Component onComplete={handleSceneComplete} />
+                )}
               </div>
             );
           })}

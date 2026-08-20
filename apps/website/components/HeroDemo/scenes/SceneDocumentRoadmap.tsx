@@ -1,49 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 
 /**
  * Slide 1 — Drag & Drop Syllabus + Uploaded Document with Roadmap/Topics options
- *
- * Sequence:
- *  0.0s  - Initial state: Empty dropzone
- *  0.4s  - Floating PDF badge "Lecture 19.pdf" animates & drops into dropzone
- *  1.8s  - Dropzone pulses (drag over highlight)
- *  2.2s  - Document lands into "Uploaded Documents" section with "● Processed" badge
- *  3.4s  - "✨ Topics" button highlights and clicks
- *  4.8s  - Triggers next slide (Slide 2: Extracted Topics)
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'empty' | 'dropping' | 'dropped' | 'clickingTopics';
 
-export default function SceneDocumentRoadmap({ isActive, onComplete }: Props) {
+export default function SceneDocumentRoadmap({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('empty');
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    if (!isActive) {
-      setPhase('empty');
-      return;
-    }
-
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     timers.push(setTimeout(() => setPhase('dropping'), 300));
     timers.push(setTimeout(() => setPhase('dropped'), 2000));
     timers.push(setTimeout(() => setPhase('clickingTopics'), 3400));
     timers.push(setTimeout(() => {
-      onCompleteRef.current?.();
+      onComplete?.();
     }, 4800));
 
     return () => timers.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const isDropping = phase === 'dropping';
   const isDropped = ['dropped', 'clickingTopics'].includes(phase);

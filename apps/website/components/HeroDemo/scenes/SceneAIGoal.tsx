@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 
 /**
@@ -8,45 +8,32 @@ import styles from '../HeroDemo.module.css';
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'idle' | 'user' | 'ai' | 'building' | 'done';
 
-export default function SceneAIGoal({ isActive, onComplete }: Props) {
+export default function SceneAIGoal({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [visibleFields, setVisibleFields] = useState(0);
 
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
   useEffect(() => {
-    if (!isActive) {
-      setPhase('idle');
-      setVisibleFields(0);
-      return;
-    }
-
     const t: ReturnType<typeof setTimeout>[] = [];
 
     t.push(setTimeout(() => setPhase('user'), 200));
     t.push(setTimeout(() => setPhase('ai'), 1100));
     t.push(setTimeout(() => setPhase('building'), 2000));
 
-    // Reveal goal fields progressively
     for (let f = 1; f <= 4; f++) {
       t.push(setTimeout(() => setVisibleFields(f), 2200 + f * 300));
     }
 
     const doneTime = 2200 + 4 * 300 + 400;
     t.push(setTimeout(() => setPhase('done'), doneTime));
-    t.push(setTimeout(() => {
-      onCompleteRef.current?.();
-    }, doneTime + 2000));
+    t.push(setTimeout(() => onComplete?.(), doneTime + 2000));
 
     return () => t.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const showUser = ['user', 'ai', 'building', 'done'].includes(phase);
   const showAI = ['ai', 'building', 'done'].includes(phase);
@@ -55,7 +42,7 @@ export default function SceneAIGoal({ isActive, onComplete }: Props) {
   return (
     <>
       <div className={styles.sceneHeader}>
-        <div className={styles.sceneIcon} style={{ background: 'rgba(13, 13, 13, 0.06)' }}>
+        <div className={styles.sceneIcon}>
           <span className={styles.aiDot} />
         </div>
         <div className={styles.sceneTitle}>Tenaciti AI</div>

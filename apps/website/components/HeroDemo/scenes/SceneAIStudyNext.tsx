@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 import { contextCheckSteps } from '../dummyData';
 
@@ -9,34 +9,22 @@ import { contextCheckSteps } from '../dummyData';
  */
 
 interface Props {
-  isActive: boolean;
   onComplete?: () => void;
 }
 
 type Phase = 'idle' | 'user' | 'thinking' | 'result';
 
-export default function SceneAIStudyNext({ isActive, onComplete }: Props) {
+export default function SceneAIStudyNext({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [visibleChecks, setVisibleChecks] = useState(0);
   const [doneChecks, setDoneChecks] = useState(0);
 
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
   useEffect(() => {
-    if (!isActive) {
-      setPhase('idle');
-      setVisibleChecks(0);
-      setDoneChecks(0);
-      return;
-    }
-
     const t: ReturnType<typeof setTimeout>[] = [];
 
     t.push(setTimeout(() => setPhase('user'), 200));
     t.push(setTimeout(() => setPhase('thinking'), 1000));
 
-    // Context checks
     contextCheckSteps.forEach((_, i) => {
       t.push(setTimeout(() => setVisibleChecks(i + 1), 1200 + i * 200));
       t.push(setTimeout(() => setDoneChecks(i + 1), 1200 + i * 200 + 150));
@@ -45,11 +33,11 @@ export default function SceneAIStudyNext({ isActive, onComplete }: Props) {
     const resultTime = 1200 + contextCheckSteps.length * 200 + 300;
     t.push(setTimeout(() => setPhase('result'), resultTime));
     t.push(setTimeout(() => {
-      onCompleteRef.current?.();
+      onComplete?.();
     }, resultTime + 2200));
 
     return () => t.forEach(clearTimeout);
-  }, [isActive]);
+  }, [onComplete]);
 
   const showUser = ['user', 'thinking', 'result'].includes(phase);
   const showThinking = ['thinking'].includes(phase);
@@ -58,7 +46,7 @@ export default function SceneAIStudyNext({ isActive, onComplete }: Props) {
   return (
     <>
       <div className={styles.sceneHeader}>
-        <div className={styles.sceneIcon} style={{ background: 'rgba(13, 13, 13, 0.06)' }}>
+        <div className={styles.sceneIcon}>
           <span className={styles.aiDot} />
         </div>
         <div className={styles.sceneTitle}>Tenaciti AI</div>
