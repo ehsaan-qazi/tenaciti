@@ -5,13 +5,22 @@ import styles from '../HeroDemo.module.css';
 
 /**
  * Slide 1 — Drag & Drop Syllabus + Uploaded Document with Roadmap/Topics options
+ *
+ * Sequence:
+ *  0.0s  - Initial state: Empty dropzone
+ *  0.3s  - Floating PDF badge "Lecture 19.pdf" animates & drops into dropzone
+ *  1.6s  - Dropzone pulses (drag-over highlight)
+ *  2.0s  - Document lands in "Uploaded Documents" with "● Processed" badge
+ *  3.0s  - "✨ Topics" button clicks
+ *  3.4s  - "Topics" button switches to "⟳ Extracting..." + Extraction banner slides in
+ *  4.8s  - Triggers next slide (Slide 2: Extracted Topics cascade in)
  */
 
 interface Props {
   onComplete?: () => void;
 }
 
-type Phase = 'empty' | 'dropping' | 'dropped' | 'clickingTopics';
+type Phase = 'empty' | 'dropping' | 'dropped' | 'clickingTopics' | 'extracting';
 
 export default function SceneDocumentRoadmap({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('empty');
@@ -20,18 +29,20 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     timers.push(setTimeout(() => setPhase('dropping'), 300));
-    timers.push(setTimeout(() => setPhase('dropped'), 2000));
-    timers.push(setTimeout(() => setPhase('clickingTopics'), 3400));
+    timers.push(setTimeout(() => setPhase('dropped'), 1800));
+    timers.push(setTimeout(() => setPhase('clickingTopics'), 3000));
+    timers.push(setTimeout(() => setPhase('extracting'), 3400));
     timers.push(setTimeout(() => {
       onComplete?.();
-    }, 4800));
+    }, 4900));
 
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
 
   const isDropping = phase === 'dropping';
-  const isDropped = ['dropped', 'clickingTopics'].includes(phase);
+  const isDropped = ['dropped', 'clickingTopics', 'extracting'].includes(phase);
   const isClicking = phase === 'clickingTopics';
+  const isExtracting = phase === 'extracting';
 
   return (
     <>
@@ -103,9 +114,18 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
                 Roadmap
               </button>
 
-              <button className={`${styles.docBtnAction} ${isClicking ? styles.docBtnActionActive : ''}`}>
-                <span>✨</span>
-                Topics
+              <button className={`${styles.docBtnAction} ${isClicking ? styles.docBtnActionActive : ''} ${isExtracting ? styles.docBtnActionExtracting : ''}`}>
+                {isExtracting ? (
+                  <>
+                    <span className={styles.spinner} style={{ width: 10, height: 10, borderWidth: 1.5 }} />
+                    Extracting...
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    Topics
+                  </>
+                )}
               </button>
 
               <button className={styles.docTrashBtn} title="Delete">
@@ -116,6 +136,19 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
               </button>
             </div>
           </div>
+
+          {/* ── EXTRACTION PROGRESS INDICATOR ── */}
+          {isExtracting && (
+            <div className={styles.extractionLoadingCard}>
+              <div className={styles.extractionLoadingHeader}>
+                <span>✨ Extracting topics & key concepts...</span>
+                <span style={{ color: '#16A34A', fontSize: 11 }}>AI Processing</span>
+              </div>
+              <div className={styles.extractionProgressBar}>
+                <div className={styles.extractionProgressFill} />
+              </div>
+            </div>
+          )}
         </>
       )}
     </>

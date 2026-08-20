@@ -5,35 +5,39 @@
 /* ── DEMO CONTAINER ─────────────────────────────────────────────── */
 .demoContainer {
   position: relative;
-  width: 100%;
+  width: calc(100% + 64px);
   height: 100%;
-  min-height: 520px;
+  min-height: 480px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-right: -64px;
   font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .demoCard {
   position: relative;
-  width: 490px;
+  width: 520px;
   max-width: 100%;
-  height: 520px;
+  height: 480px;
   background: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: -15px 24px 60px -15px rgba(0, 0, 0, 0.14);
   overflow: hidden;
-  border: 1px solid rgba(225, 227, 228, 0.8);
+  isolation: isolate;
+  border-top: 4px solid #111827;
+  border-left: 4px solid #111827;
+  border-bottom: 4px solid #111827;
+  border-right: none;
   display: flex;
   flex-direction: column;
-  margin-right: -15px;
 }
 
 .demoTopbar {
-  height: 4px;
-  width: 100%;
-  background: #111827;
-  flex-shrink: 0;
+  display: none;
 }
 
 .demoBody {
@@ -43,6 +47,8 @@
   overflow: hidden;
   position: relative;
   background: #F8F9FA;
+  border-top-left-radius: 16px;
+  isolation: isolate;
 }
 
 /* ── SCENE WRAPPER (for transitions) ────────────────────────────── */
@@ -58,6 +64,7 @@
   pointer-events: none;
   overflow-y: auto;
   overflow-x: hidden;
+  border-top-left-radius: 16px;
 }
 
 .sceneWrapper::-webkit-scrollbar {
@@ -358,6 +365,12 @@
   transform: scale(0.96);
 }
 
+.docBtnActionExtracting {
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
 .docTrashBtn {
   width: 28px;
   height: 28px;
@@ -371,6 +384,51 @@
   font-size: 14px;
 }
 
+/* Extraction Loading Card */
+.extractionLoadingCard {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideUpFade 0.3s ease forwards;
+}
+
+.extractionLoadingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.extractionProgressBar {
+  width: 100%;
+  height: 4px;
+  background: #F3F4F6;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.extractionProgressFill {
+  height: 100%;
+  background: #22C55E;
+  border-radius: 4px;
+  animation: fillProgress 1.4s ease forwards;
+}
+
+@keyframes fillProgress {
+  0% { width: 0%; }
+  60% { width: 75%; }
+  100% { width: 100%; }
+}
+
 /* ── SLIDE 2: EXTRACTED SUGGESTED TOPICS (Exact Image 3) ───────── */
 .suggestedTopicsContainer {
   display: flex;
@@ -382,12 +440,28 @@
 .suggestedTopicRow {
   display: flex;
   align-items: center;
-  padding: 12px 14px;
+  padding: 11px 14px;
   background: rgba(243, 244, 246, 0.5);
   border: 1px dashed #D1D5DB;
   border-radius: 12px;
   gap: 12px;
   transition: all 0.25s ease;
+  animation: cascadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.suggestedTopicRow:nth-child(1) { animation-delay: 0.05s; }
+.suggestedTopicRow:nth-child(2) { animation-delay: 0.16s; }
+.suggestedTopicRow:nth-child(3) { animation-delay: 0.27s; }
+
+@keyframes cascadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .suggestedTopicRowHighlight {
@@ -474,6 +548,9 @@
   justify-content: center;
   padding: 16px;
   z-index: 50;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  overflow: hidden;
   animation: fadeIn 0.25s ease forwards;
 }
 
@@ -907,26 +984,37 @@
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
 @media (max-width: 980px) {
-  .demoCard {
-    position: relative;
-    right: auto;
-    top: auto;
-    transform: none;
-    width: 100%;
-    height: 480px;
-    margin-right: 0;
-  }
   .demoContainer {
+    width: calc(100% + 24px);
+    margin-right: -24px;
     min-height: auto;
     height: auto;
-    justify-content: center;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+  .demoCard {
+    width: 100%;
+    height: 480px;
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top: 3px solid #111827;
+    border-left: 3px solid #111827;
+    border-bottom: 3px solid #111827;
+    border-right: none;
   }
 }
 
 @media (max-width: 540px) {
+  .demoContainer {
+    width: calc(100% + 18px);
+    margin-right: -18px;
+  }
   .demoCard {
     height: 440px;
-    border-radius: 16px;
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
   }
   .sceneWrapper {
     padding: 14px;
