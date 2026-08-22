@@ -60,9 +60,14 @@ export interface DummyDocument {
   status: 'uploaded' | 'processing' | 'processed';
 }
 
-export interface DummySearchResult {
-  category: 'Notes' | 'Documents' | 'Topics' | 'Courses';
-  items: string[];
+export type SearchArea = 'Notes' | 'Documents' | 'Topics' | 'Courses';
+
+export interface DummySearchHit {
+  id: string;
+  area: SearchArea;
+  title: string;
+  sub?: string;
+  meta?: string;
 }
 
 // ─── Courses ──────────────────────────────────────────────────────
@@ -129,13 +134,19 @@ export const notes: DummyNote[] = [
   { id: 'n3', title: 'Revision notes', snippet: 'Review all normal forms and practice decomposition exercises...', linkedTopic: 'Normalization', courseName: 'Database Systems' },
 ];
 
-// ─── Search Results ───────────────────────────────────────────────
-export const searchResults: DummySearchResult[] = [
-  { category: 'Notes', items: ['Normalization lecture notes', "Teacher's exam hint", 'Revision notes'] },
-  { category: 'Documents', items: ['DBMS Lecture 04.pdf', 'DBMS Revision Notes.pdf'] },
-  { category: 'Topics', items: ['Normalization'] },
-  { category: 'Courses', items: ['Database Systems'] },
+// ─── Search Hits ("Find everything about normalization") ─────────
+// Order matters — groups render in the sequence the AI sweeps the workspace.
+export const searchHits: DummySearchHit[] = [
+  { id: 's1', area: 'Notes', title: 'Normalization lecture notes', sub: 'Key forms: 1NF, 2NF, 3NF, BCNF…', meta: '2h ago' },
+  { id: 's2', area: 'Notes', title: "Teacher's exam hint", sub: 'Topic 4 is very important for the final exam', meta: '1d ago' },
+  { id: 's3', area: 'Notes', title: 'Revision notes', sub: 'Practice decomposition exercises…', meta: '3d ago' },
+  { id: 's4', area: 'Documents', title: 'DBMS Lecture 04.pdf', meta: '1.2 MB' },
+  { id: 's5', area: 'Documents', title: 'DBMS Revision Notes.pdf', meta: '560 KB' },
+  { id: 's6', area: 'Topics', title: 'Normalization', meta: 'CS-301 · In progress' },
+  { id: 's7', area: 'Courses', title: 'Database Systems', meta: 'CS-301 · 42% complete' },
 ];
+
+export const searchAreas: SearchArea[] = ['Notes', 'Documents', 'Topics', 'Courses'];
 
 // ─── Student Stats ────────────────────────────────────────────────
 export const studentStats = {
@@ -147,23 +158,41 @@ export const studentStats = {
 };
 
 // ─── AI Processing Steps (reused across scenes) ──────────────────
-export const extractionSteps = [
-  'Analyzing syllabus...',
-  'Organizing topics...',
-  'Building learning sequence...',
-];
+// Icon keys map to components in ./icons.tsx
+export const workspaceScanSteps = [
+  { key: 'courses', label: 'Courses', detail: '5 active' },
+  { key: 'topics', label: 'Topics', detail: '23 of 50 completed' },
+  { key: 'progress', label: 'Progress', detail: 'Up to date' },
+  { key: 'assessments', label: 'Assessments', detail: '3 upcoming' },
+  { key: 'goals', label: 'Goals', detail: '3 active' },
+  { key: 'materials', label: 'Study material', detail: '4 documents' },
+] as const;
 
-export const contextCheckSteps = [
-  { label: 'Courses', icon: '📚' },
-  { label: 'Topics', icon: '📋' },
-  { label: 'Progress', icon: '📊' },
-  { label: 'Assessments', icon: '📝' },
-  { label: 'Goals', icon: '🎯' },
-  { label: 'Study material', icon: '📄' },
-];
+export const studyNext = {
+  topic: 'Normalization',
+  courseName: 'Database Systems',
+  courseCode: 'CS-301',
+  progressPct: 42,
+  topicsDone: 5,
+  topicsTotal: 12,
+  remainingTopics: 7,
+  reason: 'DBMS Quiz 2 covers this — and it is your lowest-confidence unfinished unit.',
+};
 
-export const noteCreationSteps = [
-  { label: 'Creating note', tool: 'Notes' },
-  { label: 'Linking to Topic 4', tool: 'Topics' },
-  { label: 'Marking important', tool: 'Priority' },
-];
+export const goalParseSteps = [
+  { key: 'intent', label: 'Intent recognized', value: 'Semester goal' },
+  { key: 'deadline', label: 'Deadline parsed', value: 'Friday, Aug 28' },
+  { key: 'course', label: 'Course matched', value: 'Database Systems · CS-301' },
+] as const;
+
+export const newGoal = {
+  title: 'Finish Database Systems',
+  badges: ['Active', 'Course Goal'],
+  fields: [
+    { label: 'Target date', value: 'Fri, Aug 28 · 6 days' },
+    { label: 'Linked items', value: '7 remaining topics · 1 quiz' },
+    { label: 'Roadmap sync', value: 'Auto-scheduled into Weeks 4–6' },
+  ],
+  tasksTotal: 8,
+  meta: ['Fall 2026', 'Aug 28', '1 course'],
+};
