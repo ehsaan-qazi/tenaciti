@@ -2,106 +2,236 @@
 
 import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
+import { goalParseSteps, newGoal, goals } from '../dummyData';
+import {
+  IconTarget,
+  IconCalendar,
+  IconGraduationCap,
+  IconCheck,
+  IconPlus,
+  IconClock,
+  IconSparkles,
+  IconFlag,
+} from '../icons';
 
 /**
- * Scene 5 — AI creates a structured academic goal
+ * Scene 5 — "I want to finish Database Systems before Friday."
+ *
+ * Sequence:
+ *  0.25s – 1.0s   User states the goal in plain language
+ *  1.0s – 2.4s    Tenaciti AI parses intent → deadline → course (structured rows)
+ *  2.9s           Morphs into the Goals page: existing goal + the newly created
+ *                 goal card materializing with badges, fields and roadmap sync
+ *  8.6s           Hands over to next scene
  */
 
 interface Props {
   onComplete?: () => void;
 }
 
-type Phase = 'idle' | 'user' | 'ai' | 'building' | 'done';
+type Phase = 'user' | 'parsing' | 'goals';
+
+const PARSE_ICONS: Record<string, typeof IconTarget> = {
+  intent: IconTarget,
+  deadline: IconCalendar,
+  course: IconGraduationCap,
+};
+
+const ROW_STEP = 300;
+const REVEAL_AT = 2900;
+const COMPLETE_AT = 8600;
 
 export default function SceneAIGoal({ onComplete }: Props) {
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [visibleFields, setVisibleFields] = useState(0);
+  const [phase, setPhase] = useState<Phase>('user');
+  const [visibleRows, setVisibleRows] = useState(0);
+  const [doneRows, setDoneRows] = useState(0);
 
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
 
-    t.push(setTimeout(() => setPhase('user'), 200));
-    t.push(setTimeout(() => setPhase('ai'), 1100));
-    t.push(setTimeout(() => setPhase('building'), 2000));
+    t.push(setTimeout(() => setPhase('parsing'), 1000));
 
-    for (let f = 1; f <= 4; f++) {
-      t.push(setTimeout(() => setVisibleFields(f), 2200 + f * 300));
-    }
+    goalParseSteps.forEach((_, i) => {
+      t.push(setTimeout(() => setVisibleRows(i + 1), 1500 + i * ROW_STEP));
+      t.push(setTimeout(() => setDoneRows(i + 1), 1500 + i * ROW_STEP + 280));
+    });
 
-    const doneTime = 2200 + 4 * 300 + 400;
-    t.push(setTimeout(() => setPhase('done'), doneTime));
-    t.push(setTimeout(() => onComplete?.(), doneTime + 2000));
+    t.push(setTimeout(() => setPhase('goals'), REVEAL_AT));
+    t.push(setTimeout(() => onComplete?.(), COMPLETE_AT));
 
     return () => t.forEach(clearTimeout);
   }, [onComplete]);
 
-  const showUser = ['user', 'ai', 'building', 'done'].includes(phase);
-  const showAI = ['ai', 'building', 'done'].includes(phase);
-  const showCard = ['building', 'done'].includes(phase);
+  const isChat = phase !== 'goals';
+  const isParsing = phase === 'parsing';
+
+  // Existing goal shown for context on the Goals page
+  const existingGoal = goals.find((g) => g.id === 'g3');
 
   return (
     <>
-      <div className={styles.sceneHeader}>
-        <div className={styles.sceneIcon}>
-          <span className={styles.aiDot} />
-        </div>
-        <div className={styles.sceneTitle}>Tenaciti AI</div>
-        <div className={styles.sceneSub}>Goal Setting</div>
-      </div>
-
-      <div className={styles.chatArea}>
-        {/* User message */}
-        <div className={`${styles.userBubble} ${showUser ? styles.userBubbleVisible : ''}`}>
-          I want to finish Database Systems before Friday.
-        </div>
-
-        {/* AI response */}
-        <div className={`${styles.aiBubble} ${showAI ? styles.aiBubbleVisible : ''}`}>
-          <div className={styles.aiLabel}>
-            <span className={styles.aiDot} />
-            TENACITI AI
-          </div>
-          Creating a structured goal for Database Systems with automatic milestone tracking.
-        </div>
-
-        {/* Structured Goal Card */}
-        <div className={`${styles.resultCard} ${showCard ? styles.resultCardVisible : ''}`}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div className={styles.resultTitle} style={{ margin: 0 }}>🎯 Finish Database Systems</div>
-            <span className={styles.resultTag} style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#16A34A' }}>
-              {phase === 'done' ? '✓ Active' : 'Drafting...'}
-            </span>
+      {/* ── PHASE 1–2: ASK + INTENT PARSING ── */}
+      {isChat && (
+        <>
+          <div className={styles.sceneHeader}>
+            <div className={styles.sceneIcon}>
+              <span className={styles.aiDot} />
+            </div>
+            <div className={styles.sceneTitle}>Tenaciti AI</div>
+            <div className={styles.sceneSub}>Goal Setting</div>
           </div>
 
-          {visibleFields >= 1 && (
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Course</span>
-              <span className={styles.resultValue}>Database Systems (CS-301)</span>
+          <div className={styles.chatArea}>
+            <div className={`${styles.userBubble} ${styles.userBubbleVisible}`}>
+              I want to finish Database Systems before Friday.
+            </div>
+
+            {isParsing && (
+              <div className={styles.aiPanel}>
+                <div className={styles.aiPanelTitle}>
+                  <span className={styles.aiDot} />
+                  Turning that into a structured goal
+                </div>
+
+                <div className={styles.scanList}>
+                  {goalParseSteps.map((step, i) => {
+                    const Comp = PARSE_ICONS[step.key];
+                    const isVisible = i < visibleRows;
+                    const isDone = i < doneRows;
+
+                    return (
+                      <div key={step.key} className={`${styles.scanRow} ${isVisible ? styles.scanRowVisible : ''}`}>
+                        <span
+                          className={styles.scanTile}
+                          style={{ background: 'rgba(124, 58, 237, 0.09)', color: '#7C3AED' }}
+                        >
+                          <Comp size={14} />
+                        </span>
+                        <span className={styles.scanText}>
+                          <span className={styles.scanLabel}>{step.label}</span>
+                          <span className={styles.scanDetail}>{step.value}</span>
+                        </span>
+                        {isDone ? (
+                          <span className={styles.scanDone}>
+                            <IconCheck size={11} />
+                          </span>
+                        ) : (
+                          <span className={styles.spinRing} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── PHASE 3: GOALS PAGE SURFACE ── */}
+      {phase === 'goals' && (
+        <div className={styles.goalsView}>
+          <div className={styles.goalsHeader}>
+            <div className={styles.planTitle}>Goals</div>
+            <button className={styles.newGoalBtn}>
+              <IconPlus size={11} />
+              New Goal
+            </button>
+          </div>
+
+          {/* Existing goal */}
+          {existingGoal && (
+            <div className={styles.goalCard}>
+              <div className={styles.goalCardTop}>
+                <span className={styles.goalCardTitle}>{existingGoal.title}</span>
+                <span className={styles.badgePill} style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#16A34A' }}>
+                  Active
+                </span>
+              </div>
+
+              <div className={styles.goalProgressRow}>
+                <span>Progress</span>
+                <span>1 / {existingGoal.relatedItems + 1} tasks</span>
+              </div>
+              <div className={styles.progressTrackSm}>
+                <div
+                  className={styles.progressFillSm}
+                  style={{ width: `${(1 / (existingGoal.relatedItems + 1)) * 100}%` }}
+                />
+              </div>
+
+              <div className={styles.goalMetaBar}>
+                <span className={styles.metaItem}>
+                  <IconCalendar size={11} />
+                  Fall 2026
+                </span>
+                <span className={styles.metaItem}>
+                  <IconClock size={11} />
+                  Wednesday
+                </span>
+                <span className={styles.metaItem}>
+                  <IconGraduationCap size={11} />
+                  1 course
+                </span>
+              </div>
             </div>
           )}
 
-          {visibleFields >= 2 && (
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Target Date</span>
-              <span className={styles.resultValue} style={{ color: '#D97706' }}>This Friday (4 days left)</span>
+          {/* New AI-created goal */}
+          <div className={`${styles.goalCard} ${styles.goalCardNew}`} style={{ animationDelay: '0.45s' }}>
+            <div className={styles.goalCardTop}>
+              <span className={styles.goalCardTitle}>{newGoal.title}</span>
+              <span className={styles.goalAiTag}>
+                <IconSparkles size={10} />
+                Created by Tenaciti AI
+              </span>
             </div>
-          )}
 
-          {visibleFields >= 3 && (
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Linked Milestones</span>
-              <span className={styles.resultTag}>3 Topics • 1 Quiz</span>
+            <div className={styles.goalBadges}>
+              {newGoal.badges.map((badge, i) => (
+                <span
+                  key={badge}
+                  className={i === 0 ? styles.badgePillGreen : styles.badgePillBlue}
+                >
+                  {badge}
+                </span>
+              ))}
             </div>
-          )}
 
-          {visibleFields >= 4 && (
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Roadmap Sync</span>
-              <span className={styles.resultValue} style={{ color: '#16A34A', fontSize: '11px' }}>✓ Auto-scheduled</span>
+            <div className={styles.goalFields}>
+              {newGoal.fields.map((field, i) => (
+                <div key={field.label} className={styles.fieldRow} style={{ animationDelay: `${0.75 + i * 0.22}s` }}>
+                  <span className={styles.fieldLabel}>{field.label}</span>
+                  <span className={styles.fieldValue}>{field.value}</span>
+                </div>
+              ))}
             </div>
-          )}
+
+            <div className={styles.goalProgressRow}>
+              <span>Progress</span>
+              <span>0 / {newGoal.tasksTotal} tasks</span>
+            </div>
+            <div className={styles.progressTrackSm}>
+              <div className={styles.progressFillSm} style={{ width: '4%' }} />
+            </div>
+
+            <div className={styles.goalMetaBar}>
+              <span className={styles.metaItem}>
+                <IconFlag size={11} />
+                Roadmap synced
+              </span>
+              <span className={styles.metaItem}>
+                <IconClock size={11} />
+                Fri, Aug 28
+              </span>
+              <span className={styles.metaItem}>
+                <IconGraduationCap size={11} />
+                CS-301
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

@@ -1197,91 +1197,7 @@
 .toolCallWorking { color: #D97706; }
 .toolCallDone { color: #16A34A; }
 
-/* ── RESULT CARD ────────────────────────────────────────────────── */
-.resultCard {
-  padding: 12px 14px;
-  background: #FFFFFF;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-  margin-top: 8px;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-}
-
-.resultCardVisible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.resultTitle {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 6px;
-}
-
-.resultRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 3px 0;
-  font-size: 12px;
-}
-
-.resultLabel {
-  color: #6B7280;
-  font-weight: 500;
-}
-
-.resultValue {
-  color: #111827;
-  font-weight: 600;
-}
-
-.resultTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(59, 130, 246, 0.08);
-  color: #2563EB;
-}
-
-.resultActionBtn {
-  width: 100%;
-  padding: 7px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  background: #F9FAFB;
-  color: #111827;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: default;
-}
-
-/* ── SEARCH RESULTS ─────────────────────────────────────────────── */
-.searchCategory {
-  margin-bottom: 8px;
-}
-
-.searchCategoryTitle {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #6B7280;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
+/* ── SEARCH COUNT BADGE (shared) ────────────────────────────────── */
 .searchCount {
   font-size: 10px;
   font-weight: 600;
@@ -1289,26 +1205,6 @@
   padding: 1px 5px;
   border-radius: 4px;
   color: #111827;
-}
-
-.searchItem {
-  padding: 4px 8px;
-  font-size: 11.5px;
-  color: #1F2937;
-  font-weight: 500;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.searchItem:nth-child(even) {
-  background: rgba(243, 244, 246, 0.6);
-}
-
-.searchItemIcon {
-  font-size: 11px;
-  color: #9CA3AF;
 }
 
 /* ── SCENE INDICATOR DOTS ───────────────────────────────────────── */
@@ -1336,6 +1232,766 @@
   border-radius: 3px;
 }
 
+/* ── AI SCENES 4–6: TOOL ACTIVITY PANEL (shared) ────────────────── */
+.aiPanel {
+  align-self: flex-start;
+  width: 100%;
+  max-width: 92%;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px 14px 14px 4px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.aiPanelTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.scanList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.scanRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 9px;
+  background: #F8F9FA;
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.scanRowVisible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.scanTile {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scanText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.scanLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1F2937;
+  line-height: 1.3;
+}
+
+.scanDetail {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #6B7280;
+  line-height: 1.3;
+}
+
+.scanDone {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16A34A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.scanCountChip {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  color: #111827;
+  background: #E5E7EB;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.spinRing {
+  width: 11px;
+  height: 11px;
+  margin-left: auto;
+  border-radius: 50%;
+  border: 1.5px solid rgba(217, 119, 6, 0.25);
+  border-top-color: #D97706;
+  animation: spinRotate 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spinRotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ── SCENE 4: STUDY PLANNER SURFACE ─────────────────────────────── */
+.planView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  animation: surfaceIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes surfaceIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.planHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.planTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.planChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7C3AED;
+  background: rgba(124, 58, 237, 0.08);
+  padding: 3px 9px;
+  border-radius: 9999px;
+}
+
+.planHero {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 13px 14px;
+  box-shadow: 0 6px 20px rgba(17, 24, 39, 0.06);
+  animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+}
+
+.planHeroTop {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 13px;
+}
+
+.planHeroTile {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: rgba(124, 58, 237, 0.1);
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.planHeroTitleWrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.planHeroTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.planHeroCourse {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.priorityChip {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #111827;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.progressTrack {
+  height: 7px;
+  width: 100%;
+  background: #F3F4F6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #7C3AED, #EC4899);
+  border-radius: 999px;
+  transform-origin: left;
+  animation: barGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s backwards;
+}
+
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6B7280;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.evidenceRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 11px;
+}
+
+.evidenceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 7px;
+}
+
+.planReason {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #6B7280;
+  line-height: 1.45;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed #E5E7EB;
+}
+
+.planReason svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #7C3AED;
+}
+
+.planCta {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border: none;
+  border-radius: 9px;
+  background: #111827;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 6px rgba(17, 24, 39, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.radarDivider {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9CA3AF;
+  margin: 14px 0 8px 2px;
+}
+
+.radarRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  background: #FFFFFF;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 11px;
+  margin-bottom: 6px;
+  animation: rowSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.radarTile {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.radarText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.radarTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.radarSub {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.radarPct {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #374151;
+  background: #F3F4F6;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── SCENE 5: GOALS PAGE SURFACE ────────────────────────────────── */
+.goalsView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  animation: surfaceIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.goalsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.newGoalBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #111827;
+  color: #FFFFFF;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: default;
+}
+
+.goalCard {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 13px;
+  padding: 12px 14px;
+  margin-bottom: 9px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  animation: rowSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.goalCardNew {
+  border: 1.5px solid #22C55E;
+  box-shadow: 0 6px 22px rgba(34, 197, 94, 0.16);
+}
+
+.goalCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.goalCardTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goalAiTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #16A34A;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.goalBadges {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.badgePill,
+.badgePillGreen,
+.badgePillBlue {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2.5px 8px;
+  border-radius: 9999px;
+}
+
+.badgePill {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16A34A;
+}
+
+.badgePillGreen {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16A34A;
+}
+
+.badgePillBlue {
+  background: rgba(59, 130, 246, 0.09);
+  color: #2563EB;
+}
+
+.goalFields {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: #F8F9FA;
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  border-radius: 9px;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  animation: rowSlideIn 0.35s ease backwards;
+}
+
+.fieldLabel {
+  color: #6B7280;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.fieldValue {
+  color: #111827;
+  font-weight: 600;
+  text-align: right;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goalProgressRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressTrackSm {
+  height: 6px;
+  width: 100%;
+  background: #F3F4F6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFillSm {
+  height: 100%;
+  background: linear-gradient(90deg, #7C3AED, #EC4899);
+  border-radius: 999px;
+  transform-origin: left;
+  animation: barGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s backwards;
+}
+
+.goalMetaBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+/* ── SCENE 6: GLOBAL SEARCH PALETTE ─────────────────────────────── */
+.paletteView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  animation: surfaceIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1.5px solid #111827;
+  border-radius: 11px;
+  padding: 9px 11px;
+  box-shadow: 0 3px 12px rgba(17, 24, 39, 0.07);
+}
+
+.searchBarIcon {
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.searchQuery {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 12px;
+  background: #111827;
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: caretBlink 1.05s steps(2, start) infinite;
+}
+
+@keyframes caretBlink {
+  to { visibility: hidden; }
+}
+
+.resultsCount {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chipsRow {
+  display: flex;
+  gap: 5px;
+  margin: 9px 0 4px;
+}
+
+.chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6B7280;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.chipActive {
+  background: #111827;
+  border-color: #111827;
+  color: #FFFFFF;
+}
+
+.resultGroup {
+  margin-top: 7px;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6B7280;
+  margin-bottom: 3px;
+  padding-left: 2px;
+}
+
+.hitRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 7px;
+  border-radius: 9px;
+  animation: rowSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.hitRow:nth-child(even) {
+  background: rgba(243, 244, 246, 0.5);
+}
+
+.hitTile {
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hitPdfTile {
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hitMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.hitTitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hitSub {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9CA3AF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hitMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #9CA3AF;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hitMetaIcon {
+  color: #16A34A;
+}
+
+.hlMark {
+  background: rgba(124, 58, 237, 0.13);
+  color: #6D28D9;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
 /* ── REDUCED MOTION ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .sceneWrapper,
@@ -1347,7 +2003,8 @@
   .userBubble,
   .aiBubble,
   .toolCall,
-  .resultCard {
+  .resultCard,
+  .scanRow {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
@@ -1355,6 +2012,31 @@
   .floatingFileBadge {
     animation: none;
     display: none;
+  }
+
+  /* Animated surfaces & rows render their final state immediately */
+  .aiPanel,
+  .planView,
+  .goalsView,
+  .paletteView,
+  .planHero,
+  .radarRow,
+  .goalCard,
+  .fieldRow,
+  .hitRow,
+  .progressFill,
+  .progressFillSm {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Indicators stop spinning / blinking */
+  .spinRing,
+  .caret,
+  .pulseCircle,
+  .energyParticle {
+    animation: none !important;
   }
 }
 
