@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
 
 /**
- * Slide 3 — AI Prompt -> Morphing to Notes Overview -> Minimalist Knowledge Graph
+ * Slide 3 — AI Prompt -> Persistent Morph to Notes Overview -> Minimalist Knowledge Graph
  *
  * Sequence:
- *  0.0s – 2.2s:  Phase 1 — AI prompt & real-time thinking steps
- *  2.2s – 2.6s:  Morphing transition connecting tool call -> new note
- *  2.6s – 5.2s:  Phase 2 — Notes Overview with "Teacher's Exam Hint" highlighted
- *  5.2s – 8.6s:  Phase 3 — Minimalist Obsidian-style Knowledge Graph
- *  8.6s:         Trigger next slide (Slide 4)
+ *  0.0s – 2.0s:  Phase 1 — AI prompt & real-time thinking steps
+ *  2.0s – 2.8s:  Morphing transition — Chat fades out as Note Card expands into the 2x2 grid
+ *  2.8s – 5.4s:  Phase 2 — Notes Overview fully assembled with new note highlighted
+ *  5.4s – 8.8s:  Phase 3 — Minimalist Obsidian-style Knowledge Graph
+ *  8.8s:         Trigger next slide (Slide 4)
  */
 
 interface Props {
@@ -35,41 +35,42 @@ export default function SceneAINote({ onComplete }: Props) {
     const t: ReturnType<typeof setTimeout>[] = [];
 
     // Phase 1: AI Prompt & thinking steps
-    t.push(setTimeout(() => setPhase('prompt_ai'), 600));
-    t.push(setTimeout(() => setPhase('prompt_tools'), 1100));
-    t.push(setTimeout(() => setVisibleTools(1), 1300));
-    t.push(setTimeout(() => setDoneTools(1), 1550));
-    t.push(setTimeout(() => setVisibleTools(2), 1600));
-    t.push(setTimeout(() => setDoneTools(2), 1850));
-    t.push(setTimeout(() => setVisibleTools(3), 1900));
-    t.push(setTimeout(() => setDoneTools(3), 2150));
+    t.push(setTimeout(() => setPhase('prompt_ai'), 550));
+    t.push(setTimeout(() => setPhase('prompt_tools'), 1000));
+    t.push(setTimeout(() => setVisibleTools(1), 1200));
+    t.push(setTimeout(() => setDoneTools(1), 1450));
+    t.push(setTimeout(() => setVisibleTools(2), 1500));
+    t.push(setTimeout(() => setDoneTools(2), 1750));
+    t.push(setTimeout(() => setVisibleTools(3), 1800));
+    t.push(setTimeout(() => setDoneTools(3), 2050));
 
-    // Morphing transition from 3rd tool call to Notes page
-    t.push(setTimeout(() => setPhase('morphing'), 2300));
-    t.push(setTimeout(() => setPhase('notes_overview'), 2650));
+    // Phase 2: Noticeable morphing transition
+    t.push(setTimeout(() => setPhase('morphing'), 2200));
+    t.push(setTimeout(() => setPhase('notes_overview'), 2800));
 
     // Phase 3: Transition to Minimalist Knowledge Graph View
-    t.push(setTimeout(() => setPhase('graph_view'), 5200));
+    t.push(setTimeout(() => setPhase('graph_view'), 5400));
 
     // Complete scene
     t.push(
       setTimeout(() => {
         onComplete?.();
-      }, 8600)
+      }, 8900)
     );
 
     return () => t.forEach(clearTimeout);
   }, [onComplete]);
 
-  const isPromptPhase = ['prompt_user', 'prompt_ai', 'prompt_tools'].includes(phase);
+  const isPromptOnly = ['prompt_user', 'prompt_ai', 'prompt_tools'].includes(phase);
   const showAI = ['prompt_ai', 'prompt_tools', 'morphing'].includes(phase);
   const showTools = ['prompt_tools', 'morphing'].includes(phase);
-  const isMorphing = phase === 'morphing';
+  const isMorphingOrOverview = phase === 'morphing' || phase === 'notes_overview';
+  const isGraphView = phase === 'graph_view';
 
   return (
     <>
-      {/* ── PHASE 1: AI PROMPT & THINKING STEPS ── */}
-      {isPromptPhase && (
+      {/* ── PHASE 1: AI CHAT PROMPT (Fades away during morph) ── */}
+      {isPromptOnly && (
         <>
           <div className={styles.sceneHeader}>
             <div className={styles.sceneIcon}>
@@ -117,11 +118,7 @@ export default function SceneAINote({ onComplete }: Props) {
                   </span>
                 </div>
 
-                {/* 3rd Tool call: morphs into Note Card */}
-                <div
-                  className={`${styles.toolCall} ${visibleTools >= 3 ? styles.toolCallVisible : ''} ${isMorphing ? styles.notesCardNew : ''}`}
-                  style={isMorphing ? { border: '1.5px solid #7C3AED', background: '#FFFFFF', transform: 'scale(1.02)' } : undefined}
-                >
+                <div className={`${styles.toolCall} ${visibleTools >= 3 ? styles.toolCallVisible : ''}`}>
                   <div className={styles.toolCallLabel}>
                     <span className={styles.toolCallIcon}>⭐</span>
                     Priority: Tagging Final Exam Importance
@@ -136,11 +133,11 @@ export default function SceneAINote({ onComplete }: Props) {
         </>
       )}
 
-      {/* ── PHASE 2: NOTES OVERVIEW (Authentic Glassmorphic UI) ── */}
-      {(phase === 'notes_overview' || isMorphing) && (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', animation: 'slideUpFade 0.3s ease forwards' }}>
+      {/* ── PHASE 2: NOTES OVERVIEW (Expanded directly from the note creation step) ── */}
+      {isMorphingOrOverview && (
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
           {/* Header */}
-          <div className={styles.notesHeader}>
+          <div className={styles.notesHeader} style={{ animation: 'slideDownFade 0.4s ease forwards' }}>
             <div className={styles.notesTitle}>
               <span>📝</span>
               <span>Notes</span>
@@ -171,7 +168,7 @@ export default function SceneAINote({ onComplete }: Props) {
           </div>
 
           {/* Search bar */}
-          <div className={styles.notesSearchRow}>
+          <div className={styles.notesSearchRow} style={{ animation: 'slideDownFade 0.45s ease forwards' }}>
             <div className={styles.notesSearchInputWrapper}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -194,8 +191,8 @@ export default function SceneAINote({ onComplete }: Props) {
 
           {/* Notes Grid with Newly Created Note Highlighted */}
           <div className={styles.notesCardsGrid}>
-            {/* NEW NOTE: Teacher's Exam Hint (Transitioned from last thinking step) */}
-            <div className={`${styles.notesCard} ${styles.notesCardNew}`}>
+            {/* NEW NOTE: Teacher's Exam Hint (Noticeably morphed directly from thinking step) */}
+            <div className={`${styles.notesCard} ${styles.notesCardNew} ${styles.noteCardMorphingFromTool}`}>
               <div className={styles.notesCardCornerGlow} />
               <div className={styles.notesCardHeader}>
                 <div className={styles.notesCardTitleArea}>
@@ -216,7 +213,7 @@ export default function SceneAINote({ onComplete }: Props) {
             </div>
 
             {/* EXISTING NOTE 1: ACID Properties */}
-            <div className={styles.notesCard}>
+            <div className={`${styles.notesCard} ${styles.staggerCard1}`}>
               <div className={styles.notesCardHeader}>
                 <div className={styles.notesCardTitleArea}>
                   <div className={styles.notesCardTitle}>ACID Properties</div>
@@ -233,7 +230,7 @@ export default function SceneAINote({ onComplete }: Props) {
             </div>
 
             {/* EXISTING NOTE 2: ER Diagrams */}
-            <div className={styles.notesCard}>
+            <div className={`${styles.notesCard} ${styles.staggerCard2}`}>
               <div className={styles.notesCardHeader}>
                 <div className={styles.notesCardTitleArea}>
                   <div className={styles.notesCardTitle}>ER Diagrams &amp; Schema</div>
@@ -250,7 +247,7 @@ export default function SceneAINote({ onComplete }: Props) {
             </div>
 
             {/* EXISTING NOTE 3: Functional Dependencies */}
-            <div className={styles.notesCard}>
+            <div className={`${styles.notesCard} ${styles.staggerCard3}`}>
               <div className={styles.notesCardHeader}>
                 <div className={styles.notesCardTitleArea}>
                   <div className={styles.notesCardTitle}>Functional Dependencies</div>
@@ -270,7 +267,7 @@ export default function SceneAINote({ onComplete }: Props) {
       )}
 
       {/* ── PHASE 3: MINIMALIST KNOWLEDGE GRAPH VIEW ── */}
-      {phase === 'graph_view' && (
+      {isGraphView && (
         <div className={styles.graphViewWrapper}>
           {/* Top Controls Bar */}
           <div className={styles.graphTopControls}>

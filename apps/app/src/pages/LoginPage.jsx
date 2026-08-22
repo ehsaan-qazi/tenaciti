@@ -137,6 +137,17 @@ export default function LoginPage() {
               <span>tenaciti</span>
             </div>
 
+            {/* System Status / Maintenance Notice */}
+            <div className="maintenance-notice" role="alert">
+              <div className="maintenance-header">
+                <span className="maintenance-status-dot"></span>
+                <span className="maintenance-title">Temporary Maintenance in Progress</span>
+              </div>
+              <p className="maintenance-desc">
+                Backend services and authentication are currently undergoing technical fixes. Service will be fully restored soon. Thank you for your patience!
+              </p>
+            </div>
+
             <div className="tabs" role="tablist" aria-label="Choose login or signup">
               <button 
                 className={`tab ${!isSignup ? 'active' : ''}`} 

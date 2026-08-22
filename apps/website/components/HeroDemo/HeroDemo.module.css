@@ -881,6 +881,41 @@
   animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Morphing transition utilities */
+.chatAreaFading {
+  opacity: 0;
+  transform: translateY(-16px);
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.noteCardMorphingFromTool {
+  animation: noteCardExpand 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes noteCardExpand {
+  0% {
+    transform: scale(0.92) translateY(20px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.staggerCard1 {
+  animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+}
+
+.staggerCard2 {
+  animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.28s backwards;
+}
+
+.staggerCard3 {
+  animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards;
+}
+
 .notesCardCornerGlow {
   position: absolute;
   top: 0;
