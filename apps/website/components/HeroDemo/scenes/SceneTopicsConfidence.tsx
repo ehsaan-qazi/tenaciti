@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
+import { IconGrip, IconSparkles, IconCheck, IconX, IconStar } from '../icons';
 
 /**
  * Slide 2 — Extracted Suggested Topics & Rate Topic Mastery Modal
@@ -62,7 +63,9 @@ export default function SceneTopicsConfidence({ onComplete }: Props) {
       <div className={styles.suggestedTopicsContainer}>
         {/* Topic 1: FD Example */}
         <div className={`${styles.suggestedTopicRow} ${isHighlighted ? styles.suggestedTopicRowHighlight : ''}`}>
-          <div className={styles.dragHandle}>⋮⋮</div>
+          <div className={styles.dragHandle}>
+            <IconGrip size={14} />
+          </div>
 
           <div className={`${styles.topicTitleItalic} ${isRow1Confirmed ? styles.topicTitleConfirmed : ''}`}>
             1. FD Example
@@ -71,45 +74,63 @@ export default function SceneTopicsConfidence({ onComplete }: Props) {
           {!isRow1Confirmed ? (
             <>
               <span className={styles.suggestedPill}>
-                <span>✨</span>
+                <IconSparkles size={11} />
                 Suggested
               </span>
 
               <button className={`${styles.confirmPillBtn} ${isConfirmClicked ? styles.confirmPillBtnClicked : ''}`}>
-                ✓ Confirm
+                <IconCheck size={11} />
+                Confirm
               </button>
 
-              <span className={styles.dismissCross}>✕</span>
+              <span className={styles.dismissCross}>
+                <IconX size={13} />
+              </span>
             </>
           ) : (
-            <span style={{ padding: '4px 10px', background: 'rgba(34, 197, 94, 0.12)', color: '#16A34A', borderRadius: '9999px', fontSize: '11px', fontWeight: 700 }}>
-              ★ 4/5 Confirmed
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: 'rgba(34, 197, 94, 0.12)', color: '#16A34A', borderRadius: '9999px', fontSize: '11px', fontWeight: 700 }}>
+              <IconStar size={10} filled />
+              4/5 Confirmed
             </span>
           )}
         </div>
 
         {/* Topic 2: B2C Business Models */}
         <div className={styles.suggestedTopicRow}>
-          <div className={styles.dragHandle}>⋮⋮</div>
+          <div className={styles.dragHandle}>
+            <IconGrip size={14} />
+          </div>
           <div className={styles.topicTitleItalic}>2. B2C Business Models</div>
           <span className={styles.suggestedPill}>
-            <span>✨</span>
+            <IconSparkles size={11} />
             Suggested
           </span>
-          <button className={styles.confirmPillBtn}>✓ Confirm</button>
-          <span className={styles.dismissCross}>✕</span>
+          <button className={styles.confirmPillBtn}>
+            <IconCheck size={11} />
+            Confirm
+          </button>
+          <span className={styles.dismissCross}>
+            <IconX size={13} />
+          </span>
         </div>
 
         {/* Topic 3: Three Level Architecture */}
         <div className={styles.suggestedTopicRow}>
-          <div className={styles.dragHandle}>⋮⋮</div>
+          <div className={styles.dragHandle}>
+            <IconGrip size={14} />
+          </div>
           <div className={styles.topicTitleItalic}>3. Three Level Architecture</div>
           <span className={styles.suggestedPill}>
-            <span>✨</span>
+            <IconSparkles size={11} />
             Suggested
           </span>
-          <button className={styles.confirmPillBtn}>✓ Confirm</button>
-          <span className={styles.dismissCross}>✕</span>
+          <button className={styles.confirmPillBtn}>
+            <IconCheck size={11} />
+            Confirm
+          </button>
+          <span className={styles.dismissCross}>
+            <IconX size={13} />
+          </span>
         </div>
       </div>
 
@@ -118,7 +139,7 @@ export default function SceneTopicsConfidence({ onComplete }: Props) {
         <div className={styles.modalOverlay}>
           <div className={styles.rateMasteryCard}>
             <div className={styles.rateModalTitle}>
-              <span>⭐</span>
+              <IconStar size={15} filled style={{ color: '#F59E0B' }} />
               Rate Topic Mastery
             </div>
 
@@ -144,7 +165,8 @@ export default function SceneTopicsConfidence({ onComplete }: Props) {
             <div className={styles.modalBtnActions}>
               <button className={styles.btnSkipRating}>Skip Rating</button>
               <button className={`${styles.btnSaveComplete} ${isSaveClicked ? styles.btnSaveCompleteActive : ''}`}>
-                ✓ Save & Complete
+                <IconCheck size={12} />
+                Save &amp; Complete
               </button>
             </div>
           </div>

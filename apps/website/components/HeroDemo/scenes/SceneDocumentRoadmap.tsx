@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
+import { IconSparkles } from '../icons';
 
 /**
  * Slide 1 — Drag & Drop Syllabus + Uploaded Document with Roadmap/Topics options
@@ -10,10 +11,12 @@ import styles from '../HeroDemo.module.css';
  *  0.0s  - Initial state: Empty dropzone
  *  0.3s  - Floating PDF badge "Lecture 19.pdf" animates & drops into dropzone
  *  1.6s  - Dropzone pulses (drag-over highlight)
- *  2.0s  - Document lands in "Uploaded Documents" with "● Processed" badge
- *  3.0s  - "✨ Topics" button clicks
- *  3.4s  - "Topics" button switches to "⟳ Extracting..." + Extraction banner slides in
- *  4.8s  - Triggers next slide (Slide 2: Extracted Topics cascade in)
+ *  2.0s  - Document lands in "Uploaded Documents" with "Processed" badge
+ *  3.0s  - "Topics" button clicks
+ *  3.4s  - "Topics" button switches to a spinning "Extracting…" state +
+ *          extraction progress banner slides in (fills over 1.4s)
+ *  5.7s  - Triggers next slide (Slide 2: Extracted Topics cascade in —
+ *          the visible result of this extraction)
  */
 
 interface Props {
@@ -34,7 +37,7 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
     timers.push(setTimeout(() => setPhase('extracting'), 3400));
     timers.push(setTimeout(() => {
       onComplete?.();
-    }, 4900));
+    }, 5700));
 
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
@@ -117,12 +120,15 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
               <button className={`${styles.docBtnAction} ${isClicking ? styles.docBtnActionActive : ''} ${isExtracting ? styles.docBtnActionExtracting : ''}`}>
                 {isExtracting ? (
                   <>
-                    <span className={styles.spinner} style={{ width: 10, height: 10, borderWidth: 1.5 }} />
-                    Extracting...
+                    <span
+                      className={styles.spinRing}
+                      style={{ width: 10, height: 10, marginLeft: 0, borderColor: 'rgba(17, 24, 39, 0.15)', borderTopColor: '#111827' }}
+                    />
+                    Extracting…
                   </>
                 ) : (
                   <>
-                    <span>✨</span>
+                    <IconSparkles size={12} />
                     Topics
                   </>
                 )}
@@ -141,8 +147,11 @@ export default function SceneDocumentRoadmap({ onComplete }: Props) {
           {isExtracting && (
             <div className={styles.extractionLoadingCard}>
               <div className={styles.extractionLoadingHeader}>
-                <span>✨ Extracting topics & key concepts...</span>
-                <span style={{ color: '#16A34A', fontSize: 11 }}>AI Processing</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <IconSparkles size={12} style={{ color: '#111827' }} />
+                  Extracting topics &amp; key concepts…
+                </span>
+                <span style={{ color: '#16A34A', fontSize: 11, fontWeight: 600 }}>AI Processing</span>
               </div>
               <div className={styles.extractionProgressBar}>
                 <div className={styles.extractionProgressFill} />

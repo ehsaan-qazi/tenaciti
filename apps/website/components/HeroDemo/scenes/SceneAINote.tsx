@@ -2,16 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import styles from '../HeroDemo.module.css';
+import {
+  IconFileText,
+  IconLink,
+  IconStar,
+  IconSearch,
+  IconPlus,
+  IconCheck,
+} from '../icons';
 
 /**
- * Slide 3 — AI Prompt -> Persistent Morph to Notes Overview -> Minimalist Knowledge Graph
+ * Slide 3 — AI Prompt → Persistent Morph to Notes Overview → Minimalist Knowledge Graph
  *
  * Sequence:
- *  0.0s – 2.0s:  Phase 1 — AI prompt & real-time thinking steps
- *  2.0s – 2.8s:  Morphing transition — Chat fades out as Note Card expands into the 2x2 grid
- *  2.8s – 5.4s:  Phase 2 — Notes Overview fully assembled with new note highlighted
- *  5.4s – 8.8s:  Phase 3 — Minimalist Obsidian-style Knowledge Graph
- *  8.8s:         Trigger next slide (Slide 4)
+ *  0.0s – 2.05s:  Phase 1 — AI prompt & structured tool-call steps
+ *  2.7s – 3.05s:  Morphing crossfade — chat shell lifts away while the notes
+ *                 overview fades in underneath it (overlapping animations)
+ *  3.05s – 6.5s:  Phase 2 — Notes overview assembled, new note pops in last
+ *  6.5s – 9.6s:   Phase 3 — Obsidian-style knowledge graph (circular dot nodes
+ *                 with floating labels, edges drawing in, one animated accent
+ *                 edge streaming into the new note)
+ *  9.6s:          Trigger next slide (Slide 4)
  */
 
 interface Props {
@@ -25,6 +36,27 @@ type Phase =
   | 'morphing'
   | 'notes_overview'
   | 'graph_view';
+
+/** Mini colored icon tile for tool-call rows — echoes the scan tiles in slides 4–6 */
+function ToolTile({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 18,
+        height: 18,
+        borderRadius: 5,
+        background: bg,
+        color,
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
 
 export default function SceneAINote({ onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('prompt_user');
@@ -44,34 +76,60 @@ export default function SceneAINote({ onComplete }: Props) {
     t.push(setTimeout(() => setVisibleTools(3), 1800));
     t.push(setTimeout(() => setDoneTools(3), 2050));
 
-    // Phase 2: Noticeable morphing transition
-    t.push(setTimeout(() => setPhase('morphing'), 2200));
-    t.push(setTimeout(() => setPhase('notes_overview'), 2800));
+    // Phase 2: Crossfade morph — chat exits while overview enters underneath
+    t.push(setTimeout(() => setPhase('morphing'), 2700));
+    t.push(setTimeout(() => setPhase('notes_overview'), 3050));
 
-    // Phase 3: Transition to Minimalist Knowledge Graph View
-    t.push(setTimeout(() => setPhase('graph_view'), 5400));
+    // Phase 3: Transition to minimalist knowledge graph view
+    t.push(setTimeout(() => setPhase('graph_view'), 6500));
 
     // Complete scene
     t.push(
       setTimeout(() => {
         onComplete?.();
-      }, 8900)
+      }, 9600)
     );
 
     return () => t.forEach(clearTimeout);
   }, [onComplete]);
 
-  const isPromptOnly = ['prompt_user', 'prompt_ai', 'prompt_tools'].includes(phase);
+  const showChat = ['prompt_user', 'prompt_ai', 'prompt_tools', 'morphing'].includes(phase);
   const showAI = ['prompt_ai', 'prompt_tools', 'morphing'].includes(phase);
   const showTools = ['prompt_tools', 'morphing'].includes(phase);
-  const isMorphingOrOverview = phase === 'morphing' || phase === 'notes_overview';
+  const isMorphing = phase === 'morphing';
+  const showOverview = phase === 'morphing' || phase === 'notes_overview';
   const isGraphView = phase === 'graph_view';
 
-  return (
-    <>
-      {/* ── PHASE 1: AI CHAT PROMPT (Fades away during morph) ── */}
-      {isPromptOnly && (
+  const toolRows = [
+    {
+      icon: <IconFileText size={11} />,
+      tileBg: 'rgba(124, 58, 237, 0.09)',
+      tileColor: '#7C3AED',
+      label: <>Notes: Creating &quot;Teacher&apos;s Exam Hint&quot;</>,
+    },
+    {
+      icon: <IconLink size={11} />,
+      tileBg: 'rgba(79, 70, 229, 0.09)',
+      tileColor: '#4F46E5',
+      label: (
         <>
+          Topics: Linking to <span className={styles.notesWikilink}>[[Normalization]]</span>
+        </>
+      ),
+    },
+    {
+      icon: <IconStar size={11} filled />,
+      tileBg: 'rgba(217, 119, 6, 0.1)',
+      tileColor: '#D97706',
+      label: <>Priority: Tagging Final Exam Importance</>,
+    },
+  ];
+
+  return (
+    <div className={styles.scene3Root}>
+      {/* ── PHASE 1: AI CHAT PROMPT (lifts away during the morph) ── */}
+      {showChat && (
+        <div className={`${styles.chatShell} ${isMorphing ? styles.chatExit : ''}`}>
           <div className={styles.sceneHeader}>
             <div className={styles.sceneIcon}>
               <span className={styles.aiDot} />
@@ -98,48 +156,54 @@ export default function SceneAINote({ onComplete }: Props) {
             {/* Tool calls / thinking steps */}
             {showTools && (
               <div className={styles.toolCalls}>
-                <div className={`${styles.toolCall} ${visibleTools >= 1 ? styles.toolCallVisible : ''}`}>
-                  <div className={styles.toolCallLabel}>
-                    <span className={styles.toolCallIcon}>📝</span>
-                    Notes: Creating &quot;Teacher&apos;s Exam Hint&quot;
-                  </div>
-                  <span className={`${styles.toolCallStatus} ${doneTools >= 1 ? styles.toolCallDone : styles.toolCallWorking}`}>
-                    {doneTools >= 1 ? '✓ Done' : '⟳ Working...'}
-                  </span>
-                </div>
+                {toolRows.map((row, i) => {
+                  const n = i + 1;
+                  const isVisible = visibleTools >= n;
+                  const isDone = doneTools >= n;
 
-                <div className={`${styles.toolCall} ${visibleTools >= 2 ? styles.toolCallVisible : ''}`}>
-                  <div className={styles.toolCallLabel}>
-                    <span className={styles.toolCallIcon}>🔗</span>
-                    Topics: Linking to [[Normalization]]
-                  </div>
-                  <span className={`${styles.toolCallStatus} ${doneTools >= 2 ? styles.toolCallDone : (visibleTools >= 2 ? styles.toolCallWorking : styles.toolCallPending)}`}>
-                    {doneTools >= 2 ? '✓ Done' : (visibleTools >= 2 ? '⟳ Working...' : '○ Pending')}
-                  </span>
-                </div>
-
-                <div className={`${styles.toolCall} ${visibleTools >= 3 ? styles.toolCallVisible : ''}`}>
-                  <div className={styles.toolCallLabel}>
-                    <span className={styles.toolCallIcon}>⭐</span>
-                    Priority: Tagging Final Exam Importance
-                  </div>
-                  <span className={`${styles.toolCallStatus} ${doneTools >= 3 ? styles.toolCallDone : styles.toolCallWorking}`}>
-                    {doneTools >= 3 ? '✓ Done' : '⟳ Working...'}
-                  </span>
-                </div>
+                  return (
+                    <div key={n} className={`${styles.toolCall} ${isVisible ? styles.toolCallVisible : ''}`}>
+                      <div className={styles.toolCallLabel}>
+                        <ToolTile bg={row.tileBg} color={row.tileColor}>
+                          {row.icon}
+                        </ToolTile>
+                        {row.label}
+                      </div>
+                      {isDone ? (
+                        <span
+                          className={`${styles.toolCallStatus} ${styles.toolCallDone}`}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <IconCheck size={10} />
+                          Done
+                        </span>
+                      ) : isVisible ? (
+                        <span className={styles.spinRing} style={{ marginLeft: 0 }} />
+                      ) : (
+                        <span
+                          className={`${styles.toolCallStatus} ${styles.toolCallPending}`}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        >
+                          <span className={styles.statusHollow} />
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
 
-      {/* ── PHASE 2: NOTES OVERVIEW (Expanded directly from the note creation step) ── */}
-      {isMorphingOrOverview && (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+      {/* ── PHASE 2: NOTES OVERVIEW (crossfades in under the exiting chat) ── */}
+      {showOverview && (
+        <div className={styles.notesOverviewRoot}>
           {/* Header */}
-          <div className={styles.notesHeader} style={{ animation: 'slideDownFade 0.4s ease forwards' }}>
+          <div className={`${styles.notesHeader} ${styles.enterDown}`}>
             <div className={styles.notesTitle}>
-              <span>📝</span>
+              <IconFileText size={14} style={{ color: '#7C3AED' }} />
               <span>Notes</span>
             </div>
 
@@ -162,17 +226,15 @@ export default function SceneAINote({ onComplete }: Props) {
               </div>
 
               <button className={styles.notesNewBtn}>
-                <span>+</span> New Note
+                <IconPlus size={10} /> New Note
               </button>
             </div>
           </div>
 
           {/* Search bar */}
-          <div className={styles.notesSearchRow} style={{ animation: 'slideDownFade 0.45s ease forwards' }}>
+          <div className={`${styles.notesSearchRow} ${styles.enterDown}`} style={{ animationDelay: '0.07s' }}>
             <div className={styles.notesSearchInputWrapper}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <IconSearch size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
               <input
                 type="text"
                 className={styles.notesSearchInput}
@@ -191,15 +253,21 @@ export default function SceneAINote({ onComplete }: Props) {
 
           {/* Notes Grid with Newly Created Note Highlighted */}
           <div className={styles.notesCardsGrid}>
-            {/* NEW NOTE: Teacher's Exam Hint (Noticeably morphed directly from thinking step) */}
-            <div className={`${styles.notesCard} ${styles.notesCardNew} ${styles.noteCardMorphingFromTool}`}>
+            {/* NEW NOTE: created by the tool calls above */}
+            <div className={`${styles.notesCard} ${styles.notesCardNew} ${styles.noteBorn}`}>
               <div className={styles.notesCardCornerGlow} />
               <div className={styles.notesCardHeader}>
                 <div className={styles.notesCardTitleArea}>
-                  <div className={styles.notesCardTitle}>📌 Teacher&apos;s Exam Hint</div>
+                  <div className={styles.notesCardTitle}>Teacher&apos;s Exam Hint</div>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <span className={`${styles.notesCardBadge} ${styles.notesCardBadgePurple}`}>CS 301</span>
-                    <span className={styles.notesCardBadge} style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#D97706' }}>⭐ Exam</span>
+                    <span
+                      className={styles.notesCardBadge}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'rgba(245, 158, 11, 0.12)', color: '#D97706' }}
+                    >
+                      <IconStar size={9} filled />
+                      Exam
+                    </span>
                   </div>
                 </div>
               </div>
@@ -208,7 +276,10 @@ export default function SceneAINote({ onComplete }: Props) {
               </div>
               <div className={styles.notesCardFooter}>
                 <span>Updated just now</span>
-                <span style={{ color: '#7C3AED', fontWeight: 600 }}>🔗 1 link</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#7C3AED', fontWeight: 600 }}>
+                  <IconLink size={10} />
+                  1 link
+                </span>
               </div>
             </div>
 
@@ -225,7 +296,10 @@ export default function SceneAINote({ onComplete }: Props) {
               </div>
               <div className={styles.notesCardFooter}>
                 <span>Updated 2d ago</span>
-                <span>🔗 3 links</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <IconLink size={10} />
+                  3 links
+                </span>
               </div>
             </div>
 
@@ -242,7 +316,10 @@ export default function SceneAINote({ onComplete }: Props) {
               </div>
               <div className={styles.notesCardFooter}>
                 <span>Updated 5d ago</span>
-                <span>🔗 2 links</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <IconLink size={10} />
+                  2 links
+                </span>
               </div>
             </div>
 
@@ -259,7 +336,10 @@ export default function SceneAINote({ onComplete }: Props) {
               </div>
               <div className={styles.notesCardFooter}>
                 <span>Updated 1w ago</span>
-                <span>🔗 4 links</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <IconLink size={10} />
+                  4 links
+                </span>
               </div>
             </div>
           </div>
@@ -272,8 +352,8 @@ export default function SceneAINote({ onComplete }: Props) {
           {/* Top Controls Bar */}
           <div className={styles.graphTopControls}>
             <div className={styles.graphPill}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7C3AED', display: 'inline-block' }} />
-              Database Systems • 6 Nodes
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#111827', display: 'inline-block' }} />
+              Database Systems • 8 Nodes
             </div>
 
             <div className={styles.notesViewSwitcher}>
@@ -294,89 +374,72 @@ export default function SceneAINote({ onComplete }: Props) {
             </div>
           </div>
 
-          {/* Minimalist SVG Knowledge Graph */}
+          {/* Obsidian-style knowledge graph — circular nodes, floating labels, hairline edges */}
           <div className={styles.graphSvgContainer}>
             <svg width="100%" height="100%" viewBox="0 0 460 230" style={{ overflow: 'visible' }}>
-              {/* Minimal Connecting Link Lines */}
-              <line x1="230" y1="115" x2="140" y2="68" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="230" y1="115" x2="140" y2="68" stroke="#7C3AED" strokeWidth="2" strokeDasharray="4,12" className={styles.energyParticle} />
+              {/* ── Edges: hairlines draw themselves in as the graph assembles ── */}
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.3s' }} x1="142" y1="116" x2="206" y2="28" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.36s' }} x1="142" y1="116" x2="36" y2="122" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.45s' }} x1="142" y1="116" x2="270" y2="66" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.58s' }} x1="270" y1="66" x2="398" y2="90" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.7s' }} x1="270" y1="66" x2="64" y2="52" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.78s' }} x1="142" y1="116" x2="58" y2="178" stroke="#E2E8F0" strokeWidth="1.5" />
 
-              <line x1="140" y1="68" x2="70" y2="135" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="140" y1="68" x2="70" y2="135" stroke="#D97706" strokeWidth="2" strokeDasharray="4,12" className={styles.energyParticle} />
+              {/* Accent connection: Normalization → new note (base + streaming energy) */}
+              <line className={styles.graphEdge} pathLength={1} style={{ animationDelay: '0.95s' }} x1="270" y1="66" x2="326" y2="158" stroke="#E2E8F0" strokeWidth="1.5" />
+              <line className={styles.energyParticleLate} x1="270" y1="66" x2="326" y2="158" stroke="#D97706" strokeWidth="2" strokeDasharray="4,10" strokeLinecap="round" />
 
-              <line x1="140" y1="68" x2="155" y2="185" stroke="#E2E8F0" strokeWidth="1.2" />
-              <line x1="70" y1="135" x2="155" y2="185" stroke="#E2E8F0" strokeWidth="1.2" strokeDasharray="3,3" />
+              {/* ── Faint satellite dots: the wider course graph continues ── */}
+              <circle className={styles.graphNode} style={{ animationDelay: '0.3s', transformBox: 'fill-box', transformOrigin: 'center' }} cx="206" cy="28" r="4.5" fill="#CBD5E1" />
+              <circle className={styles.graphNode} style={{ animationDelay: '0.36s', transformBox: 'fill-box', transformOrigin: 'center' }} cx="36" cy="122" r="4" fill="#CBD5E1" />
+              <circle className={styles.graphNode} style={{ animationDelay: '0.58s', transformBox: 'fill-box', transformOrigin: 'center' }} cx="398" cy="90" r="4" fill="#CBD5E1" />
 
-              <line x1="230" y1="115" x2="325" y2="65" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="230" y1="115" x2="350" y2="155" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="230" y1="115" x2="245" y2="195" stroke="#E2E8F0" strokeWidth="1.5" />
-
-              {/* ── MINIMALIST NODES ── */}
-
-              {/* 1. Hub: Database Systems */}
-              <g transform="translate(230, 115)">
-                <circle r="22" fill="#1E293B" />
-                <text y="4" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="700" fontFamily="sans-serif">CS 301</text>
-                <text y="34" textAnchor="middle" fill="#1E293B" fontSize="10.5" fontWeight="700" fontFamily="sans-serif">Database Systems</text>
+              {/* Hub: Database Systems (course) — sized by connections, Obsidian-style */}
+              <g className={styles.graphNode} style={{ animationDelay: '0.15s', transformBox: 'fill-box', transformOrigin: 'center' }}>
+                <circle cx="142" cy="116" r="13.5" fill="#111827" />
+                <text x="142" y="144" textAnchor="middle" fontSize="10" fontWeight="700" fill="#111827" className={styles.graphLabel}>
+                  Database Systems
+                </text>
               </g>
 
-              {/* 2. Concept: Normalization */}
-              <g transform="translate(140, 68)">
-                <circle r="18" fill="#4F46E5" />
-                <text y="3" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="600" fontFamily="sans-serif">Concept</text>
-                <text y="-24" textAnchor="middle" fill="#334155" fontSize="10" fontWeight="600" fontFamily="sans-serif">Normalization</text>
+              {/* Topic: Normalization — soft halo marks it as this view's focus */}
+              <g className={styles.graphNode} style={{ animationDelay: '0.45s', transformBox: 'fill-box', transformOrigin: 'center' }}>
+                <circle cx="270" cy="66" r="15.5" fill="none" stroke="#4F46E5" strokeWidth="5" opacity="0.14" />
+                <circle cx="270" cy="66" r="10.5" fill="#4F46E5" />
+                <text x="270" y="92" textAnchor="middle" fontSize="9.5" fontWeight="600" fill="#4F46E5" className={styles.graphLabel}>
+                  Normalization
+                </text>
               </g>
 
-              {/* 3. NEW NOTE: Teacher's Exam Hint (Minimalist with pulse ring) */}
-              <g transform="translate(70, 135)">
-                <circle cx="0" cy="0" r="19" fill="none" stroke="#D97706" strokeWidth="2" className={styles.pulseCircle} />
-                <circle r="19" fill="#D97706" />
-                <text y="4" textAnchor="middle" fill="#FFFFFF" fontSize="11">📝</text>
-
-                {/* Minimalist Badge */}
-                <rect x="-42" y="24" width="84" height="16" rx="8" fill="#111827" />
-                <text x="0" y="35" textAnchor="middle" fill="#FBBF24" fontSize="8" fontWeight="700" fontFamily="sans-serif">⭐ Exam Hint</text>
+              {/* Related notes */}
+              <g className={styles.graphNode} style={{ animationDelay: '0.7s', transformBox: 'fill-box', transformOrigin: 'center' }}>
+                <circle cx="64" cy="52" r="8" fill="#94A3B8" />
+                <text x="64" y="74" textAnchor="middle" fontSize="9" fontWeight="500" fill="#64748B" className={styles.graphLabel}>
+                  Functional Dependencies
+                </text>
               </g>
 
-              {/* 4. Sub-concept: 1NF, 2NF, 3NF */}
-              <g transform="translate(155, 185)">
-                <circle r="14" fill="#FFFFFF" stroke="#10B981" strokeWidth="2" />
-                <text y="3" textAnchor="middle" fill="#10B981" fontSize="7.5" fontWeight="700" fontFamily="sans-serif">3NF</text>
-                <text y="22" textAnchor="middle" fill="#475569" fontSize="9" fontWeight="500" fontFamily="sans-serif">1NF, 2NF, 3NF</text>
+              <g className={styles.graphNode} style={{ animationDelay: '0.78s', transformBox: 'fill-box', transformOrigin: 'center' }}>
+                <circle cx="58" cy="178" r="7.5" fill="#94A3B8" />
+                <text x="58" y="198" textAnchor="middle" fontSize="9" fontWeight="500" fill="#64748B" className={styles.graphLabel}>
+                  ACID Properties
+                </text>
               </g>
 
-              {/* 5. Sub-concept: Functional Dependencies */}
-              <g transform="translate(325, 65)">
-                <circle r="14" fill="#FFFFFF" stroke="#0EA5E9" strokeWidth="2" />
-                <text y="3" textAnchor="middle" fill="#0EA5E9" fontSize="7.5" fontWeight="700" fontFamily="sans-serif">FD</text>
-                <text y="-20" textAnchor="middle" fill="#475569" fontSize="9" fontWeight="500" fontFamily="sans-serif">Functional Deps</text>
-              </g>
-
-              {/* 6. Sub-concept: Transactions */}
-              <g transform="translate(350, 155)">
-                <circle r="14" fill="#FFFFFF" stroke="#8B5CF6" strokeWidth="2" />
-                <text y="3" textAnchor="middle" fill="#8B5CF6" fontSize="7.5" fontWeight="700" fontFamily="sans-serif">ACID</text>
-                <text y="22" textAnchor="middle" fill="#475569" fontSize="9" fontWeight="500" fontFamily="sans-serif">Transactions</text>
-              </g>
-
-              {/* 7. Sub-concept: ER Schema */}
-              <g transform="translate(245, 195)">
-                <circle r="13" fill="#FFFFFF" stroke="#64748B" strokeWidth="2" />
-                <text y="3" textAnchor="middle" fill="#64748B" fontSize="7" fontWeight="700" fontFamily="sans-serif">ER</text>
-                <text y="20" textAnchor="middle" fill="#475569" fontSize="9" fontWeight="500" fontFamily="sans-serif">ER Schema</text>
+              {/* NEW NOTE: created by the AI tool calls above */}
+              <g className={styles.graphNode} style={{ animationDelay: '0.95s', transformBox: 'fill-box', transformOrigin: 'center' }}>
+                <circle className={styles.pulseRingSm} cx="326" cy="158" r="11" fill="none" stroke="#D97706" strokeWidth="1.5" />
+                <circle cx="326" cy="158" r="9" fill="#D97706" />
+                <text x="326" y="182" textAnchor="middle" fontSize="9.5" fontWeight="600" fill="#B45309" className={styles.graphLabel}>
+                  Teacher&apos;s Exam Hint
+                </text>
+                <rect x="344" y="151" width="30" height="14" rx="7" fill="#111827" />
+                <text x="359" y="160.5" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#FFFFFF">NEW</text>
               </g>
             </svg>
           </div>
-
-          {/* Minimalist Legend */}
-          <div className={styles.graphLegend}>
-            <span><span className={styles.legendDot} style={{ background: '#1E293B' }} />Hub</span>
-            <span><span className={styles.legendDot} style={{ background: '#4F46E5' }} />Concept</span>
-            <span><span className={styles.legendDot} style={{ background: '#D97706' }} />New Note</span>
-            <span><span className={styles.legendDot} style={{ background: '#64748B' }} />Subtopics</span>
-          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

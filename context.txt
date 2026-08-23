@@ -1,0 +1,1071 @@
+
+## Objective
+
+Replace the current static image placeholder in the Tenaciti public website hero with a **high-fidelity, cinematic interactive product demo** that visually communicates what Tenaciti actually is:
+
+> **Your Semester, Managed.**
+
+The demo should make the visitor understand, without reading a feature list, that Tenaciti is an **AI personal assistant for academic life** that understands a student's connected academic workspace and can actively operate it.
+
+The demo must feel like a real Tenaciti product experience, not a generic chatbot mockup and not a prerecorded video.
+
+---
+
+# 1. Core implementation direction
+
+Implement the hero visual as a **coded React UI animation**, not a video.
+
+Use:
+
+* React components
+* CSS transitions/animations
+* JavaScript/React state for scene sequencing
+* Existing Tenaciti UI components/styles wherever practical
+* Existing icons and visual language
+* Existing feature UI/screens where they can be reused
+* Dummy/local data specifically for this marketing demo
+
+Do **not** make real backend/API/LLM calls.
+
+This is a deterministic product simulation designed to visually demonstrate the product.
+
+The demo should automatically play through several scenarios and loop smoothly.
+
+It should also be architected cleanly enough that individual scenes, timings, copy, and dummy data can easily be changed later.
+
+---
+
+# 2. Do not create a generic chatbot
+
+The AI assistant feature/page is not implemented yet.
+
+For this hero demo, create a **purpose-built visual representation of Tenaciti's AI assistant**.
+
+Do not wait for the actual chatbot implementation.
+
+The AI should visually feel like the central intelligence of the product.
+
+Use a creative representation such as:
+
+* a central Tenaciti AI entity/avatar
+* a minimal AI core/orb
+* a stylized assistant node
+* an intelligent central workspace element
+
+From this central AI element, visually show **hands/arms, connection lines, or tool-call branches** reaching toward different academic tools.
+
+For example:
+
+```text
+                    Notes
+                      ↑
+                      │
+Documents ←      TENACITI AI      → Topics
+                      │
+                      ↓
+                   Goals
+                      │
+                      ↓
+                Assessments
+```
+
+Do not make this look like a technical developer diagram.
+
+It should look polished and product-oriented.
+
+The visual metaphor should communicate:
+
+> One AI assistant operating many connected parts of a student's academic life.
+
+---
+
+# 3. Hero scenes
+
+Implement approximately **6 major scenarios**.
+
+Do not cram all six onto the screen simultaneously.
+
+Each scene should have a clear beginning, action, transformation, and result.
+
+The overall sequence should feel like one continuous product experience.
+
+---
+
+## SCENE 1 — Document → Roadmap
+
+This should be the strongest visual scene.
+
+Start with the document-upload experience.
+
+Example dummy document:
+
+```text
+Database Systems — Course Syllabus.pdf
+```
+
+Show:
+
+```text
+Upload document
+        ↓
+Processing document...
+        ↓
+Document processed
+```
+
+Reuse the existing Tenaciti document processing/upload UI if available.
+
+After processing, show two meaningful actions:
+
+```text
+What would you like to extract?
+
+[ Extract Topics ]
+[ Extract Roadmap ]
+```
+
+Then visually select:
+
+```text
+Extract Roadmap
+```
+
+The transition must be seamless.
+
+Do not simply replace one screen with another.
+
+The selected button should visibly react, the extraction state should appear, then the roadmap should emerge.
+
+Example:
+
+```text
+Extracting roadmap...
+Analyzing syllabus...
+Organizing topics...
+Building learning sequence...
+```
+
+Then transition into an actual roadmap UI.
+
+Example dummy roadmap:
+
+```text
+DATABASE SYSTEMS
+
+Week 1
+Database Fundamentals
+
+Week 2
+Relational Model
+
+Week 3
+SQL
+
+Week 4
+Normalization
+
+Week 5
+Transactions
+
+Week 6
+Indexing
+```
+
+Use the **actual Tenaciti roadmap UI** if it already exists.
+
+If a roadmap visualization already exists in the app, reuse it instead of recreating a visually inferior approximation.
+
+The result should feel like:
+
+```text
+PDF
+ ↓
+AI understanding
+ ↓
+Roadmap
+```
+
+This is the most important transformation in the demo.
+
+---
+
+# 4. SCENE 2 — Document → Topics → Confidence
+
+Transition naturally from the document/roadmap scene into topic extraction.
+
+Show:
+
+```text
+Extract Topics
+```
+
+Then:
+
+```text
+Extracting topics...
+```
+
+Then show the actual topic list using existing Tenaciti topic UI if available.
+
+Example:
+
+```text
+Database Systems
+
+✓ Introduction to DBMS
+✓ Relational Model
+○ SQL
+○ Normalization
+○ Transactions
+○ Indexing
+```
+
+The checkmarks should be interactive-looking.
+
+Select a topic/checkmark.
+
+Example:
+
+```text
+Normalization
+```
+
+Then show the confidence/review interaction.
+
+```text
+How confident are you with this topic?
+
+1   2   3   4   5
+```
+
+Use the existing Tenaciti confidence/review UI if implemented.
+
+If emojis are already part of the actual feature, use them.
+
+For example:
+
+```text
+1  2  3  4  5
+```
+
+or the actual existing confidence representation.
+
+Then select a value.
+
+Show the resulting state:
+
+```text
+Normalization
+Confidence: 4/5
+Completed
+```
+
+The important visual chain is:
+
+```text
+Document
+ ↓
+Topics
+ ↓
+Completion
+ ↓
+Confidence
+ ↓
+Progress
+```
+
+---
+
+# 5. SCENE 3 — AI → Create connected note
+
+Now transition into the AI assistant.
+
+This is where the not-yet-implemented chatbot must be visually invented.
+
+The user prompt:
+
+> "My teacher said Topic 4 is important."
+
+Display it as a user interaction with the Tenaciti AI.
+
+The AI should interpret the intent and visually perform tool actions.
+
+For example:
+
+```text
+AI
+I’ll add that to your notes and connect it to Topic 4.
+```
+
+Then show the AI invoking tools:
+
+```text
+Notes
+Creating note...              ✓
+
+Topics
+Linking to Topic 4...         ✓
+
+Priority
+Marking important...          ✓
+```
+
+Then produce the final result:
+
+```text
+NOTE CREATED
+
+Topic 4 — Important
+
+"Teacher highlighted this topic."
+
+Linked to:
+Database Systems
+→ Topic 4
+```
+
+If Tenaciti already has a connected graph/relationship visualization, use it here.
+
+For example, after the note is created:
+
+```text
+Note
+  ↓
+Topic 4
+  ↓
+Database Systems
+```
+
+Animate those connections appearing.
+
+This is important because it demonstrates that Tenaciti's AI does not merely answer questions.
+
+It **changes the user's academic workspace**.
+
+---
+
+# 6. SCENE 4 — AI → "What should I study next?"
+
+Use the AI assistant again.
+
+User prompt:
+
+> "What should I study next?"
+
+Do not immediately display a generic AI answer.
+
+Visually show Tenaciti checking its connected academic context.
+
+For example:
+
+```text
+Understanding your semester...
+
+Courses                  ✓
+Topics                   ✓
+Progress                 ✓
+Assessments              ✓
+Goals                    ✓
+Study material           ✓
+```
+
+Then produce a recommendation based on dummy data:
+
+```text
+YOUR NEXT PRIORITY
+
+Database Normalization
+
+42% complete
+
+Quiz in 3 days
+
+2 related topics remaining
+```
+
+Optionally show:
+
+```text
+[ Add to today's plan ]
+```
+
+If the existing Tenaciti progress/course/topic UI is strong, reuse it.
+
+This scene demonstrates the key concept:
+
+> Tenaciti knows the student's academic context.
+
+---
+
+# 7. SCENE 5 — AI → Create a goal
+
+User:
+
+> "I want to finish Database Systems before Friday."
+
+The AI should translate that into structured academic data.
+
+Show:
+
+```text
+Creating goal...
+
+Goal
+Finish Database Systems
+
+Course
+Database Systems
+
+Deadline
+Friday
+
+Related roadmap items
+3
+```
+
+Then:
+
+```text
+✓ Goal created
+```
+
+If the existing goals UI is available, transition into the real UI.
+
+The visual message:
+
+```text
+Natural language
+        ↓
+AI understands intent
+        ↓
+Structured goal
+        ↓
+Connected academic data
+```
+
+---
+
+# 8. SCENE 6 — AI → Search the academic workspace
+
+User:
+
+> "Find everything I have about normalization."
+
+AI should visually search across the student's connected workspace.
+
+Show:
+
+```text
+Searching your workspace...
+
+Notes                 3
+Documents             2
+Topics                1
+Courses               1
+```
+
+Then show results:
+
+```text
+NORMALIZATION
+
+Notes
+• Normalization lecture notes
+• Teacher's exam hint
+• Revision notes
+
+Documents
+• DBMS Lecture 04.pdf
+• DBMS Revision.pdf
+```
+
+Reuse existing document/search/notes UI if available.
+
+This demonstrates that Tenaciti can retrieve information from the student's own academic context rather than behaving like a stateless AI.
+
+---
+
+# 9. Dummy data
+
+Create a dedicated dummy data layer for this hero demo.
+
+Do not depend on real authenticated user data.
+
+Use realistic, rich academic data.
+
+Example student:
+
+```text
+Courses:
+- Database Systems
+- Object Oriented Programming
+- Software Engineering
+- Computer Networks
+- Operating Systems
+
+Topics:
+~50–70 topics
+
+Assessments:
+- DBMS Quiz — 3 days
+- OOP Assignment — 5 days
+- Networks Midterm — 9 days
+
+Goals:
+- Finish Database Systems
+- Complete OOP Assignment
+- Review Normalization
+
+Notes:
+- Teacher's exam hints
+- Lecture notes
+- Revision notes
+
+Documents:
+- DBMS Syllabus.pdf
+- DBMS Lecture 04.pdf
+- DBMS Revision.pdf
+- OOP Course Outline.pdf
+
+Progress:
+- Database Systems: 42%
+- OOP: 68%
+- Networks: 31%
+
+Confidence:
+- Normalization: 4/5
+- SQL: 3/5
+- Transactions: 2/5
+
+GPA:
+3.72
+
+Study streak:
+12 days
+```
+
+Make the data internally consistent.
+
+For example, if the demo says Database Systems is 42% complete, the visible topic/progress data should support that number.
+
+The point is to make the UI feel like it belongs to a real student's workspace.
+
+---
+
+# 10. Existing Tenaciti UI must be reused
+
+Before creating new visual components, inspect the existing repository thoroughly.
+
+Identify existing implementations for:
+
+* Document upload
+* Document processing
+* Extraction states
+* Topic lists
+* Topic completion
+* Confidence/review UI
+* Roadmaps
+* Goals
+* Assessments
+* Course cards
+* Progress indicators
+* Connected graph/relationships
+* Notes
+* Search
+* Workspace navigation
+* Icons
+* AI-related visual language if anything already exists
+
+Reuse those components wherever practical.
+
+Do not create duplicate versions of existing UI just for the marketing page unless the existing implementation cannot be reasonably embedded into the hero demo.
+
+The goal is:
+
+```text
+Public website demo
+        ↓
+Looks like actual Tenaciti
+        ↓
+Actual Tenaciti components
+```
+
+not:
+
+```text
+Public website
+        ↓
+Fake separate design system
+```
+
+---
+
+# 11. Seamless transitions are mandatory
+
+This is one of the most important requirements.
+
+Avoid:
+
+```text
+Screen disappears
+↓
+Next screen suddenly appears
+```
+
+Instead use transitions that imply continuity.
+
+Examples:
+
+### Document → processing
+
+Document card remains in place while its state changes:
+
+```text
+Uploaded
+↓
+Processing
+↓
+Processed
+```
+
+### Extraction button → roadmap
+
+The clicked button should:
+
+```text
+press
+↓
+loading state
+↓
+processing state
+↓
+content expands/transforms
+↓
+roadmap appears
+```
+
+### Topics → confidence
+
+The selected topic should remain visually anchored while the confidence UI emerges from it.
+
+### AI → tool call
+
+The AI should visibly connect to the relevant tool.
+
+For example:
+
+```text
+AI
+ │
+ ├────→ Notes
+ │
+ └────→ Topic
+```
+
+The connection should animate rather than simply appearing.
+
+### Tool call → result
+
+Use:
+
+```text
+Working...
+↓
+✓ Complete
+```
+
+with smooth state transitions.
+
+The demo should feel like **one continuous system changing state**.
+
+---
+
+# 12. AI visual concept
+
+Because the actual chatbot page does not exist yet, design a temporary hero-specific AI visual.
+
+Recommended concept:
+
+A central circular AI core with subtle motion.
+
+Around it are tool nodes:
+
+```text
+             Documents
+
+                 │
+                 │
+Notes ─────── AI CORE ─────── Topics
+
+                 │
+                 │
+              Goals
+
+                 │
+                 │
+           Assessments
+```
+
+When the AI needs a tool:
+
+```text
+AI CORE
+   │
+   └────────→ Notes
+```
+
+The connection animates.
+
+When the tool completes:
+
+```text
+Notes ✓
+```
+
+The connection retracts.
+
+Do not make it resemble a developer API diagram.
+
+It should look like a polished product interaction.
+
+The AI core can be a custom SVG/CSS object if that fits the existing visual identity.
+
+---
+
+# 13. The demo should visually exceed the placeholder slightly
+
+The current placeholder is constrained inside the right side of the hero.
+
+It is acceptable for the new interactive demo to:
+
+* extend slightly beyond the placeholder boundary
+* overlap the hero background
+* have floating tool cards
+* have connection lines extending outside the main card
+* slightly overlap the right edge
+
+Do not allow it to break the overall hero composition or create horizontal scrolling.
+
+On desktop, prioritize visual impact.
+
+On mobile, collapse it into a normal-width card below the hero text.
+
+---
+
+# 14. Responsive behavior
+
+Desktop:
+
+```text
+┌───────────────────────────────────────────────┐
+│                                               │
+│  Hero text              AI product demo       │
+│                         ┌───────────────┐     │
+│                         │               │     │
+│                         │    AI CORE    │     │
+│                         │               │     │
+│                         └───────────────┘     │
+│                                               │
+└───────────────────────────────────────────────┘
+```
+
+Mobile:
+
+```text
+Hero text
+
+CTA
+
+┌─────────────────────────┐
+│      Tenaciti AI        │
+│                         │
+│       AI CORE           │
+│                         │
+│     tool activity       │
+│                         │
+└─────────────────────────┘
+```
+
+Do not simply shrink the desktop version until it becomes unreadable.
+
+Adapt the composition.
+
+---
+
+# 15. Performance requirements
+
+The animation must be lightweight.
+
+Do not use:
+
+* video
+* WebGL
+* canvas unless absolutely necessary
+* large image assets
+* external animation libraries unless already installed and justified
+* real API calls
+* real LLM calls
+
+Prefer:
+
+* CSS transitions
+* CSS transforms
+* opacity
+* SVG
+* React state
+* local dummy data
+
+Use GPU-friendly properties where possible:
+
+```text
+transform
+opacity
+```
+
+Avoid repeatedly animating:
+
+```text
+width
+height
+top
+left
+```
+
+unless necessary.
+
+---
+
+# 16. Accessibility
+
+Respect:
+
+```css
+@media (prefers-reduced-motion: reduce)
+```
+
+When reduced motion is enabled:
+
+* disable major transitions
+* show stable final states
+* keep all information readable
+* don't make functionality dependent on animation
+
+The demo should also not interfere with page navigation or keyboard interaction.
+
+---
+
+# 17. Automatic loop
+
+The entire sequence should automatically play.
+
+Example:
+
+```text
+Scene 1
+Document → Roadmap
+
+        ↓
+
+Scene 2
+Document → Topics → Confidence
+
+        ↓
+
+Scene 3
+AI → Note
+
+        ↓
+
+Scene 4
+AI → Study Recommendation
+
+        ↓
+
+Scene 5
+AI → Goal
+
+        ↓
+
+Scene 6
+AI → Workspace Search
+
+        ↓
+
+Smooth reset
+
+        ↓
+
+Scene 1
+```
+
+Avoid an obvious hard reset.
+
+The final scene should visually transition into the initial state.
+
+For example, after the search results disappear, the document can re-enter the workspace and begin the first scene.
+
+---
+
+# 18. Do not overstuff the demo
+
+The purpose is not to show every feature.
+
+The six core stories are:
+
+1. **Turn a document into a roadmap**
+2. **Turn a document into trackable topics**
+3. **Capture knowledge through AI**
+4. **Use connected academic context to decide what to study**
+5. **Turn natural language into goals/actions**
+6. **Search the student's entire academic workspace**
+
+Other features should appear naturally inside these interactions:
+
+* Courses
+* Assessments
+* Notes
+* Topics
+* Goals
+* Roadmaps
+* Progress
+* Confidence
+* Documents
+* Connected relationships
+* GPA
+* Study streak
+
+---
+
+# 19. Important product principle
+
+The animation should repeatedly communicate this progression:
+
+```text
+Student says / uploads something
+              ↓
+         Tenaciti understands
+              ↓
+       Tenaciti connects context
+              ↓
+       Tenaciti takes action
+              ↓
+      Academic workspace changes
+```
+
+That is the central product proposition.
+
+Do not make the demo primarily about "AI chatting."
+
+Make it about **AI understanding and acting**.
+
+---
+
+# 20. Visual quality
+
+The current public website uses:
+
+* Sora
+* Inter
+* monochrome/neutral palette
+* rounded cards
+* subtle shadows
+* clean geometric background
+* restrained visual language
+
+Maintain this design system.
+
+The new demo should look like it was designed as part of the same product.
+
+Avoid:
+
+* generic glowing AI effects
+* neon gradients
+* excessive glassmorphism
+* futuristic robot imagery
+* generic ChatGPT clones
+* excessive animations
+* overly colorful dashboards
+
+Tenaciti's visual identity should remain restrained, intelligent, and premium.
+
+---
+
+# 21. Hero copy
+
+Keep the finalized hero copy:
+
+### Headline
+
+**Your Semester, Managed.**
+
+### Subheadline
+
+**AI personal assistant that understands your academic workspace, connects your courses, syllabus, notes, goals, assessments, and study material, and manages what needs to get done.**
+
+Do not alter the headline.
+
+The interactive demo should visually substantiate the subheadline.
+
+---
+
+# 22. Implementation process
+
+Before coding:
+
+1. Inspect the existing repository structure.
+2. Find the public website/landing page implementation.
+3. Find all existing components corresponding to the features above.
+4. Identify reusable UI components.
+5. Identify the existing design tokens/styles.
+6. Identify the existing routing/layout structure.
+7. Determine the cleanest location for the new hero demo component.
+
+Then implement the demo.
+
+Do not create unnecessary new dependencies.
+
+Do not modify unrelated product functionality.
+
+Do not implement the actual AI chatbot backend.
+
+Do not implement a new production AI architecture.
+
+This is specifically a **public website hero product simulation**.
+
+---
+
+# 23. Final acceptance criteria
+
+The implementation is complete only when:
+
+* The static image placeholder is completely replaced.
+* The result looks like an actual Tenaciti product interface.
+* The AI assistant is visually central.
+* The AI visibly interacts with academic tools.
+* Document upload is demonstrated.
+* Document processing is demonstrated.
+* Extract Roadmap is demonstrated.
+* Roadmap creation is demonstrated.
+* Extract Topics is demonstrated.
+* Topic completion is demonstrated.
+* Confidence/review is demonstrated.
+* AI note creation is demonstrated.
+* Notes are visually connected to topics.
+* AI study recommendation is demonstrated.
+* AI goal creation is demonstrated.
+* Workspace search is demonstrated.
+* Existing Tenaciti UI is reused where practical.
+* Dummy data is rich and internally consistent.
+* Transitions are seamless.
+* The animation loops automatically.
+* Desktop composition is visually strong.
+* Mobile composition remains usable.
+* Reduced-motion behavior is implemented.
+* No real API/LLM calls are required.
+* No video is used.
+* No unnecessary dependencies are introduced.
+* Existing website functionality remains intact.
+
+The final result should make a visitor understand the product by watching it for a few seconds:
+
+**Tenaciti takes the student's academic information, understands how it connects, and actively manages the semester through AI.**
