@@ -12,6 +12,8 @@
   align-items: center;
   justify-content: flex-end;
   margin-right: -64px;
+  /* Lift the demo above the fold so its bottom edge stays inside the first viewport */
+  transform: translateY(-40px);
   font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -2133,6 +2135,7 @@
     height: auto;
     justify-content: flex-end;
     margin-top: 24px;
+    transform: none;
   }
   .demoCard {
     width: 100%;
