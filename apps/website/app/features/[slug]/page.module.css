@@ -1,0 +1,316 @@
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+/* ---------- BREADCRUMB ---------- */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.crumbLink {
+  color: var(--grey-500);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.crumbLink:hover {
+  color: var(--ink);
+}
+
+.crumbCurrent {
+  color: var(--ink);
+}
+
+.crumbSep {
+  color: var(--grey-300);
+}
+
+/* ---------- HEADER ---------- */
+.header {
+  margin-bottom: 48px;
+}
+
+.title {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 20px;
+}
+
+.intro {
+  font-size: 17.5px;
+  line-height: 1.7;
+  color: var(--grey-500);
+  margin: 0;
+}
+
+/* ---------- SECONDARY CTA CALLOUT ---------- */
+.callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  margin-bottom: 64px;
+}
+
+.calloutText {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.calloutLink {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.calloutLink:hover {
+  color: var(--ink-soft);
+}
+
+/* ---------- GENERIC SECTION ---------- */
+.section {
+  margin-bottom: 72px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 26px;
+}
+
+/* ---------- CAPABILITIES ---------- */
+.capGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.capCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(13, 13, 13, 0.04);
+}
+
+.capCategory {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+
+.capList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.capItem {
+  font-size: 13.5px;
+  color: var(--grey-500);
+  line-height: 1.55;
+  display: flex;
+  gap: 9px;
+}
+
+.capCheck {
+  color: var(--ink);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ---------- EXAMPLE PROMPTS ---------- */
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promptItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+}
+
+.promptQuote {
+  font-size: 18px;
+  color: var(--grey-300);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.promptText {
+  font-style: italic;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+/* vertical dashed connector between numbered nodes */
+.step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 40px;
+  bottom: 6px;
+  border-left: 1.5px dashed var(--grey-300);
+}
+
+.stepNumber {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14.5px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stepTitle {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 6px 0 6px;
+}
+
+.stepDetail {
+  color: var(--grey-500);
+  line-height: 1.62;
+  font-size: 14.5px;
+  margin: 0;
+}
+
+/* ---------- USE CASES ---------- */
+.useCasePanel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.useCaseList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.useCaseItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.useCaseDot {
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* ---------- MINI FAQ ---------- */
+.faqItem {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.faqItem:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.faqQuestion {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.faqAnswer {
+  color: var(--grey-500);
+  line-height: 1.65;
+  font-size: 14.5px;
+  margin: 0;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 540px) {
+  .page {
+    padding: 20px 16px 64px;
+  }
+  .section {
+    margin-bottom: 56px;
+  }
+  .useCasePanel {
+    padding: 24px 20px;
+  }
+}

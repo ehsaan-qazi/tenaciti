@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { CtaPanel } from '../../components/ui/CtaPanel';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -19,6 +22,33 @@ export const metadata: Metadata = {
       'Free plan covers core syllabus extraction and GPA tracking, no credit card required. See what\'s included in Premium.',
   },
 };
+
+const FREE_FEATURES = [
+  { text: '3 document uploads per course / month', strong: '3 document uploads' },
+  { text: '10 MB max file size', strong: '10 MB' },
+  { text: 'AI Syllabus-to-roadmap extraction (PDF)' },
+  { text: 'Topic tracking with 1–5 confidence ratings' },
+  { text: 'Knowledge graph with Markdown & [[wikilinks]]' },
+  { text: 'Free HEC 4.0 & custom GPA calculator' },
+];
+
+const PREMIUM_FEATURES = [
+  { text: '20 document uploads per course / month', strong: '20 document uploads' },
+  { text: '25 MB max file size', strong: '25 MB' },
+  { text: 'Slide & lecture note extraction (PDF & PPTX)' },
+  { text: 'Full AI workspace assistant capabilities' },
+  { text: 'Priority extraction queue' },
+  { text: 'Priority support' },
+];
+
+const COMPARISON_ROWS: Array<{ feature: string; free: string; premium: string; muted?: boolean }> = [
+  { feature: 'Uploads per course / month', free: '3 uploads', premium: '20 uploads' },
+  { feature: 'Maximum file size', free: '10 MB', premium: '25 MB' },
+  { feature: 'Syllabus-to-Roadmap Extraction', free: 'PDF', premium: 'PDF' },
+  { feature: 'Slide & Lecture Notes Extraction', free: '—', premium: 'PDF & PPTX', muted: true },
+  { feature: 'Knowledge Graph & Markdown', free: 'Included', premium: 'Included' },
+  { feature: 'GPA Calculator (HEC 4.0 & Custom)', free: 'Included', premium: 'Included' },
+];
 
 export default function PricingPage() {
   const softwareAppJsonLd = {
@@ -50,110 +80,89 @@ export default function PricingPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '4rem 2rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--ink, #0d0d0d)', letterSpacing: '-0.02em' }}>
-          Pricing
-        </h1>
-        <p style={{ fontSize: '1.25rem', color: 'var(--on-surface-variant, #666)', maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>
-          Start for free forever. Upgrade to Premium when you need higher upload capacities and slide extraction.
-        </p>
-      </div>
+    <>
+      <PageHeader
+        eyebrow="Pricing"
+        title="Start free. Upgrade when you need more."
+        sub="The free plan is free forever — no credit card required. Upgrade to Premium when you need higher upload capacities and slide extraction."
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: '5rem' }}>
-        {/* Free Plan */}
-        <div style={{ border: '1px solid var(--surface-border, #e0e0e0)', borderRadius: '16px', padding: '2.5rem', display: 'flex', flexDirection: 'column', background: 'var(--surface-default, #fff)', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--ink, #0d0d0d)' }}>Free Forever</h2>
-          <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--ink, #0d0d0d)' }}>$0</div>
-          <p style={{ color: 'var(--on-surface-variant, #666)', marginBottom: '2rem', fontSize: '0.95rem' }}>
-            Everything you need to organize your courses and track your semester.
-          </p>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, color: 'var(--ink, #0d0d0d)', fontSize: '0.95rem' }}>
-            <li>✓ <strong>3 Document uploads</strong> per course / month</li>
-            <li>✓ <strong>10 MB</strong> max file size</li>
-            <li>✓ AI Syllabus-to-roadmap extraction (PDF)</li>
-            <li>✓ Topic tracking with 1–5 confidence ratings</li>
-            <li>✓ Knowledge graph with Markdown & [[wikilinks]]</li>
-            <li>✓ Free HEC 4.0 & custom GPA calculator</li>
-          </ul>
-          <a href="https://my.tenaciti.app/signup" style={{ display: 'block', textAlign: 'center', padding: '1rem', background: 'var(--ink, #0d0d0d)', color: 'white', borderRadius: '999px', fontWeight: 700, textDecoration: 'none' }}>
-            Get Started Free
-          </a>
-        </div>
-
-        {/* Premium Plan */}
-        <div style={{ border: '2px solid var(--primary, #007bff)', borderRadius: '16px', padding: '2.5rem', display: 'flex', flexDirection: 'column', position: 'relative', background: 'var(--surface-default, #fff)', boxShadow: '0 8px 24px rgba(0,123,255,0.08)' }}>
-          <div style={{ position: 'absolute', top: '-0.85rem', left: '50%', transform: 'translateX(-50%)', background: 'var(--primary, #007bff)', color: 'white', padding: '0.25rem 1.25rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.06em' }}>
-            POWER USERS
+      <div className={styles.wrap}>
+        <div className={styles.plans}>
+          {/* Free Plan — the actionable plan, featured in ink */}
+          <div className={`${styles.plan} ${styles.planFree}`}>
+            <span className={`${styles.planBadge} ${styles.badgeLight}`}>Free Forever</span>
+            <h2 className={styles.planName}>Free</h2>
+            <div className={styles.planPrice}>$0</div>
+            <p className={styles.planDesc}>
+              Everything you need to organize your courses and track your semester.
+            </p>
+            <ul className={styles.planList}>
+              {FREE_FEATURES.map((item) => (
+                <li key={item.text} className={styles.planItem}>
+                  <span className={styles.planCheck} aria-hidden="true">✓</span>
+                  <span>{item.strong ? <><strong>{item.strong}</strong>{item.text.replace(item.strong, '')}</> : item.text}</span>
+                </li>
+              ))}
+            </ul>
+            <a href="https://my.tenaciti.app/signup" className={`${styles.planBtn} ${styles.planBtnLight}`}>
+              Get Started Free
+            </a>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--ink, #0d0d0d)' }}>Premium</h2>
-          <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--ink, #0d0d0d)' }}>TBD</div>
-          <p style={{ color: 'var(--on-surface-variant, #666)', marginBottom: '2rem', fontSize: '0.95rem' }}>
-            Expanded capacity for students managing heavy coursework and slide decks.
-          </p>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, color: 'var(--ink, #0d0d0d)', fontSize: '0.95rem' }}>
-            <li>✓ <strong>20 Document uploads</strong> per course / month</li>
-            <li>✓ <strong>25 MB</strong> max file size</li>
-            <li>✓ Slide & lecture note extraction (PDF & PPTX)</li>
-            <li>✓ Full AI workspace assistant capabilities</li>
-            <li>✓ Priority extraction queue</li>
-            <li>✓ Priority support</li>
-          </ul>
-          <div style={{ display: 'block', textAlign: 'center', padding: '1rem', background: 'var(--surface-sunken, #f0f0ed)', color: 'var(--on-surface-variant, #666)', borderRadius: '999px', fontWeight: 700 }}>
-            Coming Soon
+
+          {/* Premium Plan */}
+          <div className={`${styles.plan} ${styles.planPremium}`}>
+            <span className={`${styles.planBadge} ${styles.badgeDark}`}>Power Users</span>
+            <h2 className={styles.planName}>Premium</h2>
+            <div className={styles.planPrice}>TBD</div>
+            <p className={styles.planPriceNote}>Price not finalized — early users lock in founding rates.</p>
+            <p className={styles.planDesc}>
+              Expanded capacity for students managing heavy coursework and slide decks.
+            </p>
+            <ul className={styles.planList}>
+              {PREMIUM_FEATURES.map((item) => (
+                <li key={item.text} className={styles.planItem}>
+                  <span className={styles.planCheck} aria-hidden="true">✓</span>
+                  <span>{item.strong ? <><strong>{item.strong}</strong>{item.text.replace(item.strong, '')}</> : item.text}</span>
+                </li>
+              ))}
+            </ul>
+            <div className={`${styles.planBtn} ${styles.planBtnGhost}`}>Coming Soon</div>
           </div>
         </div>
+
+        {/* Feature Comparison Table */}
+        <section className={styles.compare} aria-label="Detailed Plan Comparison">
+          <h2 className={styles.compareTitle}>Detailed Plan Comparison</h2>
+          <div className={styles.tableCard}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">Feature</th>
+                  <th scope="col" style={{ width: '28%' }}>Free</th>
+                  <th scope="col" style={{ width: '28%' }}>Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_ROWS.map((row) => (
+                  <tr key={row.feature}>
+                    <td>{row.feature}</td>
+                    <td className={row.muted ? styles.tableMuted : styles.tableValue}>{row.free}</td>
+                    <td className={styles.tableValue}>{row.premium}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
-      {/* Feature Comparison Table */}
-      <section style={{ maxWidth: '840px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 800, marginBottom: '1.5rem', textAlign: 'center', color: 'var(--ink, #0d0d0d)' }}>
-          Detailed Plan Comparison
-        </h2>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid var(--surface-border, #eee)' }}>
-                <th style={{ padding: '1rem 0.75rem', fontWeight: 700, color: 'var(--ink, #0d0d0d)' }}>Feature</th>
-                <th style={{ padding: '1rem 0.75rem', fontWeight: 700, color: 'var(--ink, #0d0d0d)', width: '30%' }}>Free</th>
-                <th style={{ padding: '1rem 0.75rem', fontWeight: 700, color: 'var(--ink, #0d0d0d)', width: '30%' }}>Premium</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>Uploads per course / month</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>3 uploads</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600, color: 'var(--primary, #007bff)' }}>20 uploads</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>Maximum file size</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>10 MB</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600, color: 'var(--primary, #007bff)' }}>25 MB</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>Syllabus-to-Roadmap Extraction</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>PDF</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>PDF</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>Slide & Lecture Notes Extraction</td>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--grey-500, #888)' }}>—</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600, color: 'var(--primary, #007bff)' }}>PDF & PPTX</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>Knowledge Graph & Markdown</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>Included</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>Included</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--surface-border, #eee)' }}>
-                <td style={{ padding: '0.85rem 0.75rem', color: 'var(--on-surface-variant, #555)' }}>GPA Calculator (HEC 4.0 & Custom)</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>Included</td>
-                <td style={{ padding: '0.85rem 0.75rem', fontWeight: 600 }}>Included</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <CtaPanel
+        title="Try every core feature for $0."
+        sub="Create a free account, upload your first syllabus, and see your semester take shape in minutes."
+        primary={{ label: 'Get Started Free', href: 'https://my.tenaciti.app/signup', external: true }}
+        secondary={{ label: 'Read the FAQ', href: '/faq' }}
+      />
 
       {/* SoftwareApplication structured data for Google pricing rich results */}
       <script
@@ -162,6 +171,6 @@ export default function PricingPage() {
           __html: JSON.stringify(softwareAppJsonLd),
         }}
       />
-    </div>
+    </>
   );
 }

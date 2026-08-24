@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { ContactForm } from '../../components/ContactForm';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -20,65 +22,53 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem' }}>
-      <h1
-        style={{
-          fontSize: '3rem',
-          fontWeight: 'bold',
-          marginBottom: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        Contact Us
-      </h1>
-      <p
-        style={{
-          fontSize: '1.25rem',
-          color: 'var(--on-surface-variant, #666)',
-          textAlign: 'center',
-          marginBottom: '4rem',
-        }}
-      >
-        Have a question, feedback, or need support? We&apos;d love to hear from you.
-      </p>
+    <>
+      <PageHeader
+        eyebrow="Contact"
+        title="Talk to the team"
+        sub="Have a question, feedback, or need support? We'd love to hear from you."
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem' }}>
+      <div className={styles.wrap}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-            Get in touch
-          </h2>
-          <p
-            style={{
-              color: 'var(--on-surface-variant, #666)',
-              marginBottom: '2rem',
-              lineHeight: 1.6,
-            }}
-          >
-            For support inquiries, feature requests, or any other questions, please email us
-            directly. We aim to respond to all inquiries within 24-48 hours.
+          <h2 className={styles.infoHeading}>Get in touch</h2>
+          <p className={styles.infoText}>
+            For support inquiries, feature requests, or any other questions, send us a message
+            below or email us directly. We aim to respond to all inquiries within 24–48 hours.
           </p>
 
-          <div style={{ marginBottom: '2rem' }}>
-            <h3
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 'bold',
-                marginBottom: '0.5rem',
-              }}
-            >
-              Email Support
-            </h3>
-            <a
-              href="mailto:ehsaanbusinesshandle@gmail.com"
-              style={{ color: 'var(--primary, #007bff)', fontSize: '1.125rem' }}
-            >
-              ehsaanbusinesshandle@gmail.com
-            </a>
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <span className={styles.infoIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-10 6L2 7" />
+                </svg>
+              </span>
+              <span>
+                <span className={styles.infoLabel}>Email Support</span>
+                <a href="mailto:ehsaanbusinesshandle@gmail.com" className={styles.infoValue}>
+                  ehsaanbusinesshandle@gmail.com
+                </a>
+              </span>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.infoIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg>
+              </span>
+              <span>
+                <span className={styles.infoLabel}>Response Time</span>
+                <span className={styles.infoValue}>Within 24–48 hours</span>
+              </span>
+            </div>
           </div>
         </div>
 
         <ContactForm />
       </div>
-    </div>
+    </>
   );
 }

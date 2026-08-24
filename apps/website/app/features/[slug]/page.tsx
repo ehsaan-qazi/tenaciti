@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { CtaPanel } from '../../../components/ui/CtaPanel';
+import styles from './page.module.css';
 
 interface FeatureData {
   title: string;
@@ -368,33 +370,27 @@ export default async function FeaturePage({
   };
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '4rem 2rem' }}>
+    <div className={styles.page}>
       {/* Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" style={{ marginBottom: '2.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--on-surface-variant, #666)' }}>
-          <Link href="/" style={{ color: 'var(--on-surface-variant, #666)' }}>Home</Link>
-          <span>/</span>
-          <Link href="/features" style={{ color: 'var(--on-surface-variant, #666)' }}>Features</Link>
-          <span>/</span>
-          <span style={{ color: 'var(--ink, #0d0d0d)', fontWeight: 600 }}>{feature.title}</span>
-        </div>
+      <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
+        <Link href="/" className={styles.crumbLink}>Home</Link>
+        <span className={styles.crumbSep} aria-hidden="true">/</span>
+        <Link href="/features" className={styles.crumbLink}>Features</Link>
+        <span className={styles.crumbSep} aria-hidden="true">/</span>
+        <span className={styles.crumbCurrent}>{feature.title}</span>
       </nav>
 
       {/* Header */}
-      <header style={{ marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.5rem', color: 'var(--ink, #0d0d0d)', letterSpacing: '-0.02em' }}>
-          {feature.h1}
-        </h1>
-        <p style={{ fontSize: '1.25rem', color: 'var(--on-surface-variant, #555)', lineHeight: 1.7 }}>
-          {feature.intro}
-        </p>
+      <header className={styles.header}>
+        <h1 className={styles.title}>{feature.h1}</h1>
+        <p className={styles.intro}>{feature.intro}</p>
       </header>
 
       {/* Secondary Action if available */}
       {feature.secondaryCta && (
-        <div style={{ marginBottom: '3rem', padding: '1.25rem 1.5rem', background: 'var(--surface-sunken, #f8f9fa)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', border: '1px solid var(--surface-border, #eee)' }}>
-          <span style={{ fontWeight: 600, color: 'var(--ink, #0d0d0d)' }}>Need a quick GPA calculation without an account?</span>
-          <Link href={feature.secondaryCta.href} style={{ color: 'var(--primary, #007bff)', fontWeight: 700 }}>
+        <div className={styles.callout}>
+          <span className={styles.calloutText}>Need a quick GPA calculation without an account?</span>
+          <Link href={feature.secondaryCta.href} className={styles.calloutLink}>
             {feature.secondaryCta.text}
           </Link>
         </div>
@@ -402,20 +398,16 @@ export default async function FeaturePage({
 
       {/* Capabilities breakdown for AI Assistant */}
       {feature.capabilities && (
-        <section style={{ marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--ink, #0d0d0d)' }}>
-            What the AI Assistant Can Do
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>What the AI Assistant Can Do</h2>
+          <div className={styles.capGrid}>
             {feature.capabilities.map((cat, idx) => (
-              <div key={idx} style={{ background: 'var(--surface-sunken, #f8f9fa)', padding: '1.75rem', borderRadius: '16px', border: '1px solid var(--surface-border, #eee)' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--ink, #0d0d0d)' }}>
-                  {cat.category}
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div key={idx} className={styles.capCard}>
+                <h3 className={styles.capCategory}>{cat.category}</h3>
+                <ul className={styles.capList}>
                   {cat.items.map((item, iIdx) => (
-                    <li key={iIdx} style={{ fontSize: '0.95rem', color: 'var(--on-surface-variant, #555)', lineHeight: 1.5, display: 'flex', gap: '8px' }}>
-                      <span style={{ color: 'var(--primary, #007bff)', fontWeight: 'bold' }}>✓</span>
+                    <li key={iIdx} className={styles.capItem}>
+                      <span className={styles.capCheck} aria-hidden="true">✓</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -428,15 +420,13 @@ export default async function FeaturePage({
 
       {/* Example Prompts for AI Assistant */}
       {feature.examplePrompts && (
-        <section style={{ marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--ink, #0d0d0d)' }}>
-            Example Prompts You Can Use
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Example Prompts You Can Use</h2>
+          <div className={styles.promptList}>
             {feature.examplePrompts.map((prompt, pIdx) => (
-              <div key={pIdx} style={{ padding: '1.25rem 1.5rem', background: 'var(--surface-default, #fff)', border: '1px solid var(--surface-border, #e0e0e0)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
-                <span style={{ fontSize: '1.25rem' }}>💬</span>
-                <span style={{ fontStyle: 'italic', color: 'var(--ink, #0d0d0d)', fontSize: '1rem', fontWeight: 500 }}>&ldquo;{prompt}&rdquo;</span>
+              <div key={pIdx} className={styles.promptItem}>
+                <span className={styles.promptQuote} aria-hidden="true">❝</span>
+                <span className={styles.promptText}>{prompt}</span>
               </div>
             ))}
           </div>
@@ -444,23 +434,15 @@ export default async function FeaturePage({
       )}
 
       {/* How it works */}
-      <section style={{ marginBottom: '4rem' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.75rem', color: 'var(--ink, #0d0d0d)' }}>
-          How it Works
-        </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>How it Works</h2>
+        <div className={styles.steps}>
           {feature.howItWorks.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--ink, #0d0d0d)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0, fontSize: '0.95rem' }}>
-                {index + 1}
-              </div>
+            <div key={index} className={styles.step}>
+              <span className={styles.stepNumber} aria-hidden="true">{index + 1}</span>
               <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.35rem', color: 'var(--ink, #0d0d0d)' }}>
-                  {item.step}
-                </h3>
-                <p style={{ color: 'var(--on-surface-variant, #555)', lineHeight: 1.6, fontSize: '1rem' }}>
-                  {item.detail}
-                </p>
+                <h3 className={styles.stepTitle}>{item.step}</h3>
+                <p className={styles.stepDetail}>{item.detail}</p>
               </div>
             </div>
           ))}
@@ -468,35 +450,29 @@ export default async function FeaturePage({
       </section>
 
       {/* Use Cases */}
-      <section style={{ marginBottom: '4rem', background: 'var(--surface-sunken, #f8f9fa)', padding: '2.5rem', borderRadius: '20px', border: '1px solid var(--surface-border, #eee)' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--ink, #0d0d0d)' }}>
-          Real Student Use Cases
-        </h2>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {feature.useCases.map((useCase, uIdx) => (
-            <li key={uIdx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', color: 'var(--on-surface-variant, #444)', fontSize: '1.05rem', lineHeight: 1.6 }}>
-              <span style={{ color: 'var(--primary, #007bff)', fontSize: '1.2rem' }}>•</span>
-              <span>{useCase}</span>
-            </li>
-          ))}
-        </ul>
+      <section className={styles.section}>
+        <div className={styles.useCasePanel}>
+          <h2 className={styles.sectionTitle}>Real Student Use Cases</h2>
+          <ul className={styles.useCaseList}>
+            {feature.useCases.map((useCase, uIdx) => (
+              <li key={uIdx} className={styles.useCaseItem}>
+                <span className={styles.useCaseDot} aria-hidden="true">•</span>
+                <span>{useCase}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* Mini FAQ if available */}
       {feature.miniFaq && (
-        <section style={{ marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--ink, #0d0d0d)' }}>
-            Frequently Asked Questions
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+          <div>
             {feature.miniFaq.map((faq, fIdx) => (
-              <div key={fIdx} style={{ borderBottom: '1px solid var(--surface-border, #eee)', paddingBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--ink, #0d0d0d)' }}>
-                  {faq.question}
-                </h3>
-                <p style={{ color: 'var(--on-surface-variant, #555)', lineHeight: 1.6 }}>
-                  {faq.answer}
-                </p>
+              <div key={fIdx} className={styles.faqItem}>
+                <h3 className={styles.faqQuestion}>{faq.question}</h3>
+                <p className={styles.faqAnswer}>{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -504,30 +480,12 @@ export default async function FeaturePage({
       )}
 
       {/* Primary CTA */}
-      <div style={{ marginTop: '4rem', padding: '3.5rem 2rem', background: 'var(--ink, #0d0d0d)', color: 'white', borderRadius: '24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem', color: 'white' }}>
-          Master your semester with {feature.title.split('—')[0].trim()}
-        </h2>
-        <p style={{ fontSize: '1.125rem', color: 'var(--grey-300, #b9b9b7)', maxWidth: '540px', margin: '0 auto 2rem', lineHeight: 1.6 }}>
-          Join thousands of university students organizing courses, tracking deadlines, and boosting academic outcomes.
-        </p>
-        <a
-          href="https://my.tenaciti.app/signup"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2.5rem',
-            background: 'var(--white, #ffffff)',
-            color: 'var(--ink, #0d0d0d)',
-            borderRadius: '999px',
-            fontWeight: 700,
-            fontSize: '1.125rem',
-            textDecoration: 'none',
-            transition: 'transform 0.15s ease',
-          }}
-        >
-          {feature.ctaText}
-        </a>
-      </div>
+      <CtaPanel
+        inset={false}
+        title={`Master your semester with ${feature.title.split('—')[0].trim()}`}
+        sub="Join thousands of university students organizing courses, tracking deadlines, and boosting academic outcomes."
+        primary={{ label: feature.ctaText, href: 'https://my.tenaciti.app/signup', external: true }}
+      />
 
       {/* Structured Data: HowTo + Breadcrumbs */}
       <script

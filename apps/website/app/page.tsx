@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import HeroDemo from '../components/HeroDemo/HeroDemo';
+import { FeaturesBento } from '../components/home/FeaturesBento';
+import { HowItWorks } from '../components/home/HowItWorks';
+import { AiShowcase } from '../components/home/AiShowcase';
+import { WhyTenaciti } from '../components/home/WhyTenaciti';
+import { CtaPanel } from '../components/ui/CtaPanel';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -146,150 +151,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- FEATURES HIGHLIGHT ---------- */}
-      <section className={styles.featuresSection} aria-label="Core Features">
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionEyebrow}>Core Capabilities</span>
-          <h2 className={styles.sectionTitle}>Everything you need to excel in university</h2>
-          <p className={styles.sectionSub}>
-            One unified workspace that organizes your courses, connects your study materials, and drives you toward academic success.
-          </p>
-        </div>
+      {/* ---------- FEATURES BENTO ---------- */}
+      <FeaturesBento />
 
-        <div className={styles.featuresGrid}>
-          <div className={styles.featureCard}>
-            <div>
-              <div className={styles.featureIcon}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-              </div>
-              <h3 className={styles.featureTitle}>Syllabus → Roadmap, Automatically</h3>
-              <p className={styles.featureDesc}>
-                Upload your PDF syllabus and Tenaciti extracts every assignment, quiz, exam, and project — with deadlines and grade weights — into a chronological roadmap you can confirm and edit in one pass. Missing a date or weight? It&apos;s flagged as a placeholder so nothing gets buried by an AI guess.
-              </p>
-            </div>
-            <Link href="/features/ai-roadmap" className={styles.featureLink}>
-              Learn more <span>→</span>
-            </Link>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div>
-              <div className={styles.featureIcon}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-              </div>
-              <h3 className={styles.featureTitle}>Notes That Actually Connect</h3>
-              <p className={styles.featureDesc}>
-                Write in Markdown, link ideas with [[wikilinks]], and watch Tenaciti build a live, force-directed graph of how your courses relate — Obsidian-style, but built for a semester, not a vault. Hover a note to see everything it connects to; every course gets its own color.
-              </p>
-            </div>
-            <Link href="/features/knowledge-graph" className={styles.featureLink}>
-              Learn more <span>→</span>
-            </Link>
-          </div>
-
-          <div className={styles.featureCard}>
-            <div>
-              <div className={styles.featureIcon}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10" />
-                  <line x1="12" y1="20" x2="12" y2="4" />
-                  <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-              </div>
-              <h3 className={styles.featureTitle}>GPA Calculator Built for the HEC 4.0 Scale</h3>
-              <p className={styles.featureDesc}>
-                Calculate your SGPA and CGPA with the official HEC 4.0 grading scale used by Pakistani universities — or define your own custom scale and grade thresholds. Set a target GPA and see exactly what you need on remaining courses to hit it.
-              </p>
-            </div>
-            <Link href="/tools/gpa-calculator" className={styles.featureLink}>
-              Try Free Calculator <span>→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* ---------- HOW IT WORKS ---------- */}
+      <HowItWorks />
 
       {/* ---------- AI ASSISTANT SHOWCASE ---------- */}
-      <section className={styles.aiSection} aria-label="AI Assistant Showcase">
-        <div className={styles.aiCard}>
-          <div className={styles.aiHeader}>
-            <div className={styles.aiEyebrow}>
-              <span className={styles.aiEyebrowDot} aria-hidden="true" />
-              <span>AI Workspace Assistant</span>
-            </div>
-            <h2 className={styles.aiTitle}>Manage Your Entire Semester With a Prompt</h2>
-            <p className={styles.aiSub}>
-              The Tenaciti AI Assistant understands your courses, topics, progress, goals, deadlines, notes, and uploaded material — and it doesn&apos;t just answer questions, it acts. Ask it what to study next, tell it to update a goal, or have it build a study plan for finals, all in plain language.
-            </p>
-          </div>
+      <AiShowcase />
 
-          <div className={styles.promptGrid}>
-            <div className={styles.promptCard}>
-              <div className={styles.promptIcon}>🎯</div>
-              <p className={styles.promptText}>
-                &ldquo;What should I study next before my Thermodynamics midterm?&rdquo;
-              </p>
-              <span className={styles.promptTag}>Adaptive Recommendation</span>
-            </div>
+      {/* ---------- WHY TENACITI ---------- */}
+      <WhyTenaciti />
 
-            <div className={styles.promptCard}>
-              <div className={styles.promptIcon}>📝</div>
-              <p className={styles.promptText}>
-                &ldquo;Create a note linking mitosis and meiosis, and connect it to my Bio 201 roadmap.&rdquo;
-              </p>
-              <span className={styles.promptTag}>Knowledge Graph Action</span>
-            </div>
-
-            <div className={styles.promptCard}>
-              <div className={styles.promptIcon}>📅</div>
-              <p className={styles.promptText}>
-                &ldquo;Mark my Chapter 4 topic as complete and build me a two-week study plan for finals.&rdquo;
-              </p>
-              <span className={styles.promptTag}>Schedule & Goal Automation</span>
-            </div>
-          </div>
-
-          <div className={styles.aiActions}>
-            <Link href="/features/ai-assistant" className={`${styles.btn} ${styles.btnOutline}`}>
-              Explore AI Assistant Details →
-            </Link>
-            <a href="https://my.tenaciti.app/signup" className={`${styles.btn} ${styles.btnFilled}`}>
-              Try AI Assistant Free
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- CTA BANNER ---------- */}
-      <section className={styles.bannerSection} aria-label="Call to Action">
-        <div className={styles.bannerCard}>
-          <div className={styles.bannerContent}>
-            <h2 className={styles.bannerTitle}>Master your semester from day one.</h2>
-            <p className={styles.bannerSub}>
-              Stop juggling disjointed syllabi, spreadsheets, and calendar reminders. Experience a unified AI study workspace designed for ambitious students.
-            </p>
-          </div>
-          <div className={styles.bannerActions}>
-            <a href="https://my.tenaciti.app/signup" className={styles.bannerBtnLight}>
-              Start for Free
-            </a>
-            <Link href="/features" className={styles.bannerBtnOutline}>
-              Explore Features
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* ---------- CLOSING CTA ---------- */}
+      <CtaPanel
+        title="Master your semester from day one."
+        sub="Stop juggling disjointed syllabi, spreadsheets, and calendar reminders. One workspace turns your courses into a plan — and keeps it on track with you."
+        primary={{ label: 'Start for Free', href: 'https://my.tenaciti.app/signup', external: true }}
+        secondary={{ label: 'Explore Features', href: '/features' }}
+      />
     </>
   );
 }

@@ -1,0 +1,126 @@
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+
+.prose {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.prose + .prose {
+  margin-top: 18px;
+}
+
+/* Mission panel — light band with the squares motif */
+.mission {
+  position: relative;
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  padding: 44px 44px 40px;
+  overflow: hidden;
+}
+
+.missionSquares {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.missionSq {
+  position: absolute;
+  background: var(--panel-square);
+  border-radius: 8px;
+  opacity: 0.6;
+}
+
+.missionSq1 { width: 110px; height: 80px; top: 12%; right: 8%; }
+.missionSq2 { width: 90px; height: 110px; bottom: 10%; right: 22%; }
+
+.missionEyebrow {
+  position: relative;
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+  margin-bottom: 14px;
+  display: block;
+}
+
+.missionTitle {
+  position: relative;
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.missionText {
+  position: relative;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 580px;
+}
+
+/* Team */
+.teamHeader {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 22px;
+}
+
+.teamCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  box-shadow: 0 4px 16px rgba(13, 13, 13, 0.04);
+}
+
+.teamPhoto {
+  flex-shrink: 0;
+}
+
+.teamText {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--grey-500);
+  margin: 0;
+}
+
+.teamText strong {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    padding: 0 16px 64px;
+    gap: 56px;
+  }
+  .mission {
+    padding: 32px 24px;
+  }
+  .teamCard {
+    flex-direction: column;
+    padding: 24px;
+  }
+}
