@@ -21,21 +21,29 @@ export function Footer() {
         <div className={styles.linksGrid}>
           <div className={styles.linkGroup}>
             <span className={styles.groupHeading}>Product</span>
-            <Link href="/features">Features</Link>
+            <Link href="/features">Features Overview</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/features/ai-roadmap">AI Roadmap</Link>
             <Link href="/features/knowledge-graph">Knowledge Graph</Link>
+            <Link href="/features/topic-tracking">Topic Tracking</Link>
+            <Link href="/features/self-assessment">Self-Assessment</Link>
+            <Link href="/features/ai-assistant">AI Assistant</Link>
           </div>
           <div className={styles.linkGroup}>
             <span className={styles.groupHeading}>Tools & Resources</span>
-            <Link href="/tools/gpa-calculator">GPA Calculator</Link>
+            <Link href="/tools/gpa-calculator">Free GPA Calculator</Link>
+            <Link href="/features/gpa-calculator">GPA Goal Tracking</Link>
             <Link href="/faq">FAQ</Link>
-            <a href="https://my.tenaciti.app/signup">Get Started</a>
+            <a href="https://my.tenaciti.app/signup">Student Signup</a>
           </div>
           <div className={styles.linkGroup}>
             <span className={styles.groupHeading}>Company</span>
             <Link href="/about">About Us</Link>
-            <Link href="/contact">Contact</Link>
+            <Link href="/contact">Contact Support</Link>
+            {/* TODO: Add real social profile URLs once profiles are published */}
+            <a href="https://www.linkedin.com/company/tenaciti" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/tenaciti" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://www.producthunt.com/products/tenaciti" target="_blank" rel="noopener noreferrer">Product Hunt</a>
           </div>
           <div className={styles.linkGroup}>
             <span className={styles.groupHeading}>Legal</span>
