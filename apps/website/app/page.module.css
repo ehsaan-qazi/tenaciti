@@ -296,35 +296,200 @@
   font-weight: 500;
 }
 
-/* ---------- SECTION: SOCIAL PROOF / STATS ---------- */
-.statsSection {
+/* ---------- SECTION: UNIVERSITY MARQUEE ---------- */
+.marqueeSection {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 64px 24px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  padding: 48px 24px;
 }
 
-.statItem {
+.marqueeHeader {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.marqueeEyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+}
+
+.marqueeWrapper {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+}
+
+.marqueeTrack {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  width: max-content;
+  animation: scrollMarquee 35s linear infinite;
+}
+
+.marqueeTrack:hover {
+  animation-play-state: paused;
+}
+
+@keyframes scrollMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marqueeItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.marqueeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--grey-300);
+}
+
+/* ---------- SECTION: AI ASSISTANT SHOWCASE ---------- */
+.aiSection {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.aiCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 56px 48px;
+}
+
+.aiHeader {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 40px;
+}
+
+.aiEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--white);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(13, 13, 13, 0.06);
+}
+
+.aiEyebrowDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+}
+
+.aiTitle {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.aiSub {
+  font-size: 16px;
+  color: var(--grey-500);
+  line-height: 1.6;
+}
+
+.promptGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.promptCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(13, 13, 13, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.statValue {
-  font-family: var(--font-heading), 'Sora', sans-serif;
-  font-size: 32px;
-  font-weight: 700;
+.promptCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(13, 13, 13, 0.08);
+}
+
+.promptIcon {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.promptText {
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--ink);
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  font-style: italic;
+  margin-bottom: 16px;
 }
 
-.statLabel {
-  font-size: 14px;
+.promptTag {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--grey-500);
-  font-weight: 500;
-  line-height: 1.4;
+  background: var(--panel);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.aiActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 /* ---------- SECTION: FEATURES ---------- */
@@ -545,10 +710,12 @@
   .heroPanel {
     padding: 48px 24px 40px;
   }
-  .statsSection {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 44px 20px;
-    gap: 32px;
+  .promptGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .aiCard {
+    padding: 40px 24px;
   }
   .featuresGrid {
     grid-template-columns: 1fr;
@@ -556,6 +723,9 @@
   }
   .featuresSection {
     padding: 48px 20px 60px;
+  }
+  .aiSection {
+    padding: 0 20px 60px;
   }
   .bannerSection {
     padding: 0 20px 60px;
@@ -591,13 +761,18 @@
     text-align: center;
     width: 100%;
   }
-  .statsSection {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 36px 16px;
+  .aiActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .aiActions .btn {
+    width: 100%;
   }
   .featuresSection {
     padding: 36px 16px 48px;
+  }
+  .aiSection {
+    padding: 0 16px 48px;
   }
   .bannerSection {
     padding: 0 16px 48px;
