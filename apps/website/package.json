@@ -6,13 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@tenaciti/tokens": "*",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "@tenaciti/tokens": "*"
+    "resend": "^6.22.0"
   },
   "devDependencies": {
     "@types/node": "^20",

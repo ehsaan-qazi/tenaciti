@@ -1,0 +1,30 @@
+# Tenaciti
+
+> Tenaciti is an AI-powered study workspace for university students. It extracts a
+> semester roadmap (deadlines, grade weights, assessments) from a PDF syllabus,
+> tracks topic-level confidence ratings, links notes in a Markdown knowledge graph
+> with wikilinks, and includes a free GPA calculator built on Pakistan's HEC 4.0
+> grading scale (with support for custom scales). The AI Assistant is a conversational,
+> action-taking agent for the whole workspace — it can answer questions about your
+> courses, recommend what to study next, create notes, update goals, complete topics,
+> link content, and build study plans, all from natural-language prompts.
+
+## Key facts
+- Free plan: 3 document uploads per course/month, 10 MB max file size, no credit card required.
+- Premium plan: 20 uploads per course/month, 25 MB max, adds slide/notes extraction.
+- Syllabus roadmap extraction supports PDF only. Slide/notes extraction supports PDF and PPTX.
+- The GPA calculator defaults to the HEC 4.0 scale and supports fully custom grade scales.
+- The GPA calculator is free to use with no account required, at /tools/gpa-calculator.
+- The AI Assistant understands the user's courses, topics, notes, goals, and deadlines,
+  answers questions about them, recommends what to study next, searches the workspace,
+  and takes actions such as creating notes, updating goals, completing topics, linking related
+  content, and building study plans — all from natural-language prompts.
+
+## Pages
+- Homepage: https://www.tenaciti.app/
+- Features: https://www.tenaciti.app/features
+- AI Assistant: https://www.tenaciti.app/features/ai-assistant
+- Free GPA Calculator: https://www.tenaciti.app/tools/gpa-calculator
+- Pricing: https://www.tenaciti.app/pricing
+- FAQ: https://www.tenaciti.app/faq
+- About: https://www.tenaciti.app/about

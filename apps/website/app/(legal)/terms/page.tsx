@@ -1,6 +1,16 @@
-export const metadata = {
-  title: 'Terms of Service | Tenaciti',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
   description: 'Terms of Service for Tenaciti users.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | Tenaciti',
+    description: 'Terms of Service for Tenaciti users.',
+    url: 'https://www.tenaciti.app/terms',
+  },
 };
 
 export default function TermsPage() {

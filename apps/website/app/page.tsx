@@ -1,6 +1,29 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import HeroDemo from '../components/HeroDemo/HeroDemo';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'Tenaciti | AI Study Workspace for University Students',
+  },
+  description:
+    'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app',
+  },
+  openGraph: {
+    title: 'Tenaciti | AI Study Workspace for University Students',
+    description:
+      'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
+    url: 'https://www.tenaciti.app',
+  },
+  twitter: {
+    title: 'Tenaciti | AI Study Workspace for University Students',
+    description:
+      'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
+  },
+};
 
 export default function Home() {
   return (

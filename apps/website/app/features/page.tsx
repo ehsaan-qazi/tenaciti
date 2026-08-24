@@ -1,8 +1,26 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Features | Tenaciti',
-  description: 'Explore the features that make Tenaciti the best AI workspace for students.',
+export const metadata: Metadata = {
+  title: {
+    absolute: 'Features | Syllabus AI, Knowledge Graph & GPA Tools',
+  },
+  description:
+    'See how Tenaciti extracts your syllabus into a study roadmap, tracks topic confidence, links notes in a knowledge graph, and calculates your GPA.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app/features',
+  },
+  openGraph: {
+    title: 'Features | Syllabus AI, Knowledge Graph & GPA Tools',
+    description:
+      'See how Tenaciti extracts your syllabus into a study roadmap, tracks topic confidence, links notes in a knowledge graph, and calculates your GPA.',
+    url: 'https://www.tenaciti.app/features',
+  },
+  twitter: {
+    title: 'Features | Syllabus AI, Knowledge Graph & GPA Tools',
+    description:
+      'See how Tenaciti extracts your syllabus into a study roadmap, tracks topic confidence, links notes in a knowledge graph, and calculates your GPA.',
+  },
 };
 
 export default function FeaturesPage() {

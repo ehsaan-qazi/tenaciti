@@ -1,11 +1,44 @@
 import { GPACalculator } from '../../../components/GPACalculator';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Free College & University GPA Calculator | Tenaciti',
-  description: 'Calculate your SGPA, CGPA, and internal marks easily with our free tool for university students. Supports HEC 4.0 scale and custom grade schemes.',
+export const metadata: Metadata = {
+  title: 'Free College & University GPA Calculator',
+  description:
+    'Calculate your SGPA, CGPA, and internal marks easily with our free tool for university students. Supports HEC 4.0 scale and custom grading schemes.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app/tools/gpa-calculator',
+  },
+  openGraph: {
+    title: 'Free College & University GPA Calculator | Tenaciti',
+    description:
+      'Calculate your SGPA, CGPA, and internal marks easily with our free tool for university students. Supports HEC 4.0 scale and custom grading schemes.',
+    url: 'https://www.tenaciti.app/tools/gpa-calculator',
+  },
+  twitter: {
+    title: 'Free College & University GPA Calculator | Tenaciti',
+    description:
+      'Calculate your SGPA, CGPA, and internal marks easily with our free tool for university students. Supports HEC 4.0 scale and custom grading schemes.',
+  },
 };
 
 export default function GPACalculatorPage() {
+  const webAppJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Tenaciti GPA Calculator',
+    url: 'https://www.tenaciti.app/tools/gpa-calculator',
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Web',
+    description:
+      'Free GPA calculator for university students. Calculate SGPA and CGPA on the HEC 4.0 grading scale or your own custom scale. No signup required.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    browserRequirements: 'Requires JavaScript',
+  };
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 2rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -26,6 +59,14 @@ export default function GPACalculatorPage() {
           Create Free Account
         </a>
       </div>
+
+      {/* WebApplication structured data for Google rich results */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(webAppJsonLd),
+        }}
+      />
     </div>
   );
 }

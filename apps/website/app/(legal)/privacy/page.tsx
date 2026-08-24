@@ -1,6 +1,16 @@
-export const metadata = {
-  title: 'Privacy Policy | Tenaciti',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
   description: 'Privacy Policy for Tenaciti users.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | Tenaciti',
+    description: 'Privacy Policy for Tenaciti users.',
+    url: 'https://www.tenaciti.app/privacy',
+  },
 };
 
 export default function PrivacyPage() {
