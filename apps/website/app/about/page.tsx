@@ -1,5 +1,8 @@
-import { Placeholder } from '../../components/Placeholder';
 import type { Metadata } from 'next';
+import { Placeholder } from '../../components/Placeholder';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { CtaPanel } from '../../components/ui/CtaPanel';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -23,31 +26,62 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem' }}>
-      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center' }}>About Tenaciti</h1>
-      
-      <div style={{ fontSize: '1.25rem', lineHeight: 1.8, color: 'var(--on-surface-variant, #666)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <p>
-          Tenaciti was built out of a simple frustration: managing university coursework is often harder than the coursework itself. Between scattered syllabi, multiple learning management systems, and a constant fear of missing deadlines, students spend too much time organizing and too little time learning.
-        </p>
+    <>
+      <PageHeader
+        eyebrow="About Us"
+        title="Built by a student, for students"
+        sub="Tenaciti started with a simple frustration: managing university coursework is often harder than the coursework itself."
+      />
 
-        <section>
-          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'var(--on-surface)' }}>Our Mission</h2>
-          <p>
-            We are on a mission to give every student an unfair advantage by providing them with an intelligent workspace that actually understands their coursework. We believe AI shouldn&apos;t just write essays for you—it should help you learn better, manage your time more effectively, and reduce academic anxiety.
+      <div className={styles.wrap}>
+        <section aria-label="Our story">
+          <p className={styles.prose}>
+            Between scattered syllabi, multiple learning management systems, and a constant fear of
+            missing deadlines, students spend too much time organizing and too little time learning.
+            Tenaciti was built out of that frustration — to turn the pile of PDFs, spreadsheets, and
+            reminders into one workspace that actually understands your courses.
           </p>
         </section>
 
-        <section>
-          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'var(--on-surface)' }}>The Team</h2>
-          <div style={{ marginBottom: '2rem' }}>
-            <Placeholder type="image" label="Founder Photo" />
+        <section className={styles.mission} aria-label="Our mission">
+          <div className={styles.missionSquares} aria-hidden="true">
+            <span className={`${styles.missionSq} ${styles.missionSq1}`} />
+            <span className={`${styles.missionSq} ${styles.missionSq2}`} />
           </div>
-          <p>
-            Founded by a recent computer science graduate who experienced these problems firsthand, Tenaciti is built by students, for students. We are constantly iterating based on feedback from our community to build the ultimate academic productivity tool.
+          <span className={styles.missionEyebrow}>Our Mission</span>
+          <h2 className={styles.missionTitle}>
+            Give every student an unfair advantage — without doing the work for them.
+          </h2>
+          <p className={styles.missionText}>
+            We believe AI shouldn&apos;t just write essays for you — it should help you learn
+            better, manage your time more effectively, and reduce academic anxiety. Tenaciti
+            organizes the logistics of your semester so your energy goes into actually
+            understanding the material.
           </p>
+        </section>
+
+        <section aria-label="The team">
+          <h2 className={styles.teamHeader}>The Team</h2>
+          <div className={styles.teamCard}>
+            <div className={styles.teamPhoto}>
+              <Placeholder type="image" label="Founder Photo" />
+            </div>
+            <p className={styles.teamText}>
+              <strong>Founded by a recent computer science graduate</strong> who experienced these
+              problems firsthand, Tenaciti is built by students, for students. We are constantly
+              iterating based on feedback from our community to build the ultimate academic
+              productivity tool.
+            </p>
+          </div>
         </section>
       </div>
-    </div>
+
+      <CtaPanel
+        title="Be part of the story."
+        sub="Start free, tell us what works and what doesn't — Tenaciti improves with every student who uses it."
+        primary={{ label: 'Get Started Free', href: 'https://my.tenaciti.app/signup', external: true }}
+        secondary={{ label: 'Get in Touch', href: '/contact' }}
+      />
+    </>
   );
 }

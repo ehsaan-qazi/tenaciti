@@ -1,0 +1,61 @@
+/* Shared layout for the (legal) group pages */
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+.title {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.updated {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-500);
+  margin: 0 0 40px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.sectionText {
+  font-size: 15px;
+  line-height: 1.72;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.link {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 540px) {
+  .page {
+    padding: 36px 16px 64px;
+  }
+}

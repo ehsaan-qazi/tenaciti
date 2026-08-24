@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { CtaPanel } from '../../components/ui/CtaPanel';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'FAQ',
@@ -105,107 +108,36 @@ const faqJsonLd = {
 
 export default function FAQPage() {
   return (
-    <div style={{ maxWidth: '840px', margin: '0 auto', padding: '4rem 2rem' }}>
-      <h1
-        style={{
-          fontSize: '3rem',
-          fontWeight: 800,
-          marginBottom: '1rem',
-          textAlign: 'center',
-          color: 'var(--ink, #0d0d0d)',
-          letterSpacing: '-0.02em',
-        }}
-      >
-        Frequently Asked Questions
-      </h1>
-      <p
-        style={{
-          fontSize: '1.25rem',
-          color: 'var(--on-surface-variant, #666)',
-          textAlign: 'center',
-          marginBottom: '4rem',
-        }}
-      >
-        Everything you need to know about Tenaciti, grading scales, and syllabus extraction.
-      </p>
+    <>
+      <PageHeader
+        eyebrow="FAQ"
+        title="Frequently Asked Questions"
+        sub="Everything you need to know about Tenaciti, grading scales, and syllabus extraction."
+      />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-        {faqs.map((faq, index) => (
-          <div
-            key={index}
-            style={{
-              borderBottom: '1px solid var(--surface-border, #eee)',
-              paddingBottom: '2rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.35rem',
-                fontWeight: 700,
-                marginBottom: '0.75rem',
-                color: 'var(--ink, #0d0d0d)',
-              }}
-            >
-              {faq.question}
-            </h2>
-            <p
-              style={{
-                color: 'var(--on-surface-variant, #555)',
-                lineHeight: 1.7,
-                fontSize: '1.05rem',
-              }}
-            >
-              {faq.answer}
-            </p>
-          </div>
-        ))}
+      <div className={styles.wrap}>
+        <div className={styles.list}>
+          {faqs.map((faq, index) => (
+            <details key={index} className={styles.item} {...(index === 0 ? { open: true } : {})}>
+              <summary className={styles.trigger}>
+                {faq.question}
+                <span className={styles.chevron} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </span>
+              </summary>
+              <p className={styles.answer}>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
       </div>
 
-      <div
-        style={{
-          marginTop: '4rem',
-          textAlign: 'center',
-          padding: '3rem 2rem',
-          background: 'var(--surface-sunken, #f8f9fa)',
-          borderRadius: '20px',
-          border: '1px solid var(--surface-border, #eee)',
-        }}
-      >
-        <h3
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            marginBottom: '0.75rem',
-            color: 'var(--ink, #0d0d0d)',
-          }}
-        >
-          Still have questions?
-        </h3>
-        <p
-          style={{
-            color: 'var(--on-surface-variant, #666)',
-            marginBottom: '1.5rem',
-            fontSize: '1.05rem',
-          }}
-        >
-          We are here to help. Send us a message and our team will get back to you within 24–48 hours.
-        </p>
-        <a
-          href="/contact"
-          style={{
-            display: 'inline-block',
-            padding: '0.85rem 2rem',
-            background: 'var(--ink, #0d0d0d)',
-            color: 'white',
-            borderRadius: '999px',
-            fontWeight: 700,
-            fontSize: '1rem',
-            textDecoration: 'none',
-          }}
-        >
-          Contact Support
-        </a>
-      </div>
+      <CtaPanel
+        title="Still have questions?"
+        sub="We are here to help. Send us a message and our team will get back to you within 24–48 hours."
+        primary={{ label: 'Contact Support', href: '/contact' }}
+      />
 
       {/* FAQPage structured data for Google featured snippets / AI Overviews */}
       <script
@@ -214,6 +146,6 @@ export default function FAQPage() {
           __html: JSON.stringify(faqJsonLd),
         }}
       />
-    </div>
+    </>
   );
 }

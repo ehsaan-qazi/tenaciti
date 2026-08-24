@@ -1,0 +1,117 @@
+/* Full-width light band — a different section container than the inset panels */
+.band {
+  background: var(--panel);
+  margin-top: 88px;
+  padding: 80px 24px;
+}
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.title {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 36px;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  text-align: left;
+  padding-top: 8px;
+}
+
+/* Dashed connector echoing the hero's node-chain motif */
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 30px;
+  left: calc(50% + 34px);
+  width: calc(100% - 68px);
+  border-top: 1.5px dashed #C4C4C0;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(13, 13, 13, 0.22);
+  margin-bottom: 18px;
+}
+
+.stepTitle {
+  font-family: var(--font-heading), 'Sora', sans-serif;
+  font-size: 17.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.stepDesc {
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--grey-500);
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .band {
+    margin-top: 64px;
+    padding: 60px 20px;
+  }
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  .step:not(:last-child)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .band {
+    margin-top: 48px;
+    padding: 48px 16px;
+  }
+  .header {
+    margin-bottom: 40px;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
