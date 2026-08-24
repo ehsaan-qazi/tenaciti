@@ -19,12 +19,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Tenaciti | Study smart not hard — The AI Workspace for Students',
-  description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
+  metadataBase: new URL('https://www.tenaciti.app'),
+  title: {
+    default: 'Tenaciti | AI Study Workspace for University Students',
+    template: '%s | Tenaciti',
+  },
+  description:
+    'AI-powered syllabus extraction, knowledge graph notes, and a free HEC 4.0 GPA calculator — the study workspace built for university students.',
   openGraph: {
-    title: 'Tenaciti | The AI Workspace for Students',
-    description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
-    url: 'https://www.tenaciti.app',
     siteName: 'Tenaciti',
     images: [
       {
@@ -37,10 +39,32 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tenaciti | The AI Workspace for Students',
-    description: 'AI-powered study planner, knowledge graph, and GPA tracker for university students.',
     images: ['/tenaciti-og.jpeg'],
   },
+};
+
+// Sitewide JSON-LD structured data
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Tenaciti',
+  url: 'https://www.tenaciti.app',
+  logo: 'https://www.tenaciti.app/logo.svg',
+  description:
+    'AI-powered study workspace for university students: syllabus extraction, knowledge graph notes, GPA tracking, and an AI assistant that manages your workspace by prompt.',
+  sameAs: [
+    // TODO: Replace with real profile URLs once created
+    'https://www.linkedin.com/company/tenaciti',
+    'https://github.com/tenaciti',
+    'https://www.producthunt.com/products/tenaciti',
+  ],
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Tenaciti',
+  url: 'https://www.tenaciti.app',
 };
 
 export default function RootLayout({
@@ -51,15 +75,27 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sora.variable} ${inter.variable}`}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
       </head>
       <body>
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteJsonLd),
+          }}
+        />
       </body>
     </html>
   );
 }
-
-

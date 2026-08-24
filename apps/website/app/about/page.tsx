@@ -1,8 +1,24 @@
 import { Placeholder } from '../../components/Placeholder';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'About Us | Tenaciti',
-  description: 'The story behind Tenaciti and our mission to help students excel.',
+export const metadata: Metadata = {
+  title: 'About Us',
+  description:
+    'Tenaciti was built by a student who was tired of losing track of syllabi and deadlines. Here\'s the story, and where the product is headed.',
+  alternates: {
+    canonical: 'https://www.tenaciti.app/about',
+  },
+  openGraph: {
+    title: 'About Us | Tenaciti',
+    description:
+      'Tenaciti was built by a student who was tired of losing track of syllabi and deadlines. Here\'s the story, and where the product is headed.',
+    url: 'https://www.tenaciti.app/about',
+  },
+  twitter: {
+    title: 'About Us | Tenaciti',
+    description:
+      'Tenaciti was built by a student who was tired of losing track of syllabi and deadlines. Here\'s the story, and where the product is headed.',
+  },
 };
 
 export default function AboutPage() {
