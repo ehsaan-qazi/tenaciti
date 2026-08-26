@@ -241,8 +241,20 @@
 }
 
 .promptIcon {
-  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--dark-3);
+  border: 1px solid var(--dark-line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 12px;
+}
+
+.promptIcon :global(.material-symbols-outlined) {
+  font-size: 19px;
+  color: var(--white);
 }
 
 .promptText {

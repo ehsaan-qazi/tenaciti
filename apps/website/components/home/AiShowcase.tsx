@@ -87,17 +87,17 @@ function SearchChipIcon() {
 
 const PROMPTS = [
   {
-    icon: '🎯',
+    icon: 'target',
     text: '“What should I study next before my Thermodynamics midterm?”',
     tag: 'Adaptive Recommendation',
   },
   {
-    icon: '📝',
+    icon: 'edit_note',
     text: '“Create a note linking mitosis and meiosis, and connect it to my Bio 201 roadmap.”',
     tag: 'Knowledge Graph Action',
   },
   {
-    icon: '📅',
+    icon: 'event_available',
     text: '“Mark my Chapter 4 topic as complete and build me a two-week study plan for finals.”',
     tag: 'Schedule & Goal Automation',
   },
@@ -178,7 +178,7 @@ export function AiShowcase() {
           {PROMPTS.map((prompt) => (
             <div key={prompt.tag} className={styles.promptCard}>
               <span className={styles.promptIcon} aria-hidden="true">
-                {prompt.icon}
+                <span className="material-symbols-outlined">{prompt.icon}</span>
               </span>
               <p className={styles.promptText}>{prompt.text}</p>
               <span className={styles.promptTag}>{prompt.tag}</span>
