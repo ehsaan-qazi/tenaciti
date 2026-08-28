@@ -6,71 +6,17 @@ import {
   PERCENTAGE_THRESHOLDS,
   percentageToLetter,
   gradeColor,
-  getMaxGPA,
   validateCustomScale,
   validateCustomThresholds,
   clampCredits,
   safeParseFloat,
 } from '@tenaciti/shared';
+import { GpaScaleProvider, useGpaScale } from '../context/GpaScaleContext';
 
 import LoadingScreen from '../components/LoadingScreen';
 
-const CUSTOM_SCALE_KEY = 'tenaciti_custom_gpa_scale';
-const CUSTOM_THRESHOLDS_KEY = 'tenaciti_custom_pct_thresholds';
 const MAX_COURSES = 20;
 const MAX_SEMESTERS = 16;
-
-function useCustomScale() {
-  const [customScale, setCustomScaleState] = useState(() => {
-    try {
-      const stored = localStorage.getItem(CUSTOM_SCALE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const { valid } = validateCustomScale(parsed);
-        if (valid) return parsed;
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-
-  const [customThresholds, setCustomThresholdsState] = useState(() => {
-    try {
-      const stored = localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const { valid } = validateCustomThresholds(parsed);
-        if (valid) return parsed;
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-
-  const activeScale = customScale || GRADE_SCALE;
-  const activeThresholds = customThresholds || PERCENTAGE_THRESHOLDS;
-  const maxGPA = getMaxGPA(activeScale);
-
-  const setCustomScale = (scale) => {
-    if (scale === null) {
-      localStorage.removeItem(CUSTOM_SCALE_KEY);
-      setCustomScaleState(null);
-    } else {
-      localStorage.setItem(CUSTOM_SCALE_KEY, JSON.stringify(scale));
-      setCustomScaleState(scale);
-    }
-  };
-
-  const setCustomThresholds = (thresholds) => {
-    if (thresholds === null) {
-      localStorage.removeItem(CUSTOM_THRESHOLDS_KEY);
-      setCustomThresholdsState(null);
-    } else {
-      localStorage.setItem(CUSTOM_THRESHOLDS_KEY, JSON.stringify(thresholds));
-      setCustomThresholdsState(thresholds);
-    }
-  };
-
-  return { activeScale, activeThresholds, maxGPA, customScale, customThresholds, setCustomScale, setCustomThresholds };
-}
 
 
 /* =========================================================================
@@ -78,7 +24,7 @@ function useCustomScale() {
    ========================================================================= */
 
 function SGPACalculator() {
-  const { activeScale, activeThresholds, maxGPA } = useCustomScale();
+  const { activeScale, activeThresholds, maxGPA } = useGpaScale();
   const [courses, setCourses] = useState([
     { name: '', creditHours: 3, grade: '' },
   ]);
@@ -204,7 +150,7 @@ function SGPACalculator() {
    ========================================================================= */
 
 function CGPACalculator() {
-  const { maxGPA } = useCustomScale();
+  const { maxGPA } = useGpaScale();
   const [semesters, setSemesters] = useState([
     { label: 'Semester 1', sgpa: '', creditHours: '' },
   ]);
@@ -402,8 +348,9 @@ function InternalMarksCalculator() {
     }
   }
 
-  const predictedGrade = totalPct !== null ? percentageToLetter(totalPct) : null;
-  const predictedGPA = predictedGrade ? GRADE_SCALE[predictedGrade] : null;
+  const { activeScale: internalScale, activeThresholds: internalThresholds } = useGpaScale();
+  const predictedGrade = totalPct !== null ? percentageToLetter(totalPct, internalThresholds) : null;
+  const predictedGPA = predictedGrade ? internalScale[predictedGrade] : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -688,7 +635,7 @@ function InternalMarksCalculator() {
    ========================================================================= */
 
 function CustomScaleEditor({ onClose }) {
-  const { activeScale, activeThresholds, customScale, setCustomScale, setCustomThresholds } = useCustomScale();
+  const { activeScale, activeThresholds, customScale, setCustomScale, setCustomThresholds } = useGpaScale();
   const [editScale, setEditScale] = useState(() => ({ ...activeScale }));
   const [editThresholds, setEditThresholds] = useState(() => activeThresholds.map(t => [...t]));
   const [errors, setErrors] = useState([]);
@@ -803,7 +750,7 @@ function CustomScaleEditor({ onClose }) {
 }
 
 function GradeScaleTable() {
-  const { activeScale, activeThresholds, customScale } = useCustomScale();
+  const { activeScale, activeThresholds, customScale } = useGpaScale();
   const [showEditor, setShowEditor] = useState(false);
 
   if (showEditor) {
@@ -854,18 +801,18 @@ function GradeScaleTable() {
    ========================================================================= */
 
 function WhatIfCalculator({ currentCGPA, currentCredits, remainingCredits, onClose }) {
-  const { maxGPA } = useCustomScale();
+  const { activeScale, maxGPA } = useGpaScale();
   const [targetCGPA, setTargetCGPA] = useState('');
   const [targetSemGPA, setTargetSemGPA] = useState('');
   const results = [];
 
   if (targetCGPA) {
     const needed = (parseFloat(targetCGPA) * (currentCredits + remainingCredits) - currentCGPA * currentCredits) / remainingCredits;
-    const letter = LETTER_GRADES.find(g => GRADE_SCALE[g] >= needed) || 'A';
+    const letter = LETTER_GRADES.find(g => activeScale[g] >= needed) || 'A';
     results.push({
       name: `Target CGPA: ${targetCGPA}`,
       needed: needed.toFixed(2),
-      achievable: needed <= 4.0,
+      achievable: needed <= maxGPA,
       letter,
     });
   }
@@ -875,13 +822,13 @@ function WhatIfCalculator({ currentCGPA, currentCredits, remainingCredits, onClo
       name: `If Semester GPA = ${targetSemGPA}`,
       projected: projCGPA.toFixed(2),
       needed: targetSemGPA,
-      achievable: parseFloat(targetSemGPA) <= 4.0,
+      achievable: parseFloat(targetSemGPA) <= maxGPA,
     });
   }
 
   // Straight A's
-  const straightA = (currentCGPA * currentCredits + 4.0 * remainingCredits) / (currentCredits + remainingCredits);
-  results.push({ name: "Straight A's", projected: straightA.toFixed(2), needed: 4.0, achievable: true });
+  const straightA = (currentCGPA * currentCredits + maxGPA * remainingCredits) / (currentCredits + remainingCredits);
+  results.push({ name: "Straight A's", projected: straightA.toFixed(2), needed: maxGPA, achievable: true });
 
   return (
     <div className="gpa-glass-card" style={{ marginTop: '24px' }}>
@@ -941,6 +888,15 @@ const TABS = [
 ];
 
 export default function GPAPage() {
+  return (
+    <GpaScaleProvider>
+      <GPAPageContent />
+    </GpaScaleProvider>
+  );
+}
+
+function GPAPageContent() {
+  const { activeScale, maxGPA } = useGpaScale();
   const [activeTab, setActiveTab] = useState('sgpa');
   const [entries, setEntries] = useState([]);
   const [semesters, setSemesters] = useState([]);
@@ -1133,7 +1089,7 @@ export default function GPAPage() {
                   </thead>
                   <tbody>
                     {entries.map((entry, idx) => {
-                      const pts = GRADE_SCALE[entry.grade_letter] ?? null;
+                      const pts = activeScale[entry.grade_letter] ?? null;
                       const qp = pts !== null ? entry.credit_hours * pts : null;
                       return (
                         <tr key={entry.id} className="gpa-table-row">
@@ -1175,7 +1131,7 @@ export default function GPAPage() {
         {/* Sidebar Column */}
         <div className="gpa-sidebar">
           
-          {/* Cumulative CGPA Card (hidden on Internal Marks if we want to save space, but keeping it as it was in sample) */}
+          {/* Cumulative CGPA Card */}
           {activeTab !== 'internal' && cumulative && (
             <div className="gpa-cumulative-card">
               <div className="success-glow"></div>
@@ -1185,7 +1141,7 @@ export default function GPAPage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                 <span style={{ fontSize: '64px', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>{cumulative.cumulative_gpa.toFixed(2)}</span>
-                <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>/ 4.0</span>
+                <span style={{ fontSize: '16px', color: 'var(--on-surface-variant)' }}>/ {maxGPA.toFixed(1)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--on-surface-variant)', marginTop: '8px' }}>
                 <span>Total Credits: <strong style={{ color: 'var(--on-surface)' }}>{cumulative.total_credits}</strong></span>
@@ -1338,3 +1294,4 @@ export default function GPAPage() {
     </div>
   );
 }
+
