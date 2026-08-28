@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useSyncExternalStore, useMemo, useCallback } from 'react';
 import {
   GRADE_SCALE,
   PERCENTAGE_THRESHOLDS,
@@ -11,46 +11,91 @@ import {
    GPA Scale Context — App
    
    Single source of truth for the active grade scale and percentage
-   thresholds. All GPA calculator sub-components consume this context
-   instead of calling independent hooks.
-   
-   The app is a client-side SPA so hydration isn't a concern, but we
-   still defer localStorage reads to useEffect for consistency and to
-   avoid issues if the app ever moves to SSR.
+   thresholds. Uses useSyncExternalStore for reactive localStorage updates.
    ========================================================================= */
 
 const CUSTOM_SCALE_KEY = 'tenaciti_custom_gpa_scale';
 const CUSTOM_THRESHOLDS_KEY = 'tenaciti_custom_pct_thresholds';
 
+const listeners = new Set();
+
+function emitChange() {
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener) {
+  listeners.add(listener);
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', listener);
+  }
+  return () => {
+    listeners.delete(listener);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', listener);
+    }
+  };
+}
+
+function getCustomScaleSnapshot() {
+  try {
+    return localStorage.getItem(CUSTOM_SCALE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getCustomScaleServerSnapshot() {
+  return null;
+}
+
+function getCustomThresholdsSnapshot() {
+  try {
+    return localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getCustomThresholdsServerSnapshot() {
+  return null;
+}
+
 const GpaScaleContext = createContext(null);
 
 export function GpaScaleProvider({ children }) {
-  const [customScale, setCustomScaleState] = useState(null);
-  const [customThresholds, setCustomThresholdsState] = useState(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const rawScale = useSyncExternalStore(
+    subscribe,
+    getCustomScaleSnapshot,
+    getCustomScaleServerSnapshot
+  );
 
-  // Read from localStorage after mount
-  useEffect(() => {
+  const rawThresholds = useSyncExternalStore(
+    subscribe,
+    getCustomThresholdsSnapshot,
+    getCustomThresholdsServerSnapshot
+  );
+
+  const customScale = useMemo(() => {
+    if (!rawScale) return null;
     try {
-      const storedScale = localStorage.getItem(CUSTOM_SCALE_KEY);
-      if (storedScale) {
-        const parsed = JSON.parse(storedScale);
-        const { valid } = validateCustomScale(parsed);
-        if (valid) setCustomScaleState(parsed);
-      }
-    } catch { /* ignore */ }
+      const parsed = JSON.parse(rawScale);
+      const { valid } = validateCustomScale(parsed);
+      return valid ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [rawScale]);
 
+  const customThresholds = useMemo(() => {
+    if (!rawThresholds) return null;
     try {
-      const storedThresholds = localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
-      if (storedThresholds) {
-        const parsed = JSON.parse(storedThresholds);
-        const { valid } = validateCustomThresholds(parsed);
-        if (valid) setCustomThresholdsState(parsed);
-      }
-    } catch { /* ignore */ }
-
-    setIsHydrated(true);
-  }, []);
+      const parsed = JSON.parse(rawThresholds);
+      const { valid } = validateCustomThresholds(parsed);
+      return valid ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [rawThresholds]);
 
   const activeScale = customScale || GRADE_SCALE;
   const activeThresholds = customThresholds || PERCENTAGE_THRESHOLDS;
@@ -59,21 +104,19 @@ export function GpaScaleProvider({ children }) {
   const setCustomScale = useCallback((scale) => {
     if (scale === null) {
       localStorage.removeItem(CUSTOM_SCALE_KEY);
-      setCustomScaleState(null);
     } else {
       localStorage.setItem(CUSTOM_SCALE_KEY, JSON.stringify(scale));
-      setCustomScaleState(scale);
     }
+    emitChange();
   }, []);
 
   const setCustomThresholds = useCallback((thresholds) => {
     if (thresholds === null) {
       localStorage.removeItem(CUSTOM_THRESHOLDS_KEY);
-      setCustomThresholdsState(null);
     } else {
       localStorage.setItem(CUSTOM_THRESHOLDS_KEY, JSON.stringify(thresholds));
-      setCustomThresholdsState(thresholds);
     }
+    emitChange();
   }, []);
 
   return (
@@ -84,7 +127,7 @@ export function GpaScaleProvider({ children }) {
         maxGPA,
         customScale,
         customThresholds,
-        isHydrated,
+        isHydrated: true,
         setCustomScale,
         setCustomThresholds,
       }}
@@ -104,3 +147,4 @@ export function useGpaScale() {
   }
   return ctx;
 }
+

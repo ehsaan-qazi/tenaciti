@@ -1,9 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useSyncExternalStore, useMemo, useCallback, type ReactNode } from 'react';
 import {
   GRADE_SCALE,
-  LETTER_GRADES,
   PERCENTAGE_THRESHOLDS,
   getMaxGPA,
   validateCustomScale,
@@ -14,16 +13,55 @@ import {
    GPA Scale Context — Website (SSR-safe)
    
    Single source of truth for the active grade scale and percentage
-   thresholds. All GPA calculator sub-components consume this context
-   instead of calling independent hooks.
-   
-   Key design choice: localStorage reads are deferred to useEffect so
-   the initial render matches between server and client (both start with
-   the default HEC 4.0 scale), eliminating React hydration mismatches.
+   thresholds. Uses useSyncExternalStore to synchronize localStorage
+   without triggering SSR hydration mismatches or cascading render lint errors.
    ========================================================================= */
 
 const CUSTOM_SCALE_KEY = 'tenaciti_custom_gpa_scale';
 const CUSTOM_THRESHOLDS_KEY = 'tenaciti_custom_pct_thresholds';
+
+const listeners = new Set<() => void>();
+
+function emitChange() {
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', listener);
+  }
+  return () => {
+    listeners.delete(listener);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', listener);
+    }
+  };
+}
+
+function getCustomScaleSnapshot(): string | null {
+  try {
+    return localStorage.getItem(CUSTOM_SCALE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getCustomScaleServerSnapshot(): string | null {
+  return null;
+}
+
+function getCustomThresholdsSnapshot(): string | null {
+  try {
+    return localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getCustomThresholdsServerSnapshot(): string | null {
+  return null;
+}
 
 interface GpaScaleContextValue {
   activeScale: Record<string, number>;
@@ -39,33 +77,39 @@ interface GpaScaleContextValue {
 const GpaScaleContext = createContext<GpaScaleContextValue | null>(null);
 
 export function GpaScaleProvider({ children }: { children: ReactNode }) {
-  // Start with defaults so SSR and first client render match
-  const [customScale, setCustomScaleState] = useState<Record<string, number> | null>(null);
-  const [customThresholds, setCustomThresholdsState] = useState<[number, string][] | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const rawScale = useSyncExternalStore(
+    subscribe,
+    getCustomScaleSnapshot,
+    getCustomScaleServerSnapshot
+  );
 
-  // Read from localStorage ONLY after mount (client-side)
-  useEffect(() => {
+  const rawThresholds = useSyncExternalStore(
+    subscribe,
+    getCustomThresholdsSnapshot,
+    getCustomThresholdsServerSnapshot
+  );
+
+  const customScale = useMemo(() => {
+    if (!rawScale) return null;
     try {
-      const storedScale = localStorage.getItem(CUSTOM_SCALE_KEY);
-      if (storedScale) {
-        const parsed = JSON.parse(storedScale);
-        const { valid } = validateCustomScale(parsed);
-        if (valid) setCustomScaleState(parsed);
-      }
-    } catch { /* ignore malformed data */ }
+      const parsed = JSON.parse(rawScale);
+      const { valid } = validateCustomScale(parsed);
+      return valid ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [rawScale]);
 
+  const customThresholds = useMemo(() => {
+    if (!rawThresholds) return null;
     try {
-      const storedThresholds = localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
-      if (storedThresholds) {
-        const parsed = JSON.parse(storedThresholds);
-        const { valid } = validateCustomThresholds(parsed);
-        if (valid) setCustomThresholdsState(parsed);
-      }
-    } catch { /* ignore malformed data */ }
-
-    setIsHydrated(true);
-  }, []);
+      const parsed = JSON.parse(rawThresholds);
+      const { valid } = validateCustomThresholds(parsed);
+      return valid ? (parsed as [number, string][]) : null;
+    } catch {
+      return null;
+    }
+  }, [rawThresholds]);
 
   const activeScale: Record<string, number> = customScale || GRADE_SCALE;
   const activeThresholds: [number, string][] = customThresholds || (PERCENTAGE_THRESHOLDS as [number, string][]);
@@ -74,21 +118,19 @@ export function GpaScaleProvider({ children }: { children: ReactNode }) {
   const setCustomScale = useCallback((scale: Record<string, number> | null) => {
     if (scale === null) {
       localStorage.removeItem(CUSTOM_SCALE_KEY);
-      setCustomScaleState(null);
     } else {
       localStorage.setItem(CUSTOM_SCALE_KEY, JSON.stringify(scale));
-      setCustomScaleState(scale);
     }
+    emitChange();
   }, []);
 
   const setCustomThresholds = useCallback((thresholds: [number, string][] | null) => {
     if (thresholds === null) {
       localStorage.removeItem(CUSTOM_THRESHOLDS_KEY);
-      setCustomThresholdsState(null);
     } else {
       localStorage.setItem(CUSTOM_THRESHOLDS_KEY, JSON.stringify(thresholds));
-      setCustomThresholdsState(thresholds);
     }
+    emitChange();
   }, []);
 
   return (
@@ -99,7 +141,7 @@ export function GpaScaleProvider({ children }: { children: ReactNode }) {
         maxGPA,
         customScale,
         customThresholds,
-        isHydrated,
+        isHydrated: true,
         setCustomScale,
         setCustomThresholds,
       }}
@@ -119,3 +161,4 @@ export function useGpaScale(): GpaScaleContextValue {
   }
   return ctx;
 }
+
