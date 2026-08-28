@@ -7,76 +7,22 @@ import {
   PERCENTAGE_THRESHOLDS,
   percentageToLetter,
   gradeColor,
-  getMaxGPA,
   validateCustomScale,
   validateCustomThresholds,
   clampCredits,
   safeParseFloat,
 } from '@tenaciti/shared';
+import { GpaScaleProvider, useGpaScale } from './GpaScaleContext';
 
-const CUSTOM_SCALE_KEY = 'tenaciti_custom_gpa_scale';
-const CUSTOM_THRESHOLDS_KEY = 'tenaciti_custom_pct_thresholds';
 const MAX_COURSES = 20;
 const MAX_SEMESTERS = 16;
-
-function useCustomScale() {
-  const [customScale, setCustomScaleState] = useState<Record<string, number> | null>(() => {
-    try {
-      const stored = localStorage.getItem(CUSTOM_SCALE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const { valid } = validateCustomScale(parsed);
-        if (valid) return parsed;
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-
-  const [customThresholds, setCustomThresholdsState] = useState<[number, string][] | null>(() => {
-    try {
-      const stored = localStorage.getItem(CUSTOM_THRESHOLDS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const { valid } = validateCustomThresholds(parsed);
-        if (valid) return parsed;
-      }
-    } catch { /* ignore */ }
-    return null;
-  });
-
-  const activeScale: Record<string, number> = customScale || GRADE_SCALE;
-  const activeThresholds: [number, string][] = customThresholds || (PERCENTAGE_THRESHOLDS as [number, string][]);
-  const maxGPA = getMaxGPA(activeScale);
-
-  const setCustomScale = (scale: Record<string, number> | null) => {
-    if (scale === null) {
-      localStorage.removeItem(CUSTOM_SCALE_KEY);
-      setCustomScaleState(null);
-    } else {
-      localStorage.setItem(CUSTOM_SCALE_KEY, JSON.stringify(scale));
-      setCustomScaleState(scale);
-    }
-  };
-
-  const setCustomThresholds = (thresholds: [number, string][] | null) => {
-    if (thresholds === null) {
-      localStorage.removeItem(CUSTOM_THRESHOLDS_KEY);
-      setCustomThresholdsState(null);
-    } else {
-      localStorage.setItem(CUSTOM_THRESHOLDS_KEY, JSON.stringify(thresholds));
-      setCustomThresholdsState(thresholds);
-    }
-  };
-
-  return { activeScale, activeThresholds, maxGPA, customScale, customThresholds, setCustomScale, setCustomThresholds };
-}
 
 /* =========================================================================
    SGPA Calculator Tab 
    ========================================================================= */
 
 function SGPACalculator() {
-  const { activeScale, activeThresholds } = useCustomScale();
+  const { activeScale, activeThresholds } = useGpaScale();
   const [courses, setCourses] = useState([
     { name: '', creditHours: 3, grade: '' },
   ]);
@@ -202,7 +148,7 @@ function SGPACalculator() {
    ========================================================================= */
 
 function CGPACalculator() {
-  const { maxGPA } = useCustomScale();
+  const { maxGPA } = useGpaScale();
   const [semesters, setSemesters] = useState([
     { label: 'Semester 1', sgpa: '', creditHours: '' },
   ]);
@@ -392,7 +338,8 @@ function InternalMarksCalculator() {
     }
   }
 
-  const predictedGrade = totalPct !== null ? percentageToLetter(totalPct) : null;
+  const { activeThresholds: internalThresholds } = useGpaScale();
+  const predictedGrade = totalPct !== null ? percentageToLetter(totalPct, internalThresholds) : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -660,7 +607,7 @@ function InternalMarksCalculator() {
    ========================================================================= */
 
 function CustomScaleEditor({ onClose }: { onClose: () => void }) {
-  const { activeScale, activeThresholds, setCustomScale, setCustomThresholds } = useCustomScale();
+  const { activeScale, activeThresholds, setCustomScale, setCustomThresholds } = useGpaScale();
   const [editScale, setEditScale] = useState<Record<string, number | string>>(() => ({ ...activeScale }));
   const [editThresholds, setEditThresholds] = useState(() => (activeThresholds as [number, string][]).map(t => [...t] as [number | string, string]));
   const [errors, setErrors] = useState<string[]>([]);
@@ -778,7 +725,7 @@ function CustomScaleEditor({ onClose }: { onClose: () => void }) {
 }
 
 function GradeScaleTable() {
-  const { activeScale, activeThresholds, customScale } = useCustomScale();
+  const { activeScale, activeThresholds, customScale } = useGpaScale();
   const [showEditor, setShowEditor] = useState(false);
 
   if (showEditor) {
@@ -837,31 +784,33 @@ export function GPACalculator() {
   const [activeTab, setActiveTab] = useState('sgpa');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div className="gpa-tabs-container" style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`notes-action-btn ${activeTab === tab.key ? 'primary' : ''}`}
-            style={{ flex: 1, padding: '12px' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <GpaScaleProvider>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="gpa-tabs-container" style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`notes-action-btn ${activeTab === tab.key ? 'primary' : ''}`}
+              style={{ flex: 1, padding: '12px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', alignItems: 'start' }}>
-        <div style={{ flex: 1 }}>
-          {activeTab === 'sgpa' && <SGPACalculator />}
-          {activeTab === 'cgpa' && <CGPACalculator />}
-          {activeTab === 'internal' && <InternalMarksCalculator />}
-        </div>
-        <div>
-          <GradeScaleTable />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', alignItems: 'start' }}>
+          <div style={{ flex: 1 }}>
+            {activeTab === 'sgpa' && <SGPACalculator />}
+            {activeTab === 'cgpa' && <CGPACalculator />}
+            {activeTab === 'internal' && <InternalMarksCalculator />}
+          </div>
+          <div>
+            <GradeScaleTable />
+          </div>
         </div>
       </div>
-    </div>
+    </GpaScaleProvider>
   );
 }
