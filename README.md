@@ -694,4 +694,4 @@ pre-commit install
 
 **Proprietary — All Rights Reserved**
 
-Copyright © 2026 Ehsaan Qazi. This software and its documentation are proprietary and confidential. Unauthorized copying, distribution, modification, or use is strictly prohibited.
+Copyright © 2026 Ehsaan Qazi. This software and its documentation are proprietary and confidential. Unauthorized copying, distribution, modification, or use is strictly prohibited
