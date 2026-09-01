@@ -637,58 +637,6 @@
   color: inherit;
 }
 
-.login-page-wrapper .maintenance-notice {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.32);
-  border-radius: var(--radius-field);
-  padding: 12px 14px;
-  margin-bottom: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.login-page-wrapper .maintenance-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.login-page-wrapper .maintenance-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #F59E0B;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-  animation: pulseMaintenance 2s infinite ease-in-out;
-}
-
-@keyframes pulseMaintenance {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 0.7;
-  }
-}
-
-.login-page-wrapper .maintenance-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  color: #B45309;
-  letter-spacing: -0.01em;
-}
-
-.login-page-wrapper .maintenance-desc {
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: #78350F;
-  margin: 0;
-}
-
 .login-page-wrapper .error-message {
   background-color: rgba(255, 107, 73, 0.1);
   color: var(--ember);
