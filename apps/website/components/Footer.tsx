@@ -14,6 +14,7 @@ const PRODUCT_LINKS = [
 
 const RESOURCE_LINKS = [
   { label: 'Free GPA Calculator', href: '/tools/gpa-calculator' },
+  { label: 'Blog & Guides', href: '/blog' },
   { label: 'GPA Goal Tracking', href: '/features/gpa-calculator' },
   { label: 'FAQ', href: '/faq' },
   { label: 'Student Signup', href: 'https://my.tenaciti.app/signup' },

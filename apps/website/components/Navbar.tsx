@@ -13,6 +13,7 @@ export function Navbar() {
     { label: 'FEATURES', href: '/features' },
     { label: 'PRICING', href: '/pricing' },
     { label: 'GPA CALC', href: '/tools/gpa-calculator' },
+    { label: 'BLOG', href: '/blog' },
     { label: 'FAQ', href: '/faq' },
     { label: 'ABOUT', href: '/about' },
   ];

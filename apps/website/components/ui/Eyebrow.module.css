@@ -24,10 +24,18 @@
   border: 1px solid var(--dark-line);
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
+  color: currentColor;
+}
+
+.iconWrap svg {
+  width: 14px;
+  height: 14px;
+  display: block;
 }

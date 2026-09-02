@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { getAllSlugs } from '../lib/blog-data';
 
 const BASE_URL = 'https://www.tenaciti.app';
 
@@ -17,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/features',
     '/pricing',
     '/tools/gpa-calculator',
+    '/blog',
     '/faq',
     '/about',
     '/contact',
@@ -36,5 +38,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...featureRoutes];
+  const blogRoutes = getAllSlugs().map((slug) => ({
+    url: `${BASE_URL}/blog/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...featureRoutes, ...blogRoutes];
 }

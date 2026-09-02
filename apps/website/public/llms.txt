@@ -28,3 +28,12 @@
 - Pricing: https://www.tenaciti.app/pricing
 - FAQ: https://www.tenaciti.app/faq
 - About: https://www.tenaciti.app/about
+- Blog: https://www.tenaciti.app/blog
+
+## Guides & Blog
+- The HEC 4.0 GPA Scale, Explained: https://www.tenaciti.app/blog/hec-4-0-gpa-scale-explained — HEC recommends a 4.0-point scale but doesn't mandate one universal table; every university sets its own bands.
+- How to Turn a Syllabus Into a Study Plan: https://www.tenaciti.app/blog/syllabus-to-study-plan — Step-by-step method to extract deadlines and grade weights from a PDF syllabus and build a semester plan.
+- Confidence Calibration and Exam Performance: https://www.tenaciti.app/blog/confidence-calibration-exam-performance — Why feeling confident and being prepared are different things, and what the research says about closing the gap.
+- Note Linking and the Zettelkasten Method for Students: https://www.tenaciti.app/blog/note-linking-zettelkasten-students — Why linking notes beats organizing them, adapted from Luhmann's Zettelkasten for a university semester.
+- How Tenaciti's AI Assistant Works: https://www.tenaciti.app/blog/how-tenaciti-ai-assistant-works — A conversational interface that can answer questions about your workspace and take direct actions.
+- Lecture Slides to Study Checklist: https://www.tenaciti.app/blog/lecture-slides-to-study-checklist — How to turn lecture slides into a checklist that tracks understanding, not just completion.
