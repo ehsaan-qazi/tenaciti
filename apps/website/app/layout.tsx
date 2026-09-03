@@ -53,10 +53,9 @@ const organizationJsonLd = {
   description:
     'AI-powered study workspace for university students: syllabus extraction, knowledge graph notes, GPA tracking, and an AI assistant that manages your workspace by prompt.',
   sameAs: [
-    // TODO: Replace with real profile URLs once created
-    'https://www.linkedin.com/company/tenaciti',
-    'https://github.com/tenaciti',
-    'https://www.producthunt.com/products/tenaciti',
+    'https://x.com/tenaciti_app',
+    'https://www.instagram.com/tenaciti.app/',
+    'https://github.com/ehsaan-qazi/tenaciti',
   ],
 };
 

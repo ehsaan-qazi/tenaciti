@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Placeholder } from '../../components/Placeholder';
+import Image from 'next/image';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CtaPanel } from '../../components/ui/CtaPanel';
 import styles from './page.module.css';
@@ -38,7 +38,7 @@ export default function AboutPage() {
           <p className={styles.prose}>
             Between scattered syllabi, multiple learning management systems, and a constant fear of
             missing deadlines, students spend too much time organizing and too little time learning.
-            Tenaciti was built out of that frustration — to turn the pile of PDFs, spreadsheets, and
+            Tenaciti was built out of that frustration to turn the pile of PDFs, spreadsheets, and
             reminders into one workspace that actually understands your courses.
           </p>
         </section>
@@ -50,10 +50,10 @@ export default function AboutPage() {
           </div>
           <span className={styles.missionEyebrow}>Our Mission</span>
           <h2 className={styles.missionTitle}>
-            Give every student an unfair advantage — without doing the work for them.
+            Give every student an unfair advantage without doing the work for them.
           </h2>
           <p className={styles.missionText}>
-            We believe AI shouldn&apos;t just write essays for you — it should help you learn
+            We believe AI shouldn&apos;t just write essays for you; it should help you learn
             better, manage your time more effectively, and reduce academic anxiety. Tenaciti
             organizes the logistics of your semester so your energy goes into actually
             understanding the material.
@@ -64,21 +64,34 @@ export default function AboutPage() {
           <h2 className={styles.teamHeader}>The Team</h2>
           <div className={styles.teamCard}>
             <div className={styles.teamPhoto}>
-              <Placeholder type="image" label="Founder Photo" />
+              <Image
+                src="/images/team/ehsaan.png"
+                alt="Ehsaan Qazi, Founder of Tenaciti"
+                width={140}
+                height={140}
+                className={styles.avatarImg}
+                priority
+              />
             </div>
-            <p className={styles.teamText}>
-              <strong>Founded by a recent computer science graduate</strong> who experienced these
-              problems firsthand, Tenaciti is built by students, for students. We are constantly
-              iterating based on feedback from our community to build the ultimate academic
-              productivity tool.
-            </p>
+            <div className={styles.teamContent}>
+              <div className={styles.teamMeta}>
+                <h3 className={styles.founderName}>Mohammad Ehsaan ur Rehman Qazi</h3>
+                <span className={styles.founderRole}>Founder &amp; Lead Engineer</span>
+              </div>
+              <p className={styles.teamText}>
+                <strong>Founded by a recent computer science graduate</strong> who experienced these
+                problems firsthand, Tenaciti is built by students, for students. We are constantly
+                iterating based on feedback from our community to build the ultimate academic
+                productivity tool.
+              </p>
+            </div>
           </div>
         </section>
       </div>
 
       <CtaPanel
         title="Be part of the story."
-        sub="Start free, tell us what works and what doesn't — Tenaciti improves with every student who uses it."
+        sub="Start free, tell us what works and what doesn't. Tenaciti improves with every student who uses it."
         primary={{ label: 'Get Started Free', href: 'https://my.tenaciti.app/signup', external: true }}
         secondary={{ label: 'Get in Touch', href: '/contact' }}
       />
