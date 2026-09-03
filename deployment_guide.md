@@ -5,7 +5,7 @@ This guide outlines the production deployment setup for the three surfaces of th
 | Surface | Domain | Host / Platform | Directory | Framework / Runtime |
 |---|---|---|---|---|
 | **Authenticated App** | `https://my.tenaciti.app` | Vercel | `apps/app` | Vite + React 19 SPA |
-| **Public Marketing Website** | `https://tenaciti.app` | Vercel | Root / `apps/website` | Next.js 16 (Turbopack) |
+| **Public Marketing Website** | `https://tenaciti.app` | Vercel | `apps/website` | Next.js 16 (Turbopack) |
 | **Backend API** | `https://api.tenaciti.app` (or Render URL) | Render | `apps/backend` | FastAPI (Python 3.12) |
 
 ---
@@ -40,19 +40,30 @@ Configure under **Project Settings → Environment Variables**:
 
 ## 2. Vercel Project 2: Public Website (`tenaciti-website`)
 
-### Current State (Coming Soon Mode)
-Until the full Next.js public website is promoted, `tenaciti.app` serves the static coming-soon page:
-- **Root Directory**: `.` (monorepo root)
-- **Output Directory**: `public`
-- **Domain**: `tenaciti.app` & `www.tenaciti.app`
+Deploy the production marketing and content platform to `https://tenaciti.app`.
 
-### Future Promotion (Next.js Marketing Website)
-When ready to launch the full marketing site:
-1. In Vercel Project Settings for `tenaciti.app`, change **Root Directory** to `apps/website`.
-2. **Framework Preset**: `Next.js`.
-3. Set environment variables:
-   - `NEXT_PUBLIC_APP_URL`: `https://my.tenaciti.app`
-   - `NEXT_PUBLIC_API_URL`: `https://api.tenaciti.app/api/v1`
+### Project Settings
+- **Project Name**: `tenaciti-website`
+- **Framework Preset**: `Next.js`
+- **Root Directory**: `apps/website`
+- **Include source files outside of the Root Directory in the Build Step**: Enabled (checked)
+- **Build Command**: Default (`next build`) or `npx turbo build --filter=@tenaciti/website`
+- **Output Directory**: Default (`.next`)
+- **Install Command**: `npm ci` (or default `npm install`)
+
+### Custom Domains
+- **Primary**: `tenaciti.app`
+- **Secondary**: `www.tenaciti.app` (configure in Vercel to redirect to `tenaciti.app`)
+
+### Environment Variables
+Configure under **Project Settings → Environment Variables**:
+
+| Variable | Environment | Value Example / Description |
+|---|---|---|
+| `NEXT_PUBLIC_APP_URL` | Production | `https://my.tenaciti.app` |
+| `NEXT_PUBLIC_API_URL` | Production | `https://api.tenaciti.app/api/v1` |
+| `RESEND_API_KEY` | Production | `your_resend_api_key` (used for `/api/contact` email form) |
+| `MAIL_FROM` | Production | `noreply@mail.tenaciti.app` (verified sender domain) |
 
 ---
 
@@ -116,6 +127,8 @@ Configure under **Render Dashboard → Environment**:
 - [ ] Backend CI passes (`ruff check` + `pytest`): `.github/workflows/backend-ci.yml`
 - [ ] App CI passes (`oxlint` + `turbo build --filter=@tenaciti/app`): `.github/workflows/app-ci.yml`
 - [ ] Website CI passes (`next lint` + `turbo build --filter=@tenaciti/website`): `.github/workflows/website-ci.yml`
+- [ ] Vercel `tenaciti-website` project Root Directory configured to `apps/website` with Next.js preset
+- [ ] Vercel `tenaciti-website` environment variables (`NEXT_PUBLIC_APP_URL`, `RESEND_API_KEY`, `MAIL_FROM`) configured
 - [ ] Backend CORS origins support `https://my.tenaciti.app` and `https://tenaciti.app`
 - [ ] Supabase OAuth redirect URL allows `https://my.tenaciti.app/**`
 - [ ] App SPA fallback (`apps/app/vercel.json`) routes all URLs to `/index.html`
