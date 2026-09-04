@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CtaPanel } from '../../../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../../lib/metadata';
 import styles from './page.module.css';
 
 interface FeatureData {
@@ -306,8 +307,10 @@ export async function generateMetadata({
       title: `${feature.title} | Tenaciti`,
       description: feature.description,
       url: `${BASE_URL}/features/${slug}`,
+      images: DEFAULT_OG_IMAGES,
     },
     twitter: {
+      ...DEFAULT_TWITTER,
       title: `${feature.title} | Tenaciti`,
       description: feature.description,
     },

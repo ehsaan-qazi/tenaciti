@@ -3,6 +3,7 @@ import { Sora, Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../lib/metadata';
 
 const sora = Sora({
   subsets: ['latin'],
@@ -28,19 +29,10 @@ export const metadata: Metadata = {
     'AI-powered syllabus extraction, knowledge graph notes, and a free HEC 4.0 GPA calculator — the study workspace built for university students.',
   openGraph: {
     siteName: 'Tenaciti',
-    images: [
-      {
-        url: '/tenaciti-og.jpeg',
-        width: 1200,
-        height: 630,
-      },
-    ],
+    images: DEFAULT_OG_IMAGES,
     type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    images: ['/tenaciti-og.jpeg'],
-  },
+  twitter: DEFAULT_TWITTER,
 };
 
 // Sitewide JSON-LD structured data

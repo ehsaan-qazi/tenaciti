@@ -3,6 +3,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { CtaPanel } from '../../components/ui/CtaPanel';
 import { BlogCard } from '../../components/blog/BlogCard';
 import { getAllPosts } from '../../lib/blog-data';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -17,8 +18,10 @@ export const metadata: Metadata = {
     description:
       'Evidence-based study workflows, GPA guides, note-taking methods, and AI productivity tips — written for university students, backed by research.',
     url: 'https://www.tenaciti.app/blog',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'Blog — Guides & Insights for University Students | Tenaciti',
     description:
       'Evidence-based study workflows, GPA guides, note-taking methods, and AI productivity tips.',

@@ -6,6 +6,7 @@ import { HowItWorks } from '../components/home/HowItWorks';
 import { AiShowcase } from '../components/home/AiShowcase';
 import { WhyTenaciti } from '../components/home/WhyTenaciti';
 import { CtaPanel } from '../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -22,8 +23,10 @@ export const metadata: Metadata = {
     description:
       'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
     url: 'https://www.tenaciti.app',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'Tenaciti | AI Study Workspace for University Students',
     description:
       'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',

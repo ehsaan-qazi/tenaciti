@@ -12,6 +12,7 @@ import { TableOfContents } from '../../../components/blog/TableOfContents';
 import { ArticleCallout } from '../../../components/blog/ArticleCallout';
 import { BlogCard } from '../../../components/blog/BlogCard';
 import { CtaPanel } from '../../../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../../lib/metadata';
 import styles from './page.module.css';
 
 /* ---------- Static Params ---------- */
@@ -41,8 +42,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://www.tenaciti.app/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.publishedAt,
+      images: DEFAULT_OG_IMAGES,
     },
     twitter: {
+      ...DEFAULT_TWITTER,
       title: post.metaTitle,
       description: post.metaDescription,
     },

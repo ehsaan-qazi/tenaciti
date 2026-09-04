@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ContactForm } from '../../components/ContactForm';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -13,8 +14,10 @@ export const metadata: Metadata = {
     title: 'Contact Us | Tenaciti',
     description: 'Get in touch with the Tenaciti team — support, feedback, and feature requests.',
     url: 'https://www.tenaciti.app/contact',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'Contact Us | Tenaciti',
     description: 'Get in touch with the Tenaciti team — support, feedback, and feature requests.',
   },

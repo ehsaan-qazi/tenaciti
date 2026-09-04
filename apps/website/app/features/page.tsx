@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CtaPanel } from '../../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -18,8 +19,10 @@ export const metadata: Metadata = {
     description:
       'See how Tenaciti extracts your syllabus into a study roadmap, tracks topic confidence, links notes in a knowledge graph, and calculates your GPA.',
     url: 'https://www.tenaciti.app/features',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'Features | Syllabus AI, Knowledge Graph & GPA Tools',
     description:
       'See how Tenaciti extracts your syllabus into a study roadmap, tracks topic confidence, links notes in a knowledge graph, and calculates your GPA.',

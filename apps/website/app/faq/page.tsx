@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CtaPanel } from '../../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -15,8 +16,10 @@ export const metadata: Metadata = {
     description:
       'Answers on pricing, syllabus extraction, supported file formats, the HEC 4.0 GPA scale, and how Tenaciti protects your data.',
     url: 'https://www.tenaciti.app/faq',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'FAQ | Tenaciti',
     description:
       'Answers on pricing, syllabus extraction, supported file formats, the HEC 4.0 GPA scale, and how Tenaciti protects your data.',

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { CtaPanel } from '../../components/ui/CtaPanel';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../lib/metadata';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -16,8 +17,10 @@ export const metadata: Metadata = {
     description:
       'Tenaciti was built by a student who was tired of losing track of syllabi and deadlines. Here\'s the story, and where the product is headed.',
     url: 'https://www.tenaciti.app/about',
+    images: DEFAULT_OG_IMAGES,
   },
   twitter: {
+    ...DEFAULT_TWITTER,
     title: 'About Us | Tenaciti',
     description:
       'Tenaciti was built by a student who was tired of losing track of syllabi and deadlines. Here\'s the story, and where the product is headed.',

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DEFAULT_OG_IMAGES, DEFAULT_TWITTER } from '../../../lib/metadata';
 import styles from '../legal.module.css';
 
 export const metadata: Metadata = {
@@ -11,6 +12,12 @@ export const metadata: Metadata = {
     title: 'Terms of Service | Tenaciti',
     description: 'Terms of Service for Tenaciti users.',
     url: 'https://www.tenaciti.app/terms',
+    images: DEFAULT_OG_IMAGES,
+  },
+  twitter: {
+    ...DEFAULT_TWITTER,
+    title: 'Terms of Service | Tenaciti',
+    description: 'Terms of Service for Tenaciti users.',
   },
 };
 
