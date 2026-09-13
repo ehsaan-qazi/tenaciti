@@ -11,7 +11,7 @@ import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Tenaciti | AI Study Workspace for University Students',
+    absolute: 'Tenaciti — Your Semester, Managed | AI Study Workspace',
   },
   description:
     'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.tenaciti.app',
   },
   openGraph: {
-    title: 'Tenaciti | AI Study Workspace for University Students',
+    title: 'Tenaciti — Your Semester, Managed | AI Study Workspace',
     description:
       'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
     url: 'https://www.tenaciti.app',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     ...DEFAULT_TWITTER,
-    title: 'Tenaciti | AI Study Workspace for University Students',
+    title: 'Tenaciti — Your Semester, Managed | AI Study Workspace',
     description:
       'Turn any PDF syllabus into a study roadmap, track topic confidence, connect notes in a knowledge graph, and calculate your GPA — free to start.',
   },

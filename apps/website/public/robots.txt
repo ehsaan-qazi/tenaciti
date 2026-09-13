@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+
+User-Agent: bingbot
+Crawl-delay: 1
+
+Sitemap: https://www.tenaciti.app/sitemap.xml

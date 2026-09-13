@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: '%s | Tenaciti',
   },
   description:
-    'AI-powered syllabus extraction, knowledge graph notes, and a free HEC 4.0 GPA calculator — the study workspace built for university students.',
+    'Tenaciti is the AI-powered study workspace for university students. Extract syllabi, track topics, connect notes in a knowledge graph, and calculate your GPA.',
   openGraph: {
     siteName: 'Tenaciti',
     images: DEFAULT_OG_IMAGES,
