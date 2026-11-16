@@ -11,7 +11,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
+  const { loginWithGoogle, loginWithEmail, registerWithEmail, authError, clearAuthError } = useAuth();
+  const displayError = error || authError;
 
   // Form states
   const [email, setEmail] = useState('');
@@ -23,6 +24,8 @@ export default function LoginPage() {
 
   const handleGoogle = async () => {
     try {
+      clearAuthError?.();
+      setError('');
       await loginWithGoogle();
     } catch (err) {
       setError(err.message || 'Google login failed');
@@ -32,6 +35,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading) return;
+    clearAuthError?.();
     setError('');
 
     if (isSignup && password !== confirmPassword) {
@@ -141,7 +145,7 @@ export default function LoginPage() {
               <button 
                 className={`tab ${!isSignup ? 'active' : ''}`} 
                 type="button" 
-                onClick={() => { setError(''); setActiveTab('login'); }}
+                onClick={() => { setError(''); clearAuthError?.(); setActiveTab('login'); }}
                 role="tab" 
                 aria-selected={!isSignup}
               >
@@ -150,7 +154,7 @@ export default function LoginPage() {
               <button 
                 className={`tab ${isSignup ? 'active' : ''}`} 
                 type="button" 
-                onClick={() => { setError(''); setActiveTab('signup'); }}
+                onClick={() => { setError(''); clearAuthError?.(); setActiveTab('signup'); }}
                 role="tab" 
                 aria-selected={isSignup}
               >
@@ -164,7 +168,7 @@ export default function LoginPage() {
               <p>{isSignup ? "Start turning your syllabus into a plan." : "Log in to pick up your roadmap where you left off."}</p>
             </div>
 
-            {error && <div className="error-message">{error}</div>}
+            {displayError && <div className="error-message">{displayError}</div>}
 
             <button className="google-btn" type="button" onClick={handleGoogle}>
               <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -259,7 +263,7 @@ export default function LoginPage() {
 
             <p className="switch-line">
               {isSignup ? 'Already have an account? ' : 'Don\'t have an account? '}
-              <button type="button" onClick={() => { setError(''); setActiveTab(isSignup ? 'login' : 'signup'); }}>
+              <button type="button" onClick={() => { setError(''); clearAuthError?.(); setActiveTab(isSignup ? 'login' : 'signup'); }}>
                 {isSignup ? 'Log in' : 'Sign up'}
               </button>
             </p>

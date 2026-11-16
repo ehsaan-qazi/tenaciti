@@ -471,3 +471,90 @@ class TestAuthRoutes:
         assert ("password must be" in detail_str or
                 "at least 8 characters" in detail_str or
                 "string_too_short" in detail_str)
+
+
+class TestSupabaseAuthLinking:
+    """Tests for Supabase OAuth account linking in auth middleware."""
+
+    @pytest.mark.asyncio
+    async def test_supabase_oauth_links_existing_email_user(self, db_session):
+        """Test that Google OAuth links to an existing email/password account instead of failing."""
+        from unittest.mock import patch, MagicMock
+        from fastapi.security import HTTPAuthorizationCredentials
+        from app.models.user import User
+        from app.middleware.auth import get_current_user
+
+        # Create an existing local user (registered with password, supabase_uid is None)
+        existing_user = User(
+            email="link_test@example.com",
+            full_name="Local User",
+            hashed_password="hashed_pw_dummy",
+            supabase_uid=None,
+            is_email_verified=False,
+            plan="free",
+        )
+        db_session.add(existing_user)
+        await db_session.commit()
+
+        mock_payload = {
+            "sub": "supabase-oauth-uuid-12345",
+            "email": "link_test@example.com",
+            "user_metadata": {
+                "full_name": "Google User",
+                "avatar_url": "https://example.com/avatar.png"
+            }
+        }
+
+        mock_key = MagicMock()
+        mock_key.key = "dummy_key"
+
+        with patch("app.middleware.auth.jwks_client") as mock_jwks, \
+             patch("jwt.decode", return_value=mock_payload), \
+             patch("jwt.get_unverified_header", return_value={"alg": "ES256", "kid": "key-id"}):
+            mock_jwks.get_signing_key_from_jwt.return_value = mock_key
+
+            creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="dummy.supabase.token")
+            resolved_user = await get_current_user(credentials=creds, db=db_session)
+
+            assert resolved_user is not None
+            assert resolved_user.id == existing_user.id
+            assert resolved_user.email == "link_test@example.com"
+            assert resolved_user.supabase_uid == "supabase-oauth-uuid-12345"
+            assert resolved_user.is_email_verified is True
+            # Should have filled in missing avatar
+            assert resolved_user.avatar_url == "https://example.com/avatar.png"
+
+    @pytest.mark.asyncio
+    async def test_supabase_oauth_creates_new_user(self, db_session):
+        """Test that Google OAuth auto-creates a new user when no account exists."""
+        from unittest.mock import patch, MagicMock
+        from fastapi.security import HTTPAuthorizationCredentials
+        from app.middleware.auth import get_current_user
+
+        mock_payload = {
+            "sub": "brand-new-uuid-99999",
+            "email": "brand_new@example.com",
+            "user_metadata": {
+                "full_name": "New Google User",
+                "avatar_url": "https://example.com/new.png"
+            }
+        }
+
+        mock_key = MagicMock()
+        mock_key.key = "dummy_key"
+
+        with patch("app.middleware.auth.jwks_client") as mock_jwks, \
+             patch("jwt.decode", return_value=mock_payload), \
+             patch("jwt.get_unverified_header", return_value={"alg": "ES256", "kid": "key-id"}):
+            mock_jwks.get_signing_key_from_jwt.return_value = mock_key
+
+            creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="dummy.supabase.token")
+            resolved_user = await get_current_user(credentials=creds, db=db_session)
+
+            assert resolved_user is not None
+            assert resolved_user.email == "brand_new@example.com"
+            assert resolved_user.supabase_uid == "brand-new-uuid-99999"
+            assert resolved_user.full_name == "New Google User"
+            assert resolved_user.avatar_url == "https://example.com/new.png"
+            assert resolved_user.is_email_verified is True
+            assert resolved_user.plan == "free"

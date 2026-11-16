@@ -10,15 +10,21 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null) // Supabase session (for Google OAuth)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState(null)
 
   const fetchUserProfile = async (token = null) => {
     try {
       const options = typeof token === 'string' ? { token } : {}
       const userData = await apiFetch('/auth/me', options)
       setUser(userData)
+      setAuthError(null)
     } catch (err) {
       console.error('Error fetching user profile:', err)
       setUser(null)
+      const msg = (err.message === 'Failed to fetch' || err.name === 'TypeError')
+        ? 'Cannot reach the backend server. Please check that the backend is running.'
+        : (err.message || 'Authentication failed. Please try again.')
+      setAuthError(msg)
     } finally {
       // Always stop loading — even if the backend is unreachable
       setLoading(false)
@@ -190,6 +196,8 @@ export function AuthProvider({ children }) {
     session,           // Supabase session (Google OAuth)
     user,
     loading,
+    authError,
+    clearAuthError: () => setAuthError(null),
     loginWithGoogle,
     loginWithEmail,
     registerWithEmail,

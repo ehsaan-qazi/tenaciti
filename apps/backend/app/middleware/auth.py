@@ -152,20 +152,38 @@ async def get_current_user(
     )
     user = result.scalar_one_or_none()
 
-    # Auto-create user on first login (sync from Supabase auth)
+    # If not found by Supabase UID, check if user exists by email (account linking)
     if user is None:
-        user = User(
-            supabase_uid=supabase_uid,
-            email=email,
-            full_name=full_name,
-            avatar_url=avatar_url,
-            plan="free",
-            # Google OAuth users have their email verified by Supabase
-            is_email_verified=True,
+        result = await db.execute(
+            select(User).where(User.email == email)
         )
-        db.add(user)
-        await db.flush()  # get the ID assigned
-        await db.refresh(user)
+        user = result.scalar_one_or_none()
+
+        if user is not None:
+            # Link existing local account to this Supabase OAuth identity
+            user.supabase_uid = supabase_uid
+            # Google OAuth users have their email verified by Google
+            user.is_email_verified = True
+            if full_name and not user.full_name:
+                user.full_name = full_name
+            if avatar_url and not user.avatar_url:
+                user.avatar_url = avatar_url
+            await db.flush()
+            await db.refresh(user)
+        else:
+            # Auto-create user on first login (sync from Supabase auth)
+            user = User(
+                supabase_uid=supabase_uid,
+                email=email,
+                full_name=full_name,
+                avatar_url=avatar_url,
+                plan="free",
+                # Google OAuth users have their email verified by Supabase
+                is_email_verified=True,
+            )
+            db.add(user)
+            await db.flush()  # get the ID assigned
+            await db.refresh(user)
 
     # Update profile fields if they changed (e.g., user updated Google profile)
     else:
